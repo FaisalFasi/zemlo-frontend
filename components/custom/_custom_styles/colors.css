@@ -1,0 +1,166 @@
+:root {
+  /* Primary Colors (Grayscale/Black tones) */
+  --primary-100: #a5a5a5;
+  --primary-200: #7d7d7d;
+  --primary-300: #6b6b6b;
+  --primary-400: #545454;
+  --primary-500: #1a1a1a;
+  --primary-600: #0f0f0f;
+  --primary-700: #0a0a0a;
+  --primary-800: #050505;
+  --primary-900: #000000;
+  --primary-90: #2b2b2b;
+  --primary-80: #4d4d4d;
+  --primary-20: #cccccc;
+  --primary-10: #e5e5e5;
+  --primary-5: #f2f2f2;
+
+  /* Secondary Colors (Green tones) */
+  --secondary-100: #d4e89e;
+  --secondary-200: #c2e071;
+  --secondary-300: #aed748;
+  --secondary-400: #9dd129;
+  --secondary-500: #8bc220;
+  --secondary-600: #72a013;
+  --secondary-700: #5f850f;
+  --secondary-800: #4a6508;
+  --secondary-900: #3a4f03;
+  --secondary-90: #9fd139;
+  --secondary-80: #b1dc58;
+  --secondary-20: #e3f3c4;
+  --secondary-10: #f1f9e1;
+  --secondary-5: #f8fcf0;
+
+  /* Tertiary Colors (Pink/Magenta tones) */
+  --tertiary-100: #e8a8d8;
+  --tertiary-200: #df72c8;
+  --tertiary-300: #d840b8;
+  --tertiary-400: #d10ea8;
+  --tertiary-500: #b5009a;
+  --tertiary-600: #95007f;
+  --tertiary-700: #7a0068;
+  --tertiary-800: #5f0051;
+  --tertiary-900: #46003d;
+  --tertiary-90: #c221a8;
+  --tertiary-80: #ce42b8;
+  --tertiary-20: #eec4e6;
+  --tertiary-10: #f6e1f2;
+  --tertiary-5: #fbf0f9;
+
+  /* Dark Colors */
+  --dark-500: #0a0a0a;
+  --dark-90: #262626;
+  --dark-80: #404040;
+  --dark-20: #cfcfcf;
+  --dark-10: #e7e7e7;
+  --dark-5: #f3f3f3;
+
+  /* Gray Colors */
+  --gray-500: #9999a1;
+  --gray-90: #a6a6ad;
+  --gray-80: #b3b3b9;
+  --gray-20: #e0e0e2;
+  --gray-10: #efeff0;
+  --gray-5: #f7f7f8;
+
+  /* Light Colors */
+  --light-500: #d9e5e5;
+  --light-90: #dfe9e9;
+  --light-80: #e5eded;
+  --light-20: #f5f8f8;
+  --light-10: #fafcfc;
+  --light-5: #fcfdfd;
+
+  /* White Colors */
+  --white-500: #ffffff;
+
+  /* Color Options */
+  --color-option-1: #1db887;
+  --color-option-2: #1dbbd4;
+  --color-option-3: #6929c4;
+  --color-option-4: #1d5fc4;
+}
+
+/* Tailwind Color Theme Integration */
+@theme inline {
+  /* Primary Shades */
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-300: var(--primary-300);
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  --color-primary-700: var(--primary-700);
+  --color-primary-800: var(--primary-800);
+  --color-primary-900: var(--primary-900);
+  --color-primary-90: var(--primary-90);
+  --color-primary-80: var(--primary-80);
+  --color-primary-20: var(--primary-20);
+  --color-primary-10: var(--primary-10);
+  --color-primary-5: var(--primary-5);
+
+  /* Secondary Shades */
+  --color-secondary-100: var(--secondary-100);
+  --color-secondary-200: var(--secondary-200);
+  --color-secondary-300: var(--secondary-300);
+  --color-secondary-400: var(--secondary-400);
+  --color-secondary-500: var(--secondary-500);
+  --color-secondary-600: var(--secondary-600);
+  --color-secondary-700: var(--secondary-700);
+  --color-secondary-800: var(--secondary-800);
+  --color-secondary-900: var(--secondary-900);
+  --color-secondary-90: var(--secondary-90);
+  --color-secondary-80: var(--secondary-80);
+  --color-secondary-20: var(--secondary-20);
+  --color-secondary-10: var(--secondary-10);
+  --color-secondary-5: var(--secondary-5);
+
+  /* Tertiary Shades */
+  --color-tertiary-100: var(--tertiary-100);
+  --color-tertiary-200: var(--tertiary-200);
+  --color-tertiary-300: var(--tertiary-300);
+  --color-tertiary-400: var(--tertiary-400);
+  --color-tertiary-500: var(--tertiary-500);
+  --color-tertiary-600: var(--tertiary-600);
+  --color-tertiary-700: var(--tertiary-700);
+  --color-tertiary-800: var(--tertiary-800);
+  --color-tertiary-900: var(--tertiary-900);
+  --color-tertiary-90: var(--tertiary-90);
+  --color-tertiary-80: var(--tertiary-80);
+  --color-tertiary-20: var(--tertiary-20);
+  --color-tertiary-10: var(--tertiary-10);
+  --color-tertiary-5: var(--tertiary-5);
+
+  /* Dark Shades */
+  --color-dark-500: var(--dark-500);
+  --color-dark-90: var(--dark-90);
+  --color-dark-80: var(--dark-80);
+  --color-dark-20: var(--dark-20);
+  --color-dark-10: var(--dark-10);
+  --color-dark-5: var(--dark-5);
+
+  /* Gray Shades */
+  --color-gray-500: var(--gray-500);
+  --color-gray-90: var(--gray-90);
+  --color-gray-80: var(--gray-80);
+  --color-gray-20: var(--gray-20);
+  --color-gray-10: var(--gray-10);
+  --color-gray-5: var(--gray-5);
+
+  /* Light Shades */
+  --color-light-500: var(--light-500);
+  --color-light-90: var(--light-90);
+  --color-light-80: var(--light-80);
+  --color-light-20: var(--light-20);
+  --color-light-10: var(--light-10);
+  --color-light-5: var(--light-5);
+
+  /* White */
+  --color-white-500: var(--white-500);
+
+  /* Color Options */
+  --color-option-1: var(--color-option-1);
+  --color-option-2: var(--color-option-2);
+  --color-option-3: var(--color-option-3);
+  --color-option-4: var(--color-option-4);
+}
