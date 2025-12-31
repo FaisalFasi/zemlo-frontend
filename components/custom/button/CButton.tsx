@@ -1,7 +1,6 @@
 import { Button as ShadcnButton } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { LeafIcon, Loader2 } from "lucide-react";
-import Image, { StaticImageData } from "next/image";
+import { Loader2 } from "lucide-react";
 import React from "react";
 
 type ButtonProps = React.ComponentProps<typeof ShadcnButton>;
@@ -21,7 +20,6 @@ export const CButton = ({
   loadingText = "Loading ...!",
   leftIcon,
   rightIcon,
-  disabled,
   hoverAffect = true,
   ...props
 }: CButtonProps) => {

@@ -1,6 +1,6 @@
 import { CButton } from "@/components/custom/button/CButton";
 import { CInput } from "@/components/custom/input/CInput";
-import { ArrowLeft, MoveLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 
 const ForgotPassword = () => {

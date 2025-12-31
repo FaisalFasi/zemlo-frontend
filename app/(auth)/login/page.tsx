@@ -41,7 +41,7 @@ const Login = () => {
               <CInput type="checkbox" label=" Remember Me" />
               <span className=""> Forgot Password</span>
             </div>
-            <CButton children="Login" />
+            <CButton>Login</CButton>
           </form>
         </div>
       </div>

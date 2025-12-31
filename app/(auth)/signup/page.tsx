@@ -58,7 +58,7 @@ const Signup = () => {
                 </span>
               </div>
             </div>
-            <CButton children="Login" />
+            <CButton>Signup </CButton>
           </form>
         </div>
       </div>

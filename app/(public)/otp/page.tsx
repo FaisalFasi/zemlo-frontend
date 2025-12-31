@@ -1,6 +1,5 @@
 "use client";
 import { CButton } from "@/components/custom/button/CButton";
-import { CInput } from "@/components/custom/input/CInput";
 import { InputOTPPattern } from "@/components/custom/otp/otp";
 import { ArrowLeft, MoveLeft } from "lucide-react";
 import Image from "next/image";
