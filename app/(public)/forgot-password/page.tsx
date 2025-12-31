@@ -9,7 +9,7 @@ const ForgotPassword = () => {
       <div className="relative hidden md:block">
         <Image
           src={"/images/auth/forgot-password.png"}
-          alt="otp"
+          alt="forgot-password"
           fill
           className="object-cover"
         />
