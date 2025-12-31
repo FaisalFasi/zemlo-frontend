@@ -11,6 +11,7 @@ type CButtonProps = ButtonProps & {
   loadingText?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  hoverAffect?: boolean;
 };
 
 export const CButton = ({
@@ -21,12 +22,15 @@ export const CButton = ({
   leftIcon,
   rightIcon,
   disabled,
+  hoverAffect = true,
   ...props
 }: CButtonProps) => {
   return (
     <ShadcnButton
       className={cn(
-        "w-full transition-all duration-200 hover:cursor-pointer hover:bg-[#2e2b2b] focus:bg-[#3e3e3e]",
+        `w-full max-w-111.25 h-14 transition-all duration-200 hover:cursor-pointer ${
+          hoverAffect && " hover:bg-[#2e2b2b] focus:bg-[#3e3e3e]"
+        } `,
         className
       )}
       variant={"default"}
@@ -38,7 +42,7 @@ export const CButton = ({
           <span>{loadingText}</span>
         </>
       ) : (
-        <div className="flex gap-4">
+        <div className="flex gap-2 justify-center items-center">
           {leftIcon && <span>{leftIcon}</span>}
           <>{children}</>
           {rightIcon && <span>{rightIcon}</span>}

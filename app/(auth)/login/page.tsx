@@ -4,10 +4,10 @@ import Image from "next/image";
 
 const Login = () => {
   return (
-    <div className="w-full h-screen grid grid-cols-1 md:grid-cols-2">
+    <div className="w-full h-full min-h-screen grid grid-cols-1 md:grid-cols-2 ">
       <div className="relative h-screen hidden md:block">
         <Image
-          src={"/images/login/login.png"}
+          src={"/images/auth/login.png"}
           alt="Login Image"
           fill
           className="object-cover "

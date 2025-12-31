@@ -4,10 +4,10 @@ import Image from "next/image";
 
 const Signup = () => {
   return (
-    <div className="w-full h-screen grid grid-cols-1 md:grid-cols-2">
+    <div className="w-full h-full min-h-screen grid grid-cols-1 md:grid-cols-2">
       <div className="relative h-screen hidden md:block">
         <Image
-          src={"/images/signup/signup.png"}
+          src={"/images/auth/signup.png"}
           alt="Login Image"
           fill
           className="object-cover "
@@ -20,7 +20,7 @@ const Signup = () => {
           <h2>Create New Account</h2>
           <p>Please enter details</p>
         </div>
-        <div className=" w-full max-w-100 md:max-w-111">
+        <div className="w-full max-w-100 md:max-w-111">
           <form
             action=""
             className="w-full flex flex-col gap-4   md:max-w-full lg:max-w-111 "

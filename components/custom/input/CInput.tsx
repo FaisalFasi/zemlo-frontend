@@ -43,7 +43,7 @@ export const CInput = ({
         </>
       ) : (
         <div className="flex gap-4 items-middle">
-          <Checkbox className={cn("w-5 h-5 hover:cursor-pointer", className)} />
+          <Checkbox className={cn("w-4 h-4 hover:cursor-pointer", className)} />
           {label && (
             <label className="text-sm md:text-[1rem] mb-0.5" htmlFor={id}>
               {label}
