@@ -6,29 +6,33 @@ import React from "react";
 type ButtonProps = React.ComponentProps<typeof ShadcnButton>;
 
 type CButtonProps = ButtonProps & {
+  type?: string;
   isLoading?: boolean;
   loadingText?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   hoverAffect?: boolean;
+  btnSmall?: boolean;
 };
 
 export const CButton = ({
+  type = "button",
   className,
   children,
   isLoading,
   loadingText = "Loading ...!",
   leftIcon,
   rightIcon,
-  hoverAffect = true,
+  hoverAffect = false,
+  btnSmall = false,
   ...props
 }: CButtonProps) => {
   return (
     <ShadcnButton
       className={cn(
-        `w-full max-w-111.25 h-14 transition-all duration-200 hover:cursor-pointer ${
+        `transition-all duration-200 hover:cursor-pointer ${
           hoverAffect && " hover:bg-[#2e2b2b] focus:bg-[#3e3e3e]"
-        } `,
+        }   ${btnSmall ? "w-fit h-fit p-0" : "w-fit h-full max-w-111.25 "} `,
         className
       )}
       variant={"default"}
@@ -39,12 +43,24 @@ export const CButton = ({
           <Loader2 className="h-4 w-4 animate-spin" />
           <span>{loadingText}</span>
         </>
+      ) : btnSmall ? (
+        <>
+          {children && (
+            <span className="w-fit h-fit p-0 hover:bg-none hover:text-primary-300">
+              {children}
+            </span>
+          )}
+        </>
       ) : (
-        <div className="flex gap-2 justify-center items-center">
+        <>
           {leftIcon && <span>{leftIcon}</span>}
-          <>{children}</>
+          {children && (
+            <span className="w-full h-full flex items-center justify-center">
+              {children}
+            </span>
+          )}
           {rightIcon && <span>{rightIcon}</span>}
-        </div>
+        </>
       )}
     </ShadcnButton>
   );

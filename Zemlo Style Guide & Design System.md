@@ -34,10 +34,18 @@ This document outlines the design system, typography, colors, and components use
 
 ```css
 /* Blue Scale - Primary Brand Color */
---primary-50:  #eff6ff
---primary-100: #dbeafe
---primary-500: #3b82f6
---primary-600: #2563eb  /* Main primary */
---primary-700: #1d4ed8
---primary-900: #1e3a8a
+--primary-100: #a5a5a5;
+--primary-200: #7d7d7d;
+--primary-300: #6b6b6b; // hover
+--primary-400: #545454; //
+--primary-500: #1a1a1a;
+--primary-600: #0f0f0f; // text
+--primary-700: #0a0a0a;
+--primary-800: #050505;
+--primary-900: #000000;
+--primary-90: #2b2b2b;
+--primary-80: #4d4d4d;
+--primary-20: #cccccc;
+--primary-10: #e5e5e5;
+--primary-5: #f2f2f2;
 ```
