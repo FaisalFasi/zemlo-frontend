@@ -46,7 +46,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <>
-          <div className="w-full h-full fixed top-0 z-50">
+          <div className="fixed top-0 z-50">
             <Navbar />
           </div>
           <div className="pt-30 ">{children}</div>
