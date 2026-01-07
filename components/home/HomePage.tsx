@@ -1,11 +1,11 @@
 import { CContainer } from "../custom/container/CContainer";
 import { HeroCarousel } from "./HeroCarousel";
-
+import { heroCarouselData } from "./heroCarouselData";
 const HomePage = () => {
   return (
     <CContainer>
       <div className="flex">
-        <HeroCarousel />
+        <HeroCarousel slidesData={heroCarouselData} />
       </div>
     </CContainer>
   );

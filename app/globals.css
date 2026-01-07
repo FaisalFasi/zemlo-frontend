@@ -168,7 +168,7 @@
       font-family: var(--font-jost), system-ui, sans-serif;
       font-size: 1rem; /* text-base */
       font-weight: 400;
-      margin-bottom: 1em;
+      /* margin-bottom: 1em; */
       color: #a4a1aa; /* text-gray-300 */
     }
     label {
