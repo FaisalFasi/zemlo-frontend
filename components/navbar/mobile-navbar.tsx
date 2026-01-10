@@ -1,5 +1,5 @@
 "use client";
-import { Menu, TextAlignJustify } from "lucide-react";
+import { TextAlignJustify } from "lucide-react";
 import { SidebarProvider, useSidebar } from "../ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
 import { cn } from "@/lib/utils";

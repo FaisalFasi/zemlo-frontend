@@ -1,12 +1,4 @@
-import {
-  BookA,
-  BookOpen,
-  Home,
-  ShoppingBasket,
-  Contact,
-  X,
-  Menu,
-} from "lucide-react";
+import { BookA, BookOpen, Home, ShoppingBasket, Contact } from "lucide-react";
 
 export const menuItems = [
   {

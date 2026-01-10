@@ -1,5 +1,5 @@
 "use client";
-import React, { lazy, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { CButton } from "../custom/button/CButton";
@@ -7,13 +7,13 @@ import { SlidesItemProps } from "./heroCarouselData";
 
 type HeroCarouselProps = { slidesData: SlidesItemProps[] };
 
-export const HeroCarousel = React.memo(({ slidesData }: HeroCarouselProps) => {
+const HeroCarouselComponent = ({ slidesData }: HeroCarouselProps) => {
   const [current, setCurrent] = useState<number>(0);
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const imagesLength = slidesData?.length;
-  let slide = slidesData[current];
+  const slide = slidesData[current];
 
   const nextSlide = () => {
     stopAutoPlay();
@@ -24,19 +24,20 @@ export const HeroCarousel = React.memo(({ slidesData }: HeroCarouselProps) => {
     stopAutoPlay();
     setCurrent((prev) => (prev - 1 + imagesLength) % imagesLength);
   };
-  const startAutoPlay = () => {
+
+  const startAutoPlay = useCallback(() => {
     if (intervalRef.current) return;
     intervalRef.current = setInterval(() => {
       setCurrent((prev) => (prev + 1) % imagesLength);
     }, 3000);
-  };
+  }, [imagesLength]);
 
-  const stopAutoPlay = () => {
+  const stopAutoPlay = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!imagesLength || isHovered) {
@@ -45,7 +46,7 @@ export const HeroCarousel = React.memo(({ slidesData }: HeroCarouselProps) => {
     }
     startAutoPlay();
     return () => stopAutoPlay(); // 🔥 cleanup
-  }, [imagesLength, isHovered]);
+  }, [imagesLength, isHovered, startAutoPlay, stopAutoPlay]);
 
   return (
     <div className=" w-full h-full lg:h-full flex flex-col gap-4 lg:gap-20 lg:flex-row lg:justify-between lg:items-center lg:align-middle z-10 ">
@@ -104,4 +105,8 @@ export const HeroCarousel = React.memo(({ slidesData }: HeroCarouselProps) => {
       </div>
     </div>
   );
-});
+};
+
+HeroCarouselComponent.displayName = "HeroCarousel";
+
+export const HeroCarousel = React.memo(HeroCarouselComponent);

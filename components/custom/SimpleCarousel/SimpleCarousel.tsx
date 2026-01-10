@@ -8,14 +8,15 @@ import {
   Mousewheel,
 } from "swiper/modules";
 import "swiper/css/bundle";
+import { SwiperClass } from "swiper/react";
 
 import CCard from "../card/CCard";
-import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
+import { Swiper, SwiperSlide } from "swiper/react";
 import { CButton } from "../button/CButton";
 import { MoveLeft, MoveRight } from "lucide-react";
 
 const CCraousel = () => {
-  const [swiper, setSwiper] = useState<any>(null);
+  const [swiper, setSwiper] = useState<SwiperClass>();
   const slides = Array.from({ length: 10 }).map(
     (el, index) => `Slide ${index + 1}`
   );

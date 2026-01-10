@@ -1,8 +1,7 @@
 import Image from "next/image";
 import { CButton } from "../button/CButton";
-type CCardProps = {};
 
-const CCard = (props: CCardProps) => {
+const CCard = () => {
   return (
     <div className="max-h-full h-full w-50 md:w-75">
       <div className="relative w-50 h-50 md:w-75 md:h-75 rounded-2xl">

@@ -1,7 +1,5 @@
 import BrandSlider from "../custom/brandSlider/BrandSlider";
-import CCard from "../custom/card/CCard";
 import CCraousel from "../custom/SimpleCarousel/SimpleCarousel";
-
 import { CContainer } from "../custom/container/CContainer";
 import { HeroCarousel } from "./HeroCarousel";
 import { heroCarouselData } from "./heroCarouselData";
