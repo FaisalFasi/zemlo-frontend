@@ -52,25 +52,23 @@ const HeroCarouselComponent = ({ slidesData }: HeroCarouselProps) => {
     <div className=" w-full h-full lg:h-full flex flex-col gap-4 lg:gap-20 lg:flex-row lg:justify-between lg:items-center lg:align-middle z-10 ">
       <div className="w-full h-full min-h-full flex flex-col justify-center p-4">
         <p className="text-black text-lg">{slide?.category}</p>
-        <h1 className="font-bold">{slide?.title}</h1>
+        <h1 className="text-2xl md:text-4xl font-bold">{slide?.title}</h1>
         <p className="text-black text-md">{slide?.discount}</p>
-        <CButton className="w-fit h-fit my-6">Shop Now</CButton>
+        <CButton className="w-fit h-fit mt-6">Shop Now</CButton>
       </div>
 
       <div
-        className={`ml-8 my-4 md:pl-0 relative min-w-fit lg:w-full  h-80 md:h-100 lg:h-125 xl:h-150 bg-linear-to-l ${slide?.bgColor} rounded-lg  `}
+        className={`ml-8 my-4 md:pl-0 relative min-w-fit lg:w-full  h-60 md:h-60 lg:h-100 xl:h-120 bg-linear-to-l ${slide?.bgColor} rounded-lg  `}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onMouseUp={() => setIsHovered(false)}
-        // onTouchStart={() => setIsHovered(true)}
-        // onTouchEnd={() => setIsHovered(false)}
       >
         <div className="absolute flex flex-row min-w-full min-h-full bottom-4 right-4 overflow-hidden rounded-lg ">
           {slidesData?.map((img, idx) => {
             return (
               <div
                 key={img.id}
-                className={` relative min-w-full lg:w-full  h-80 md:h-100 lg:h-125 xl:h-150 transition-transform ease-in-out duration-500`}
+                className={` relative min-w-full lg:w-full  h-60 md:h-60 lg:h-100 xl:h-120 transition-transform ease-in-out duration-500`}
                 style={{ transform: `translateX(-${current * 100}%)` }}
               >
                 <Image
