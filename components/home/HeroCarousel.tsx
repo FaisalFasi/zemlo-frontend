@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { lazy, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { CButton } from "../custom/button/CButton";
@@ -7,33 +7,49 @@ import { SlidesItemProps } from "./heroCarouselData";
 
 type HeroCarouselProps = { slidesData: SlidesItemProps[] };
 
-export const HeroCarousel = ({ slidesData }: HeroCarouselProps) => {
+export const HeroCarousel = React.memo(({ slidesData }: HeroCarouselProps) => {
   const [current, setCurrent] = useState<number>(0);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const imagesLength = slidesData?.length;
   let slide = slidesData[current];
 
   const nextSlide = () => {
+    stopAutoPlay();
     setCurrent((prev) => (prev + 1) % imagesLength);
   };
 
   const prevSlide = () => {
+    stopAutoPlay();
     setCurrent((prev) => (prev - 1 + imagesLength) % imagesLength);
+  };
+  const startAutoPlay = () => {
+    if (intervalRef.current) return;
+    intervalRef.current = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % imagesLength);
+    }, 3000);
+  };
+
+  const stopAutoPlay = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
   };
 
   useEffect(() => {
-    if (!imagesLength) return;
-
-    const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % imagesLength);
-    }, 2000);
-    console.log(interval);
-
-    return () => clearInterval(interval);
-  }, [imagesLength]);
+    if (!imagesLength || isHovered) {
+      stopAutoPlay();
+      return;
+    }
+    startAutoPlay();
+    return () => stopAutoPlay(); // 🔥 cleanup
+  }, [imagesLength, isHovered]);
 
   return (
-    <div className=" w-full h-full flex flex-col lg:flex-row lg:justify-between lg:align-middle z-10 px-4">
-      <div className="min-h-full flex flex-col justify-center">
+    <div className=" w-full h-full lg:h-full flex flex-col gap-4 lg:gap-20 lg:flex-row lg:justify-between lg:items-center lg:align-middle z-10 ">
+      <div className="w-full h-full min-h-full flex flex-col justify-center p-4">
         <p className="text-black text-lg">{slide?.category}</p>
         <h1 className="font-bold">{slide?.title}</h1>
         <p className="text-black text-md">{slide?.discount}</p>
@@ -41,17 +57,34 @@ export const HeroCarousel = ({ slidesData }: HeroCarouselProps) => {
       </div>
 
       <div
-        className={`overflow-hidden relative max-w-full w-full lg:w-110 xl:w-150 h-80 md:h-100 lg:h-125 xl:h-150 bg-linear-to-l ${slide?.bgColor}  m-4 rounded-xl`}
+        className={`ml-8 my-4 md:pl-0 relative min-w-fit lg:w-full  h-80 md:h-100 lg:h-125 xl:h-150 bg-linear-to-l ${slide?.bgColor} rounded-lg  `}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onMouseUp={() => setIsHovered(false)}
+        // onTouchStart={() => setIsHovered(true)}
+        // onTouchEnd={() => setIsHovered(false)}
       >
-        <div className=" absolute bottom-4 right-4  flex flex-row max-w-full w-full lg:w-110 xl:w-150 h-80 md:h-100 lg:h-125 xl:h-150 transition-transform ease-in-out duration-500">
-          <Image
-            src={slide?.image}
-            alt={slide?.title}
-            className="object-cover rounded-xl "
-            sizes=""
-            fill
-          />
-          <div className="absolute flex w-full justify-between top-[calc(50%-36px)] px-4 ">
+        <div className="absolute flex flex-row min-w-full min-h-full bottom-4 right-4 overflow-hidden rounded-lg ">
+          {slidesData?.map((img, idx) => {
+            return (
+              <div
+                key={img.id}
+                className={` relative min-w-full lg:w-full  h-80 md:h-100 lg:h-125 xl:h-150 transition-transform ease-in-out duration-500`}
+                style={{ transform: `translateX(-${current * 100}%)` }}
+              >
+                <Image
+                  src={img.image}
+                  alt={img.title}
+                  className="object-cover"
+                  fill={true}
+                  priority={current === idx}
+                  sizes="w-auto h-auto"
+                  // loading={idx === 0 ? "eager" : "lazy"}
+                />
+              </div>
+            );
+          })}
+          <div className="absolute flex w-full justify-between top-[calc(50%)] px-4">
             <button
               onClick={prevSlide}
               className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
@@ -71,4 +104,4 @@ export const HeroCarousel = ({ slidesData }: HeroCarouselProps) => {
       </div>
     </div>
   );
-};
+});
