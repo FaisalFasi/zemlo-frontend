@@ -15,7 +15,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { CButton } from "../button/CButton";
 import { MoveLeft, MoveRight } from "lucide-react";
 
-const CCraousel = () => {
+const HorizontalCarousel = () => {
   const [swiper, setSwiper] = useState<SwiperClass>();
   const slides = Array.from({ length: 10 }).map(
     (el, index) => `Slide ${index + 1}`
@@ -23,6 +23,9 @@ const CCraousel = () => {
 
   return (
     <div className="w-full">
+      <div>
+        <h1 className="font-bold  md:text-center">New Arrivals</h1>
+      </div>
       <div className="flex justify-end gap-4 pb-4">
         <CButton onClick={() => swiper?.slidePrev()}>
           <MoveLeft />
@@ -38,10 +41,10 @@ const CCraousel = () => {
         slidesPerGroup={1}
         slidesPerGroupAuto={true}
         slidesPerView={"auto"}
-        mousewheel={{
-          forceToAxis: true, // 👈 horizontal only
-          releaseOnEdges: true, // page scroll allow at ends
-        }}
+        // mousewheel={{
+        //   forceToAxis: true, // 👈 horizontal only
+        //   releaseOnEdges: true, // page scroll allow at ends
+        // }}
       >
         {slides.map((slideContent, index) => (
           <SwiperSlide
@@ -57,4 +60,4 @@ const CCraousel = () => {
   );
 };
 
-export default CCraousel;
+export default HorizontalCarousel;

@@ -21,8 +21,16 @@ const CCard = () => {
           <span>4/5</span>
           <span>**** </span>
         </div>
-        <p className="text-black text-[27px] font-bold">$100</p>
-        <CButton className="bg-yellow-400 text-black rounded-2xl">
+        <div className="w-full flex items-center gap-4 overflow-x-scroll ">
+          <span className="text-black text-[27px] font-bold ">$120</span>
+          <span className="min-w-fit text-xl text-primary-200 line-through">
+            $150
+          </span>
+          <span className="min-w-fit mb-4 text-red-600 bg-red-100 rounded-full text-sm px-2">
+            20%
+          </span>
+        </div>
+        <CButton className="mt-4 bg-yellow-400 text-black rounded-2xl">
           Add to basket
         </CButton>
       </div>

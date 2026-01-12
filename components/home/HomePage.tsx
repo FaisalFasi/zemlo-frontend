@@ -1,5 +1,5 @@
 import BrandSlider from "../custom/brandSlider/BrandSlider";
-import CCraousel from "../custom/SimpleCarousel/SimpleCarousel";
+import HorizontalCarousel from "../custom/HorizontalCarousel/HorizontalCarousel";
 import { CContainer } from "../custom/container/CContainer";
 import { HeroCarousel } from "./HeroCarousel";
 import { heroCarouselData } from "./heroCarouselData";
@@ -11,9 +11,8 @@ const HomePage = () => {
       </CContainer>
       <BrandSlider />
       <CContainer className="px-4 my-10">
-        <CCraousel />
+        <HorizontalCarousel />
       </CContainer>
-      {/* <CCard /> */}
     </>
   );
 };
