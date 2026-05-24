@@ -36,6 +36,7 @@ export const CButton = ({
         className
       )}
       variant={"default"}
+      type={type}
       {...props}
     >
       {isLoading ? (

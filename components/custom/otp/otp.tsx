@@ -1,14 +1,11 @@
 "use client";
 
-import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
-
 import {
   InputOTP,
   InputOTPGroup,
-  InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { useState } from "react";
+
 type InputOTPProps = {
   value: string;
   setValue: (value: string) => void;

@@ -1,10 +1,8 @@
 import BrandSlider from "../custom/brandSlider/BrandSlider";
-import CCard from "../custom/card/CCard";
-import CCraousel from "../custom/SimpleCarousel/SimpleCarousel";
-
+import HorizontalCarousel from "../custom/horizontal-carousel/HorizontalCarousel";
 import { CContainer } from "../custom/container/CContainer";
-import { HeroCarousel } from "./HeroCarousel";
-import { heroCarouselData } from "./heroCarouselData";
+import { HeroCarousel } from "./hero/HeroCarousel";
+import { heroCarouselData } from "./hero/heroCarouselData";
 const HomePage = () => {
   return (
     <>
@@ -13,9 +11,8 @@ const HomePage = () => {
       </CContainer>
       <BrandSlider />
       <CContainer className="px-4 my-10">
-        <CCraousel />
+        <HorizontalCarousel />
       </CContainer>
-      {/* <CCard /> */}
     </>
   );
 };

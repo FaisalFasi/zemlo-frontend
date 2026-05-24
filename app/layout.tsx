@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Jost, Playfair_Display, Poppins } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/navbar/navbar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import Navbar from "@/components/layout/navbar/navbar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -49,7 +48,7 @@ export default function RootLayout({
           <div className="fixed top-0 z-50">
             <Navbar />
           </div>
-          <div className="pt-30 ">{children}</div>
+          <div className="pt-20 ">{children}</div>
         </>
       </body>
     </html>

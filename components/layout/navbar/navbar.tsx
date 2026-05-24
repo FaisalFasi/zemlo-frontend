@@ -2,7 +2,7 @@
 import Image from "next/image";
 import MobileNavbar from "./mobile-navbar";
 import { LogIn, Search, ShoppingCart } from "lucide-react";
-import { CButton } from "../custom/button/CButton";
+import { CButton } from "../../custom/button/CButton";
 import { menuItems } from "./menu-items";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
