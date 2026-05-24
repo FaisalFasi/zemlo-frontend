@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Jost, Playfair_Display, Poppins } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/navbar/navbar";
-
+import Navbar from "@/components/layout/navbar/navbar";
 
 const inter = Inter({
   subsets: ["latin"],
