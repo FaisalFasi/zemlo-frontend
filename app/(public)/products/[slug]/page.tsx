@@ -1,5 +1,6 @@
 import React from "react";
 import { SingleProductCarousel } from "@/components/SingleProductCarousel/SingleProductCarousel";
+
 const ProductPage = () => {
   return (
     <div>

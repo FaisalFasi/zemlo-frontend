@@ -1,8 +1,8 @@
 import BrandSlider from "../custom/brandSlider/BrandSlider";
 import HorizontalCarousel from "../custom/HorizontalCarousel/HorizontalCarousel";
 import { CContainer } from "../custom/container/CContainer";
-import { HeroCarousel } from "./HeroCarousel";
-import { heroCarouselData } from "./heroCarouselData";
+import { HeroCarousel } from "./hero/HeroCarousel";
+import { heroCarouselData } from "./hero/heroCarouselData";
 const HomePage = () => {
   return (
     <>

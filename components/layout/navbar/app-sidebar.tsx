@@ -14,7 +14,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { CButton } from "../custom/button/CButton";
+import { CButton } from "../../custom/button/CButton";
 import { menuItems } from "./menu-items";
 import { X } from "lucide-react";
 
