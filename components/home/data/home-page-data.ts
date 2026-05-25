@@ -28,8 +28,8 @@ export type HomeProduct = {
   image: string;
   price: number;
   compareAtPrice?: number;
-  rating: number;
-  reviewCount: number;
+  rating?: number;
+  reviewCount?: number;
   badge?: string;
 };
 

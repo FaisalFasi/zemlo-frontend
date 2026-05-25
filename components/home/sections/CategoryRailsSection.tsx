@@ -1,10 +1,17 @@
 import HomeProductRail from "../components/HomeProductRail";
-import { categoryRails } from "../data/home-page-data";
 
-export default function CategoryRailsSection() {
+import type { HomeCategoryRail } from "../data/home-page-data";
+
+type CategoryRailsSectionProps = {
+  rails: HomeCategoryRail[];
+};
+
+export default function CategoryRailsSection({
+  rails,
+}: CategoryRailsSectionProps) {
   return (
     <>
-      {categoryRails.map((rail, index) => (
+      {rails.map((rail, index) => (
         <HomeProductRail
           key={rail.id}
           eyebrow={rail.eyebrow}

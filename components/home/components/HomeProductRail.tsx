@@ -1,3 +1,4 @@
+import HomeEmptyProducts from "./HomeEmptyProducts";
 import HomeProductCarousel from "./HomeProductCarousel";
 import HomeSectionHeader from "./HomeSectionHeader";
 
@@ -36,10 +37,14 @@ export default function HomeProductRail({
           eyebrow={eyebrow}
           title={title}
           description={description}
-          action={action}
+          action={products.length > 0 ? action : undefined}
         />
 
-        <HomeProductCarousel products={products} label={title} />
+        {products.length > 0 ? (
+          <HomeProductCarousel products={products} label={title} />
+        ) : (
+          <HomeEmptyProducts />
+        )}
       </div>
     </section>
   );

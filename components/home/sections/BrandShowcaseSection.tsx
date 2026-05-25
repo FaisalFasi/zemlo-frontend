@@ -1,8 +1,15 @@
 import HomeBrandCard from "../components/HomeBrandCard";
 import HomeSectionHeader from "../components/HomeSectionHeader";
-import { featuredBrands } from "../data/home-page-data";
 
-export default function BrandShowcaseSection() {
+import type { HomeBrand } from "../data/home-page-data";
+
+type BrandShowcaseSectionProps = {
+  brands: HomeBrand[];
+};
+
+export default function BrandShowcaseSection({
+  brands,
+}: BrandShowcaseSectionProps) {
   return (
     <section className="section-md bg-surface-muted">
       <div className="container-page">
@@ -17,7 +24,7 @@ export default function BrandShowcaseSection() {
         />
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredBrands.map((brand) => (
+          {brands.map((brand) => (
             <HomeBrandCard key={brand.id} brand={brand} />
           ))}
         </div>

@@ -1,13 +1,20 @@
 import HomeProductRail from "../components/HomeProductRail";
-import { popularProducts } from "../data/home-page-data";
 
-export default function PopularProductsSection() {
+import type { HomeProduct } from "../data/home-page-data";
+
+type PopularProductsSectionProps = {
+  products: HomeProduct[];
+};
+
+export default function PopularProductsSection({
+  products,
+}: PopularProductsSectionProps) {
   return (
     <HomeProductRail
       eyebrow="Customer favorites"
       title="Popular across the marketplace."
       description="A flexible section for best sellers, trending products, recently viewed items, or personalized recommendations."
-      products={popularProducts}
+      products={products}
       action={{
         label: "Explore products",
         href: "/shop",

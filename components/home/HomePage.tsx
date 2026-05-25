@@ -1,40 +1,51 @@
+import {
+  getCatalogBrands,
+  getCatalogCategories,
+  getCatalogProducts,
+} from "@/features/catalog/api/catalog-api";
+
 import BrandShowcaseSection from "./sections/BrandShowcaseSection";
-import CategoryRailsSection from "./sections/CategoryRailSection";
+import CategoryRailsSection from "./sections/CategoryRailsSection";
 import CategoryShortcutSection from "./sections/CategoryShortcutSection";
 import FeaturedDealsSection from "./sections/FeaturedDealsSection";
 import MarketplaceHeroSection from "./sections/MarketplaceHeroSection";
 import PopularProductsSection from "./sections/PopularProductsSection";
 import TrustSection from "./sections/TrustSection";
+import { createHomePageData } from "./lib/home-page-mappers";
 
-export default function HomePage() {
+function shouldUseDemoCatalog() {
+  return process.env.DEMO_CATALOG_ENABLED === "true";
+}
+
+async function getSafeHomePageData() {
+  const [productsResult, categoriesResult, brandsResult] =
+    await Promise.allSettled([
+      getCatalogProducts(),
+      getCatalogCategories(),
+      getCatalogBrands(),
+    ]);
+
+  return createHomePageData({
+    products: productsResult.status === "fulfilled" ? productsResult.value : [],
+    categories:
+      categoriesResult.status === "fulfilled" ? categoriesResult.value : [],
+    brands: brandsResult.status === "fulfilled" ? brandsResult.value : [],
+    useDemoCatalog: shouldUseDemoCatalog(),
+  });
+}
+
+export default async function HomePage() {
+  const homePageData = await getSafeHomePageData();
+
   return (
     <main className="bg-background text-foreground">
       <MarketplaceHeroSection />
       <TrustSection />
-      <CategoryShortcutSection />
-      <FeaturedDealsSection />
-      <PopularProductsSection />
-      <CategoryRailsSection />
-      <BrandShowcaseSection />
+      <CategoryShortcutSection categories={homePageData.categories} />
+      <FeaturedDealsSection products={homePageData.featuredDeals} />
+      <PopularProductsSection products={homePageData.popularProducts} />
+      <CategoryRailsSection rails={homePageData.categoryRails} />
+      <BrandShowcaseSection brands={homePageData.brands} />
     </main>
   );
 }
-// import BrandSlider from "../custom/brandSlider/BrandSlider";
-// import HorizontalCarousel from "../custom/HorizontalCarousel/HorizontalCarousel";
-// import { CContainer } from "../custom/container/CContainer";
-// import { HeroCarousel } from "./HeroCarousel";
-// import { heroCarouselData } from "./heroCarouselData";
-// const HomePage = () => {
-//   return (
-//     <>
-//       <CContainer>
-//         <HeroCarousel slidesData={heroCarouselData} />
-//       </CContainer>
-//       <BrandSlider />
-//       <CContainer className="px-4 my-10">
-//         <HorizontalCarousel />
-//       </CContainer>
-//     </>
-//   );
-// };
-// export default HomePage;

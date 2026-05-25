@@ -19,7 +19,8 @@ function formatPrice(price: number) {
 export default function HomeProductCard({ product }: HomeProductCardProps) {
   const href = `/products/${product.slug}`;
   const hasDiscount =
-    product.compareAtPrice && product.compareAtPrice > product.price;
+    product.compareAtPrice !== undefined &&
+    product.compareAtPrice > product.price;
 
   return (
     <Link href={href} className="group block min-w-0 no-underline">
@@ -45,18 +46,23 @@ export default function HomeProductCard({ product }: HomeProductCardProps) {
             {product.brand}
           </p>
 
-          <div className="flex shrink-0 items-center gap-1 text-sm text-foreground">
-            <Star className="size-3.5 fill-current" />
-            <span>{product.rating.toFixed(1)}</span>
-          </div>
+          {product.rating ? (
+            <div className="flex shrink-0 items-center gap-1 text-sm text-foreground">
+              <Star className="size-3.5 fill-current" />
+              <span>{product.rating.toFixed(1)}</span>
+            </div>
+          ) : null}
         </div>
 
         <h3 className="mt-1 truncate font-medium text-foreground">
           {product.name}
         </h3>
 
-        <p className="mt-1 text-sm text-muted-foreground">
-          {product.category} · {product.reviewCount.toLocaleString()} reviews
+        <p className="mt-1 truncate text-sm text-muted-foreground">
+          {product.category}
+          {product.reviewCount ? (
+            <> · {product.reviewCount.toLocaleString()} reviews</>
+          ) : null}
         </p>
 
         <div className="mt-3 flex items-center gap-2">
@@ -66,7 +72,7 @@ export default function HomeProductCard({ product }: HomeProductCardProps) {
 
           {hasDiscount ? (
             <span className="text-sm text-muted-foreground line-through">
-              {formatPrice(product?.compareAtPrice ?? 0)}
+              {formatPrice(product.compareAtPrice ?? 0)}
             </span>
           ) : null}
         </div>

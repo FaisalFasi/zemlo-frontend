@@ -1,8 +1,15 @@
 import HomeCategoryCard from "../components/HomeCategoryCard";
 import HomeSectionHeader from "../components/HomeSectionHeader";
-import { homeCategories } from "../data/home-page-data";
 
-export default function CategoryShortcutSection() {
+import type { HomeCategory } from "../data/home-page-data";
+
+type CategoryShortcutSectionProps = {
+  categories: HomeCategory[];
+};
+
+export default function CategoryShortcutSection({
+  categories,
+}: CategoryShortcutSectionProps) {
   return (
     <section className="section-md bg-background">
       <div className="container-page">
@@ -17,7 +24,7 @@ export default function CategoryShortcutSection() {
         />
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {homeCategories.map((category) => (
+          {categories.map((category) => (
             <HomeCategoryCard key={category.id} category={category} />
           ))}
         </div>
