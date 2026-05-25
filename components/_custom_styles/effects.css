@@ -1,0 +1,51 @@
+:root {
+  --shadow-soft: 0 18px 60px rgb(17 17 17 / 0.08);
+  --shadow-card: 0 12px 34px rgb(17 17 17 / 0.06);
+  --shadow-header: 0 1px 0 rgb(17 17 17 / 0.08);
+
+  --ease-zemlo: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer utilities {
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-header {
+    box-shadow: var(--shadow-header);
+  }
+
+  .transition-zemlo {
+    transition:
+      background-color 180ms var(--ease-zemlo),
+      border-color 180ms var(--ease-zemlo),
+      color 180ms var(--ease-zemlo),
+      opacity 180ms var(--ease-zemlo),
+      transform 180ms var(--ease-zemlo);
+  }
+
+  .hover-lift {
+    transition: transform 220ms var(--ease-zemlo);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  .focus-ring {
+    outline: none;
+  }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+
+  .image-muted {
+    filter: saturate(0.92) contrast(0.98);
+  }
+}

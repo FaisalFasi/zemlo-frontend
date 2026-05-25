@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Jost, Playfair_Display, Poppins } from "next/font/google";
+import Navbar from "@/components/layout/navbar/navbar";
 import "./globals.css";
-import Navbar from "@/components/navbar/navbar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -45,7 +45,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <>
-          <div className="fixed top-0 z-50">
+          <div className="w-full fixed top-0 z-50">
             <Navbar />
           </div>
           <div className="pt-20 ">{children}</div>

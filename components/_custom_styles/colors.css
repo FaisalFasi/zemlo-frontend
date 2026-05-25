@@ -1,0 +1,400 @@
+:root {
+  /*
+    Zemlo Design System
+    Goal: premium minimal fashion/lifestyle store.
+    Use semantic tokens in components.
+    Keep old shade tokens temporarily for compatibility.
+  */
+
+  /* Primitive brand neutrals */
+  --zm-white: #ffffff;
+  --zm-black: #0f0f0f;
+
+  --zm-cream-50: #fbfaf7;
+  --zm-cream-100: #f6f2eb;
+  --zm-cream-200: #eee7dc;
+
+  --zm-stone-100: #e8e3da;
+  --zm-stone-200: #d6cec0;
+  --zm-stone-300: #b9afa0;
+
+  --zm-ink-100: #77736a;
+  --zm-ink-200: #4f4b45;
+  --zm-ink-300: #292724;
+  --zm-ink-400: #111111;
+
+  --zm-olive: #74745d;
+  --zm-clay: #b38361;
+
+  /*
+    Legacy palette from your existing colors.css.
+    Keep this for now so old components using primary-500, secondary-500,
+    tertiary-500, etc. do not instantly break.
+    We will slowly replace these in components with semantic tokens.
+  */
+
+  /* Primary Colors */
+  --primary-100: #a5a5a5;
+  --primary-200: #7d7d7d;
+  --primary-300: #6b6b6b;
+  --primary-400: #545454;
+  --primary-500: #1a1a1a;
+  --primary-600: #0f0f0f;
+  --primary-700: #0a0a0a;
+  --primary-800: #050505;
+  --primary-900: #000000;
+  --primary-90: #2b2b2b;
+  --primary-80: #4d4d4d;
+  --primary-20: #cccccc;
+  --primary-10: #e5e5e5;
+  --primary-5: #f2f2f2;
+
+  /* Secondary Colors */
+  --secondary-100: #d4e89e;
+  --secondary-200: #c2e071;
+  --secondary-300: #aed748;
+  --secondary-400: #9dd129;
+  --secondary-500: #8bc220;
+  --secondary-600: #72a013;
+  --secondary-700: #5f850f;
+  --secondary-800: #4a6508;
+  --secondary-900: #3a4f03;
+  --secondary-90: #9fd139;
+  --secondary-80: #b1dc58;
+  --secondary-20: #e3f3c4;
+  --secondary-10: #f1f9e1;
+  --secondary-5: #f8fcf0;
+
+  /* Tertiary Colors */
+  --tertiary-100: #e8a8d8;
+  --tertiary-200: #df72c8;
+  --tertiary-300: #d840b8;
+  --tertiary-400: #d10ea8;
+  --tertiary-500: #b5009a;
+  --tertiary-600: #95007f;
+  --tertiary-700: #7a0068;
+  --tertiary-800: #5f0051;
+  --tertiary-900: #46003d;
+  --tertiary-90: #c221a8;
+  --tertiary-80: #ce42b8;
+  --tertiary-20: #eec4e6;
+  --tertiary-10: #f6e1f2;
+  --tertiary-5: #fbf0f9;
+
+  /* Neutral legacy tokens */
+  --dark-500: #0a0a0a;
+  --dark-90: #262626;
+  --dark-80: #404040;
+  --dark-20: #cfcfcf;
+  --dark-10: #e7e7e7;
+  --dark-5: #f3f3f3;
+
+  --gray-500: #9999a1;
+  --gray-90: #a6a6ad;
+  --gray-80: #b3b3b9;
+  --gray-20: #e0e0e2;
+  --gray-10: #efeff0;
+  --gray-5: #f7f7f8;
+
+  --light-500: #d9e5e5;
+  --light-90: #dfe9e9;
+  --light-80: #e5eded;
+  --light-20: #f5f8f8;
+  --light-10: #fafcfc;
+  --light-5: #fcfdfd;
+
+  --white-500: #ffffff;
+
+  --color-option-1: #1db887;
+  --color-option-2: #1dbbd4;
+  --color-option-3: #6929c4;
+  --color-option-4: #1d5fc4;
+
+  /*
+    Semantic tokens.
+    These are the tokens we should use in real UI from now on.
+  */
+
+  --radius: 0.625rem;
+
+  --background: var(--zm-cream-50);
+  --foreground: var(--zm-ink-400);
+
+  --card: var(--zm-white);
+  --card-foreground: var(--zm-ink-400);
+
+  --popover: var(--zm-white);
+  --popover-foreground: var(--zm-ink-400);
+
+  --primary: var(--zm-ink-400);
+  --primary-foreground: var(--zm-white);
+
+  --secondary: var(--zm-cream-100);
+  --secondary-foreground: var(--zm-ink-400);
+
+  --muted: var(--zm-cream-100);
+  --muted-foreground: var(--zm-ink-100);
+
+  --accent: var(--zm-cream-200);
+  --accent-foreground: var(--zm-ink-400);
+
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+
+  --border: var(--zm-stone-100);
+  --input: var(--zm-stone-100);
+  --ring: var(--zm-ink-400);
+
+  /* Zemlo-specific semantic tokens */
+  --surface: var(--zm-white);
+  --surface-foreground: var(--zm-ink-400);
+
+  --surface-muted: var(--zm-cream-100);
+  --surface-muted-foreground: var(--zm-ink-200);
+
+  --surface-inverse: var(--zm-ink-400);
+  --surface-inverse-foreground: var(--zm-white);
+
+  --brand: var(--zm-ink-400);
+  --brand-foreground: var(--zm-white);
+
+  --brand-soft: var(--zm-cream-200);
+  --brand-soft-foreground: var(--zm-ink-400);
+
+  --success: #2f6f4e;
+  --success-foreground: #ffffff;
+  --success-soft: #e8f3ed;
+
+  --warning: #9a6700;
+  --warning-foreground: #ffffff;
+  --warning-soft: #fff4d6;
+
+  --chart-1: #b38361;
+  --chart-2: #74745d;
+  --chart-3: #292724;
+  --chart-4: #d6cec0;
+  --chart-5: #8bc220;
+
+  --sidebar: var(--zm-white);
+  --sidebar-foreground: var(--zm-ink-400);
+  --sidebar-primary: var(--zm-ink-400);
+  --sidebar-primary-foreground: var(--zm-white);
+  --sidebar-accent: var(--zm-cream-100);
+  --sidebar-accent-foreground: var(--zm-ink-400);
+  --sidebar-border: var(--zm-stone-100);
+  --sidebar-ring: var(--zm-ink-400);
+}
+
+.dark {
+  --background: #111111;
+  --foreground: #f8f7f4;
+
+  --card: #181818;
+  --card-foreground: #f8f7f4;
+
+  --popover: #181818;
+  --popover-foreground: #f8f7f4;
+
+  --primary: #f8f7f4;
+  --primary-foreground: #111111;
+
+  --secondary: #242424;
+  --secondary-foreground: #f8f7f4;
+
+  --muted: #242424;
+  --muted-foreground: #b9b3aa;
+
+  --accent: #2d2a26;
+  --accent-foreground: #f8f7f4;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --border: rgb(255 255 255 / 10%);
+  --input: rgb(255 255 255 / 14%);
+  --ring: #d6cec0;
+
+  --surface: #181818;
+  --surface-foreground: #f8f7f4;
+
+  --surface-muted: #242424;
+  --surface-muted-foreground: #b9b3aa;
+
+  --surface-inverse: #f8f7f4;
+  --surface-inverse-foreground: #111111;
+
+  --brand: #f8f7f4;
+  --brand-foreground: #111111;
+
+  --brand-soft: #2d2a26;
+  --brand-soft-foreground: #f8f7f4;
+
+  --sidebar: #181818;
+  --sidebar-foreground: #f8f7f4;
+  --sidebar-primary: #f8f7f4;
+  --sidebar-primary-foreground: #111111;
+  --sidebar-accent: #242424;
+  --sidebar-accent-foreground: #f8f7f4;
+  --sidebar-border: rgb(255 255 255 / 10%);
+  --sidebar-ring: #d6cec0;
+}
+
+@theme inline {
+  /* Core shadcn-compatible semantic utilities */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Zemlo semantic utilities */
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-muted-foreground: var(--surface-muted-foreground);
+
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-inverse-foreground: var(--surface-inverse-foreground);
+
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-soft-foreground: var(--brand-soft-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+
+  /* Sidebar */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Charts */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  /*
+    Legacy Tailwind utilities.
+    Existing classes like bg-primary-500 still work,
+    but new components should prefer bg-primary.
+  */
+
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-300: var(--primary-300);
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  --color-primary-700: var(--primary-700);
+  --color-primary-800: var(--primary-800);
+  --color-primary-900: var(--primary-900);
+  --color-primary-90: var(--primary-90);
+  --color-primary-80: var(--primary-80);
+  --color-primary-20: var(--primary-20);
+  --color-primary-10: var(--primary-10);
+  --color-primary-5: var(--primary-5);
+
+  --color-secondary-100: var(--secondary-100);
+  --color-secondary-200: var(--secondary-200);
+  --color-secondary-300: var(--secondary-300);
+  --color-secondary-400: var(--secondary-400);
+  --color-secondary-500: var(--secondary-500);
+  --color-secondary-600: var(--secondary-600);
+  --color-secondary-700: var(--secondary-700);
+  --color-secondary-800: var(--secondary-800);
+  --color-secondary-900: var(--secondary-900);
+  --color-secondary-90: var(--secondary-90);
+  --color-secondary-80: var(--secondary-80);
+  --color-secondary-20: var(--secondary-20);
+  --color-secondary-10: var(--secondary-10);
+  --color-secondary-5: var(--secondary-5);
+
+  --color-tertiary-100: var(--tertiary-100);
+  --color-tertiary-200: var(--tertiary-200);
+  --color-tertiary-300: var(--tertiary-300);
+  --color-tertiary-400: var(--tertiary-400);
+  --color-tertiary-500: var(--tertiary-500);
+  --color-tertiary-600: var(--tertiary-600);
+  --color-tertiary-700: var(--tertiary-700);
+  --color-tertiary-800: var(--tertiary-800);
+  --color-tertiary-900: var(--tertiary-900);
+  --color-tertiary-90: var(--tertiary-90);
+  --color-tertiary-80: var(--tertiary-80);
+  --color-tertiary-20: var(--tertiary-20);
+  --color-tertiary-10: var(--tertiary-10);
+  --color-tertiary-5: var(--tertiary-5);
+
+  --color-dark-500: var(--dark-500);
+  --color-dark-90: var(--dark-90);
+  --color-dark-80: var(--dark-80);
+  --color-dark-20: var(--dark-20);
+  --color-dark-10: var(--dark-10);
+  --color-dark-5: var(--dark-5);
+
+  --color-gray-500: var(--gray-500);
+  --color-gray-90: var(--gray-90);
+  --color-gray-80: var(--gray-80);
+  --color-gray-20: var(--gray-20);
+  --color-gray-10: var(--gray-10);
+  --color-gray-5: var(--gray-5);
+
+  --color-light-500: var(--light-500);
+  --color-light-90: var(--light-90);
+  --color-light-80: var(--light-80);
+  --color-light-20: var(--light-20);
+  --color-light-10: var(--light-10);
+  --color-light-5: var(--light-5);
+
+  --color-white-500: var(--white-500);
+
+  --color-option-1: var(--color-option-1);
+  --color-option-2: var(--color-option-2);
+  --color-option-3: var(--color-option-3);
+  --color-option-4: var(--color-option-4);
+}
