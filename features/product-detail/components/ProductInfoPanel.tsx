@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Minus, Plus, ShieldCheck, Truck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { addCartItem } from "@/features/cart/api/cart-api";
 
 import type {
   ProductDetail,
@@ -41,6 +43,9 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
   const [selectedVariantId, setSelectedVariantId] = useState(
     product.variants[0]?.id ?? "",
   );
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [cartMessage, setCartMessage] = useState("");
+  const [cartError, setCartError] = useState("");
 
   const selectedVariant = useMemo(
     () => product.variants.find((variant) => variant.id === selectedVariantId),
@@ -53,6 +58,42 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
   const hasDiscount = compareAtPrice !== undefined && compareAtPrice > price;
 
   const isOutOfStock = stock <= 0;
+  const requiresVariant = product.hasVariants && !selectedVariantId;
+  const canAddToCart =
+    !product.isDemo && !isOutOfStock && !requiresVariant && !isAddingToCart;
+
+  async function handleAddToCart() {
+    setCartMessage("");
+    setCartError("");
+
+    if (product.isDemo) {
+      setCartError("Demo products cannot be added to cart.");
+      return;
+    }
+
+    if (requiresVariant) {
+      setCartError("Please select a variant first.");
+      return;
+    }
+
+    try {
+      setIsAddingToCart(true);
+
+      await addCartItem({
+        productId: product.id,
+        quantity,
+        ...(selectedVariantId ? { variantId: selectedVariantId } : {}),
+      });
+
+      setCartMessage("Added to cart successfully.");
+    } catch (error) {
+      setCartError(
+        error instanceof Error ? error.message : "Could not add item to cart.",
+      );
+    } finally {
+      setIsAddingToCart(false);
+    }
+  }
 
   return (
     <div className="lg:sticky lg:top-[calc(var(--navbar-height)+2rem)]">
@@ -70,7 +111,7 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
 
           {product.isDemo ? (
             <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
-              Demo mode
+              Demo modea
             </span>
           ) : null}
         </div>
@@ -120,7 +161,12 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
             <select
               id="product-variant"
               value={selectedVariantId}
-              onChange={(event) => setSelectedVariantId(event.target.value)}
+              onChange={(event) => {
+                setSelectedVariantId(event.target.value);
+                setQuantity(1);
+                setCartMessage("");
+                setCartError("");
+              }}
               className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm text-foreground outline-none focus:border-foreground"
             >
               {product.variants.map((variant) => (
@@ -154,7 +200,7 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
               onClick={() =>
                 setQuantity((current) => Math.min(stock || 1, current + 1))
               }
-              className="flex size-11 items-center justify-center rounded-full text-foreground hover:bg-muted"
+              className="flex size-11 items-center justify-center rounded-full text-foreground hover:bg-muted disabled:opacity-50"
               aria-label="Increase quantity"
               disabled={isOutOfStock}
             >
@@ -162,20 +208,46 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
             </button>
           </div>
         </div>
-
+        {/* Demo products are for UI preview only. Add real products from backend later to enable cart actions. */}
         <Button
           type="button"
           size="lg"
-          disabled
+          disabled={!canAddToCart}
+          onClick={handleAddToCart}
           className="mt-7 w-full rounded-full"
         >
-          Add to cart
+          {product.isDemo
+            ? "Demo product"
+            : isAddingToCart
+              ? "Adding..."
+              : "Add to cart"}
         </Button>
+        {product.isDemo
+          ? "Demo product"
+          : isAddingToCart
+            ? "Adding..."
+            : "Add to cart"}
+        {cartMessage ? (
+          <div className="mt-4 rounded-2xl bg-success-soft px-4 py-3 text-sm text-success">
+            {cartMessage}{" "}
+            <Link href="/cart" className="font-medium underline">
+              View cart
+            </Link>
+          </div>
+        ) : null}
 
-        <p className="mt-3 text-center text-xs text-muted-foreground">
-          Cart integration is the next step. The product page is ready for the
-          cart API payload.
-        </p>
+        {cartError ? (
+          <div className="mt-4 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">
+            {cartError}
+          </div>
+        ) : null}
+
+        {product.isDemo ? (
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            Demo products are for UI preview only. Add real products from
+            backend later to enable cart actions.
+          </p>
+        ) : null}
 
         <div className="mt-7 grid gap-3 border-t border-border pt-6">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
