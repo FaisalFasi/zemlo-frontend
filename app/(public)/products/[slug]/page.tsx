@@ -13,7 +13,7 @@ type ProductRoutePageProps = {
 };
 
 function shouldUseDemoCatalog() {
-  return process.env.DEMO_CATALOG_ENABLED === "true";
+  return process.env.NEXT_DEMO_CATALOG_ENABLED === "true";
 }
 
 async function getSafeProductDetail(slug: string) {

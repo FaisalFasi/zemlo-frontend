@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, Jost, Playfair_Display, Poppins } from "next/font/google";
-import Navbar from "@/components/layout/navbar/navbar";
 import "./globals.css";
 
 const inter = Inter({
@@ -44,12 +43,7 @@ export default function RootLayout({
         className={`font-sans ${inter.variable} ${poppins.variable} ${playfair.variable} ${jost.variable} antialiased`}
         suppressHydrationWarning
       >
-        <>
-          <div className="w-full fixed top-0 z-50">
-            <Navbar />
-          </div>
-          <div className="pt-20 ">{children}</div>
-        </>
+        {children}
       </body>
     </html>
   );
