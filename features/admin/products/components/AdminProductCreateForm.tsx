@@ -5,12 +5,15 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import FieldInfo from "@/components/shared/FieldInfo";
 import type {
   CatalogBrand,
   CatalogCategory,
 } from "@/features/catalog/types/catalog.types";
 
 import { createAdminProduct } from "../api/admin-products-api";
+import { productFieldHelp } from "../data/product-field-help";
+import ProductFieldLabel from "./ProductFieldLabel";
 import type {
   AdminProductStatus,
   CreatedAdminProduct,
@@ -182,7 +185,11 @@ export default function AdminProductCreateForm({
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
-            <label htmlFor="name">Product name</label>
+            <ProductFieldLabel
+              htmlFor="name"
+              label="Product name"
+              infoKey="name"
+            />
             <input
               id="name"
               name="name"
@@ -194,7 +201,7 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="slug">Slug</label>
+            <ProductFieldLabel htmlFor="slug" label="Slug" infoKey="slug" />
             <input
               id="slug"
               name="slug"
@@ -207,7 +214,7 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="sku">SKU</label>
+            <ProductFieldLabel htmlFor="sku" label="SKU" infoKey="sku" />
             <input
               id="sku"
               name="sku"
@@ -217,7 +224,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="categoryId">Category</label>
+            <ProductFieldLabel
+              htmlFor="categoryId"
+              label="Category"
+              infoKey="categoryId"
+            />
             <select
               id="categoryId"
               name="categoryId"
@@ -234,7 +245,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="brandId">Brand</label>
+            <ProductFieldLabel
+              htmlFor="brandId"
+              label="Brand"
+              infoKey="brandId"
+            />
             <select
               id="brandId"
               name="brandId"
@@ -250,7 +265,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div className="md:col-span-2">
-            <label htmlFor="shortDescription">Short description</label>
+            <ProductFieldLabel
+              htmlFor="shortDescription"
+              label="Short description"
+              infoKey="shortDescription"
+            />
             <input
               id="shortDescription"
               name="shortDescription"
@@ -260,7 +279,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div className="md:col-span-2">
-            <label htmlFor="description">Description</label>
+            <ProductFieldLabel
+              htmlFor="description"
+              label="Description"
+              infoKey="description"
+            />
             <textarea
               id="description"
               name="description"
@@ -277,7 +300,7 @@ export default function AdminProductCreateForm({
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           <div>
-            <label htmlFor="price">Price</label>
+            <ProductFieldLabel htmlFor="price" label="Price" infoKey="price" />
             <input
               id="price"
               name="price"
@@ -291,7 +314,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="compareAtPrice">Compare at price</label>
+            <ProductFieldLabel
+              htmlFor="compareAtPrice"
+              label="Compare at price"
+              infoKey="compareAtPrice"
+            />
             <input
               id="compareAtPrice"
               name="compareAtPrice"
@@ -304,7 +331,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="costPrice">Cost price</label>
+            <ProductFieldLabel
+              htmlFor="costPrice"
+              label="Cost price"
+              infoKey="costPrice"
+            />
             <input
               id="costPrice"
               name="costPrice"
@@ -317,7 +348,7 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="stock">Stock</label>
+            <ProductFieldLabel htmlFor="stock" label="Stock" infoKey="stock" />
             <input
               id="stock"
               name="stock"
@@ -330,7 +361,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="status">Status</label>
+            <ProductFieldLabel
+              htmlFor="status"
+              label="Status"
+              infoKey="status"
+            />
             <select
               id="status"
               name="status"
@@ -346,27 +381,50 @@ export default function AdminProductCreateForm({
           </div>
 
           <div className="flex items-end">
-            <label className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
-              <input name="isFeatured" type="checkbox" className="size-4" />
-              Featured
-            </label>
+            <div className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
+              <input
+                id="isFeatured"
+                name="isFeatured"
+                type="checkbox"
+                className="size-4"
+              />
+              <label htmlFor="isFeatured">Featured</label>
+              <FieldInfo
+                title={productFieldHelp.isFeatured.title}
+                description={productFieldHelp.isFeatured.description}
+              />
+            </div>
           </div>
 
-          <div className="md:col-span-3 flex flex-wrap gap-3">
-            <label className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
+          <div className="flex flex-wrap gap-3 md:col-span-3">
+            <div className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
               <input
+                id="trackInventory"
                 name="trackInventory"
                 type="checkbox"
                 defaultChecked
                 className="size-4"
               />
-              Track inventory
-            </label>
+              <label htmlFor="trackInventory">Track inventory</label>
+              <FieldInfo
+                title={productFieldHelp.trackInventory.title}
+                description={productFieldHelp.trackInventory.description}
+              />
+            </div>
 
-            <label className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
-              <input name="allowBackorder" type="checkbox" className="size-4" />
-              Allow backorder
-            </label>
+            <div className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
+              <input
+                id="allowBackorder"
+                name="allowBackorder"
+                type="checkbox"
+                className="size-4"
+              />
+              <label htmlFor="allowBackorder">Allow backorder</label>
+              <FieldInfo
+                title={productFieldHelp.allowBackorder.title}
+                description={productFieldHelp.allowBackorder.description}
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -376,7 +434,11 @@ export default function AdminProductCreateForm({
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor="imageUrl">Image URL</label>
+            <ProductFieldLabel
+              htmlFor="imageUrl"
+              label="Image URL"
+              infoKey="imageUrl"
+            />
             <input
               id="imageUrl"
               name="imageUrl"
@@ -388,7 +450,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="imageAlt">Image alt text</label>
+            <ProductFieldLabel
+              htmlFor="imageAlt"
+              label="Image alt text"
+              infoKey="imageAlt"
+            />
             <input
               id="imageAlt"
               name="imageAlt"
@@ -404,7 +470,11 @@ export default function AdminProductCreateForm({
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           <div className="md:col-span-3">
-            <label htmlFor="keywords">Keywords</label>
+            <ProductFieldLabel
+              htmlFor="keywords"
+              label="Keywords"
+              infoKey="keywords"
+            />
             <input
               id="keywords"
               name="keywords"
@@ -417,7 +487,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div className="md:col-span-3">
-            <label htmlFor="metaTitle">Meta title</label>
+            <ProductFieldLabel
+              htmlFor="metaTitle"
+              label="Meta title"
+              infoKey="metaTitle"
+            />
             <input
               id="metaTitle"
               name="metaTitle"
@@ -426,7 +500,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div className="md:col-span-3">
-            <label htmlFor="metaDescription">Meta description</label>
+            <ProductFieldLabel
+              htmlFor="metaDescription"
+              label="Meta description"
+              infoKey="metaDescription"
+            />
             <textarea
               id="metaDescription"
               name="metaDescription"
@@ -436,7 +514,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="weight">Weight</label>
+            <ProductFieldLabel
+              htmlFor="weight"
+              label="Weight"
+              infoKey="weight"
+            />
             <input
               id="weight"
               name="weight"
@@ -448,7 +530,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="length">Length</label>
+            <ProductFieldLabel
+              htmlFor="length"
+              label="Length"
+              infoKey="length"
+            />
             <input
               id="length"
               name="length"
@@ -460,7 +546,7 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="width">Width</label>
+            <ProductFieldLabel htmlFor="width" label="Width" infoKey="width" />
             <input
               id="width"
               name="width"
@@ -472,7 +558,11 @@ export default function AdminProductCreateForm({
           </div>
 
           <div>
-            <label htmlFor="height">Height</label>
+            <ProductFieldLabel
+              htmlFor="height"
+              label="Height"
+              infoKey="height"
+            />
             <input
               id="height"
               name="height"
