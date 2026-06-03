@@ -108,6 +108,21 @@ export default function AdminShell({ children }: AdminShellProps) {
               <PackagePlus className="size-4" />
               Add product
             </Link>
+            <Link
+              href="/admin/products"
+              className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-foreground no-underline hover:bg-muted"
+            >
+              <PackagePlus className="size-4" />
+              Products
+            </Link>
+
+            <Link
+              href="/admin/products/new"
+              className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-foreground no-underline hover:bg-muted"
+            >
+              <PackagePlus className="size-4" />
+              Add product
+            </Link>
 
             <Link
               href="/shop"

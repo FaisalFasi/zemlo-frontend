@@ -3,11 +3,17 @@ import "server-only";
 import { ApiError } from "./api-error";
 import { backendFetch } from "./backend";
 
+type ApiFetchNextOptions = {
+  revalidate?: number | false;
+  tags?: string[];
+};
+
 type ApiFetchOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
   headers?: HeadersInit;
   cache?: RequestCache;
+  next?: ApiFetchNextOptions;
 };
 
 function getApiErrorMessage(errorBody: unknown, fallback: string) {
@@ -36,6 +42,7 @@ export async function apiFetch<TResponse>(
       body: options.body,
       headers: options.headers,
       cache: options.cache,
+      next: options.next,
     });
   } catch (errorBody) {
     throw new ApiError(

@@ -1,4 +1,4 @@
-export type AdminProductStatus = "DRAFT" | "ACTIVE";
+export type AdminProductStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
 
 export type CreateAdminProductImageInput = {
   url: string;
@@ -34,11 +34,39 @@ export type CreateAdminProductInput = {
   images?: CreateAdminProductImageInput[];
 };
 
-export type CreatedAdminProduct = {
+export type AdminProductListItem = {
   id: string;
   name: string;
   slug: string;
-  status: string;
+  sku: string | null;
   price: string | number;
+  compareAtPrice: string | number | null;
   stock: number;
+  status: AdminProductStatus;
+  isFeatured: boolean;
+  createdAt: string;
+  updatedAt: string;
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  brand: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  images: {
+    id: string;
+    url: string;
+    altText: string | null;
+    position: number;
+    isDefault: boolean;
+  }[];
+};
+
+export type CreatedAdminProduct = AdminProductListItem;
+
+export type ArchiveAdminProductResponse = {
+  message: string;
 };

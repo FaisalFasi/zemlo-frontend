@@ -6,12 +6,18 @@ import { serverConfig } from "@/config/server";
 
 type BackendMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
+type BackendNextOptions = {
+  revalidate?: number | false;
+  tags?: string[];
+};
+
 type BackendFetchOptions = {
   method?: BackendMethod;
   path: string;
   body?: unknown;
   headers?: HeadersInit;
   cache?: RequestCache;
+  next?: BackendNextOptions;
 };
 
 type ProxyToBackendOptions = {
@@ -57,13 +63,15 @@ export async function backendFetch<TResponse>({
   path,
   body,
   headers,
-  cache = "no-store",
+  cache,
+  next,
 }: BackendFetchOptions): Promise<TResponse> {
   const response = await fetch(createBackendUrl(path), {
     method,
     headers: createBackendHeaders(headers, body),
     body: body ? JSON.stringify(body) : undefined,
-    cache,
+    ...(cache ? { cache } : {}),
+    ...(next ? { next } : {}),
   });
 
   const responseBody = await readBackendResponse(response);
