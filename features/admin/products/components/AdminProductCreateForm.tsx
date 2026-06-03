@@ -1,10 +1,14 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
+import FormField from "@/components/forms/FormField";
+import FormStatusMessage from "@/components/forms/FormStatusMessage";
 import FieldInfo from "@/components/shared/FieldInfo";
 import type {
   CatalogBrand,
@@ -13,9 +17,14 @@ import type {
 
 import { createAdminProduct } from "../api/admin-products-api";
 import { productFieldHelp } from "../data/product-field-help";
-import ProductFieldLabel from "./ProductFieldLabel";
+import {
+  createAdminProductDefaultValues,
+  createAdminProductSchema,
+  type CreateAdminProductFormInput,
+  type CreateAdminProductFormValues,
+} from "../schemas/create-admin-product.schema";
+
 import type {
-  AdminProductStatus,
   CreatedAdminProduct,
   CreateAdminProductInput,
 } from "../types/admin-product.types";
@@ -24,30 +33,6 @@ type AdminProductCreateFormProps = {
   categories: CatalogCategory[];
   brands: CatalogBrand[];
 };
-
-function getFormValue(formData: FormData, name: string) {
-  return String(formData.get(name) ?? "").trim();
-}
-
-function getOptionalFormValue(formData: FormData, name: string) {
-  const value = getFormValue(formData, name);
-
-  return value.length > 0 ? value : undefined;
-}
-
-function getNumberValue(formData: FormData, name: string) {
-  const value = getFormValue(formData, name);
-
-  if (!value) return undefined;
-
-  const parsed = Number(value);
-
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-function getBooleanValue(formData: FormData, name: string) {
-  return formData.get(name) === "on";
-}
 
 function getKeywords(value?: string) {
   if (!value) return undefined;
@@ -60,81 +45,87 @@ function getKeywords(value?: string) {
   return keywords.length > 0 ? keywords : undefined;
 }
 
-function buildCreateProductPayload(
-  formData: FormData,
+function toCreateProductInput(
+  values: CreateAdminProductFormValues,
 ): CreateAdminProductInput {
-  const imageUrl = getOptionalFormValue(formData, "imageUrl");
-  const imageAlt = getOptionalFormValue(formData, "imageAlt");
-  const brandId = getOptionalFormValue(formData, "brandId");
-
   return {
-    name: getFormValue(formData, "name"),
-    slug: getOptionalFormValue(formData, "slug"),
-    shortDescription: getOptionalFormValue(formData, "shortDescription"),
-    description: getOptionalFormValue(formData, "description"),
-    sku: getOptionalFormValue(formData, "sku"),
-    price: getNumberValue(formData, "price") ?? 0,
-    compareAtPrice: getNumberValue(formData, "compareAtPrice"),
-    costPrice: getNumberValue(formData, "costPrice"),
-    stock: getNumberValue(formData, "stock") ?? 0,
-    trackInventory: getBooleanValue(formData, "trackInventory"),
-    allowBackorder: getBooleanValue(formData, "allowBackorder"),
+    name: values.name,
+    slug: values.slug || undefined,
+    sku: values.sku || undefined,
+    categoryId: values.categoryId,
+    brandId: values.brandId || undefined,
+    shortDescription: values.shortDescription || undefined,
+    description: values.description || undefined,
+    price: values.price,
+    compareAtPrice: values.compareAtPrice,
+    costPrice: values.costPrice,
+    stock: values.stock,
+    trackInventory: values.trackInventory,
+    allowBackorder: values.allowBackorder,
     hasVariants: false,
-    status: getFormValue(formData, "status") as AdminProductStatus,
-    isFeatured: getBooleanValue(formData, "isFeatured"),
-    categoryId: getFormValue(formData, "categoryId"),
-    brandId,
-    weight: getNumberValue(formData, "weight"),
-    length: getNumberValue(formData, "length"),
-    width: getNumberValue(formData, "width"),
-    height: getNumberValue(formData, "height"),
-    keywords: getKeywords(getOptionalFormValue(formData, "keywords")),
-    metaTitle: getOptionalFormValue(formData, "metaTitle"),
-    metaDescription: getOptionalFormValue(formData, "metaDescription"),
-    images: imageUrl
-      ? [
-          {
-            url: imageUrl,
-            altText: imageAlt,
-            position: 0,
-            isDefault: true,
-          },
-        ]
-      : undefined,
+    status: values.status,
+    isFeatured: values.isFeatured,
+    weight: values.weight,
+    length: values.length,
+    width: values.width,
+    height: values.height,
+    keywords: getKeywords(values.keywordsText),
+    metaTitle: values.metaTitle || undefined,
+    metaDescription: values.metaDescription || undefined,
+    images: [
+      {
+        url: values.imageUrl,
+        altText: values.imageAlt || values.name,
+        position: 0,
+        isDefault: true,
+      },
+    ],
   };
+}
+
+function getServerErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+
+  return "Could not create product. Please check the form and try again.";
 }
 
 export default function AdminProductCreateForm({
   categories,
   brands,
 }: AdminProductCreateFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdProduct, setCreatedProduct] =
     useState<CreatedAdminProduct | null>(null);
-  const [error, setError] = useState("");
+  const [serverError, setServerError] = useState("");
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const form = useForm<
+    CreateAdminProductFormInput,
+    undefined,
+    CreateAdminProductFormValues
+  >({
+    resolver: zodResolver(createAdminProductSchema),
+    defaultValues: createAdminProductDefaultValues,
+    mode: "onBlur",
+  });
 
-    setError("");
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = form;
+
+  async function onSubmit(values: CreateAdminProductFormValues) {
+    setServerError("");
     setCreatedProduct(null);
-    setIsSubmitting(true);
 
     try {
-      const formData = new FormData(event.currentTarget);
-      const payload = buildCreateProductPayload(formData);
+      const payload = toCreateProductInput(values);
       const result = await createAdminProduct(payload);
 
       setCreatedProduct(result);
-      event.currentTarget.reset();
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Could not create product.",
-      );
-    } finally {
-      setIsSubmitting(false);
+      reset(createAdminProductDefaultValues);
+    } catch (error) {
+      setServerError(getServerErrorMessage(error));
     }
   }
 
@@ -154,29 +145,31 @@ export default function AdminProductCreateForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {error ? (
-        <div className="rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">
-          {error}
-        </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      {serverError ? (
+        <FormStatusMessage
+          type="error"
+          title="Product was not created"
+          message={serverError}
+        />
       ) : null}
 
       {createdProduct ? (
-        <div className="rounded-2xl bg-success-soft px-4 py-3 text-sm text-success">
-          Product created successfully:{" "}
-          <span className="font-medium">{createdProduct.name}</span>
-          {createdProduct.status === "ACTIVE" ? (
-            <>
-              {" "}
-              —{" "}
-              <Link
-                href={`/products/${createdProduct.slug}`}
-                className="font-medium underline"
-              >
-                View product
-              </Link>
-            </>
-          ) : null}
+        <FormStatusMessage
+          type="success"
+          title="Product created successfully"
+          message={`${createdProduct.name} is now saved as ${createdProduct.status}.`}
+        />
+      ) : null}
+
+      {createdProduct?.status === "ACTIVE" ? (
+        <div className="rounded-2xl border border-border bg-card px-4 py-3 text-sm">
+          <Link
+            href={`/products/${createdProduct.slug}`}
+            className="font-medium text-foreground underline underline-offset-4"
+          >
+            View public product page
+          </Link>
         </div>
       ) : null}
 
@@ -184,56 +177,59 @@ export default function AdminProductCreateForm({
         <p className="text-eyebrow text-muted-foreground">Basic information</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="md:col-span-2">
-            <ProductFieldLabel
-              htmlFor="name"
-              label="Product name"
-              infoKey="name"
-            />
+          <FormField
+            htmlFor="name"
+            label="Product name"
+            info={productFieldHelp.name}
+            error={errors.name?.message}
+            className="md:col-span-2"
+          >
             <input
               id="name"
-              name="name"
-              required
-              minLength={2}
+              {...register("name")}
               placeholder="Wireless Headphones"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel htmlFor="slug" label="Slug" infoKey="slug" />
+          <FormField
+            htmlFor="slug"
+            label="Slug"
+            info={productFieldHelp.slug}
+            error={errors.slug?.message}
+          >
             <input
               id="slug"
-              name="slug"
+              {...register("slug")}
               placeholder="wireless-headphones"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-            <p className="mt-2 text-xs text-muted-foreground">
-              Optional. Backend can generate it from name.
-            </p>
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel htmlFor="sku" label="SKU" infoKey="sku" />
+          <FormField
+            htmlFor="sku"
+            label="SKU"
+            info={productFieldHelp.sku}
+            error={errors.sku?.message}
+          >
             <input
               id="sku"
-              name="sku"
+              {...register("sku")}
               placeholder="WH-001"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel
-              htmlFor="categoryId"
-              label="Category"
-              infoKey="categoryId"
-            />
+          <FormField
+            htmlFor="categoryId"
+            label="Category"
+            info={productFieldHelp.categoryId}
+            error={errors.categoryId?.message}
+          >
             <select
               id="categoryId"
-              name="categoryId"
-              required
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("categoryId")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             >
               <option value="">Select category</option>
               {categories.map((category) => (
@@ -242,18 +238,18 @@ export default function AdminProductCreateForm({
                 </option>
               ))}
             </select>
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel
-              htmlFor="brandId"
-              label="Brand"
-              infoKey="brandId"
-            />
+          <FormField
+            htmlFor="brandId"
+            label="Brand"
+            info={productFieldHelp.brandId}
+            error={errors.brandId?.message}
+          >
             <select
               id="brandId"
-              name="brandId"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("brandId")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             >
               <option value="">No brand</option>
               {brands.map((brand) => (
@@ -262,36 +258,38 @@ export default function AdminProductCreateForm({
                 </option>
               ))}
             </select>
-          </div>
+          </FormField>
 
-          <div className="md:col-span-2">
-            <ProductFieldLabel
-              htmlFor="shortDescription"
-              label="Short description"
-              infoKey="shortDescription"
-            />
+          <FormField
+            htmlFor="shortDescription"
+            label="Short description"
+            info={productFieldHelp.shortDescription}
+            error={errors.shortDescription?.message}
+            className="md:col-span-2"
+          >
             <input
               id="shortDescription"
-              name="shortDescription"
-              placeholder="A short product summary for cards and detail pages"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("shortDescription")}
+              placeholder="A short product summary for cards and product pages"
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div className="md:col-span-2">
-            <ProductFieldLabel
-              htmlFor="description"
-              label="Description"
-              infoKey="description"
-            />
+          <FormField
+            htmlFor="description"
+            label="Description"
+            info={productFieldHelp.description}
+            error={errors.description?.message}
+            className="md:col-span-2"
+          >
             <textarea
               id="description"
-              name="description"
+              {...register("description")}
               rows={5}
               placeholder="Full product description"
-              className="mt-2 w-full rounded-3xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+              className="w-full rounded-3xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
         </div>
       </section>
 
@@ -299,132 +297,133 @@ export default function AdminProductCreateForm({
         <p className="text-eyebrow text-muted-foreground">Pricing & stock</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div>
-            <ProductFieldLabel htmlFor="price" label="Price" infoKey="price" />
+          <FormField
+            htmlFor="price"
+            label="Price"
+            info={productFieldHelp.price}
+            error={errors.price?.message}
+          >
             <input
               id="price"
-              name="price"
               type="number"
               min="0"
               step="0.01"
-              required
-              placeholder="49.99"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("price")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel
-              htmlFor="compareAtPrice"
-              label="Compare at price"
-              infoKey="compareAtPrice"
-            />
+          <FormField
+            htmlFor="compareAtPrice"
+            label="Compare at price"
+            info={productFieldHelp.compareAtPrice}
+            error={errors.compareAtPrice?.message}
+          >
             <input
               id="compareAtPrice"
-              name="compareAtPrice"
               type="number"
               min="0"
               step="0.01"
-              placeholder="69.99"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("compareAtPrice")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel
-              htmlFor="costPrice"
-              label="Cost price"
-              infoKey="costPrice"
-            />
+          <FormField
+            htmlFor="costPrice"
+            label="Cost price"
+            info={productFieldHelp.costPrice}
+            error={errors.costPrice?.message}
+          >
             <input
               id="costPrice"
-              name="costPrice"
               type="number"
               min="0"
               step="0.01"
-              placeholder="20"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("costPrice")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel htmlFor="stock" label="Stock" infoKey="stock" />
+          <FormField
+            htmlFor="stock"
+            label="Stock"
+            info={productFieldHelp.stock}
+            error={errors.stock?.message}
+          >
             <input
               id="stock"
-              name="stock"
               type="number"
               min="0"
               step="1"
-              defaultValue="10"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("stock")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel
-              htmlFor="status"
-              label="Status"
-              infoKey="status"
-            />
+          <FormField
+            htmlFor="status"
+            label="Status"
+            info={productFieldHelp.status}
+            error={errors.status?.message}
+          >
             <select
               id="status"
-              name="status"
-              defaultValue="ACTIVE"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("status")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             >
               <option value="ACTIVE">Active</option>
               <option value="DRAFT">Draft</option>
             </select>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Use Active if you want it visible in shop.
-            </p>
-          </div>
+          </FormField>
 
           <div className="flex items-end">
-            <div className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
+            <label className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
               <input
-                id="isFeatured"
-                name="isFeatured"
                 type="checkbox"
                 className="size-4"
+                {...register("isFeatured")}
               />
-              <label htmlFor="isFeatured">Featured</label>
-              <FieldInfo
-                title={productFieldHelp.isFeatured.title}
-                description={productFieldHelp.isFeatured.description}
-              />
-            </div>
+              <span className="inline-flex items-center gap-1.5">
+                Featured
+                <FieldInfo
+                  title={productFieldHelp.isFeatured.title}
+                  description={productFieldHelp.isFeatured.description}
+                />
+              </span>
+            </label>
           </div>
 
           <div className="flex flex-wrap gap-3 md:col-span-3">
-            <div className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
+            <label className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
               <input
-                id="trackInventory"
-                name="trackInventory"
                 type="checkbox"
-                defaultChecked
                 className="size-4"
+                {...register("trackInventory")}
               />
-              <label htmlFor="trackInventory">Track inventory</label>
-              <FieldInfo
-                title={productFieldHelp.trackInventory.title}
-                description={productFieldHelp.trackInventory.description}
-              />
-            </div>
+              <span className="inline-flex items-center gap-1.5">
+                Track inventory
+                <FieldInfo
+                  title={productFieldHelp.trackInventory.title}
+                  description={productFieldHelp.trackInventory.description}
+                />
+              </span>
+            </label>
 
-            <div className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
+            <label className="flex h-11 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm">
               <input
-                id="allowBackorder"
-                name="allowBackorder"
                 type="checkbox"
                 className="size-4"
+                {...register("allowBackorder")}
               />
-              <label htmlFor="allowBackorder">Allow backorder</label>
-              <FieldInfo
-                title={productFieldHelp.allowBackorder.title}
-                description={productFieldHelp.allowBackorder.description}
-              />
-            </div>
+              <span className="inline-flex items-center gap-1.5">
+                Allow backorder
+                <FieldInfo
+                  title={productFieldHelp.allowBackorder.title}
+                  description={productFieldHelp.allowBackorder.description}
+                />
+              </span>
+            </label>
           </div>
         </div>
       </section>
@@ -433,35 +432,34 @@ export default function AdminProductCreateForm({
         <p className="text-eyebrow text-muted-foreground">Media</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <div>
-            <ProductFieldLabel
-              htmlFor="imageUrl"
-              label="Image URL"
-              infoKey="imageUrl"
-            />
+          <FormField
+            htmlFor="imageUrl"
+            label="Image URL"
+            info={productFieldHelp.imageUrl}
+            error={errors.imageUrl?.message}
+          >
             <input
               id="imageUrl"
-              name="imageUrl"
               type="url"
-              required
+              {...register("imageUrl")}
               placeholder="https://example.com/product.jpg"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel
-              htmlFor="imageAlt"
-              label="Image alt text"
-              infoKey="imageAlt"
-            />
+          <FormField
+            htmlFor="imageAlt"
+            label="Image alt text"
+            info={productFieldHelp.imageAlt}
+            error={errors.imageAlt?.message}
+          >
             <input
               id="imageAlt"
-              name="imageAlt"
-              placeholder="Wireless headphones product image"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("imageAlt")}
+              placeholder="Black wireless headphones on white background"
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
         </div>
       </section>
 
@@ -469,115 +467,119 @@ export default function AdminProductCreateForm({
         <p className="text-eyebrow text-muted-foreground">SEO & shipping</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div className="md:col-span-3">
-            <ProductFieldLabel
-              htmlFor="keywords"
-              label="Keywords"
-              infoKey="keywords"
-            />
+          <FormField
+            htmlFor="keywordsText"
+            label="Keywords"
+            info={productFieldHelp.keywords}
+            error={errors.keywordsText?.message}
+            className="md:col-span-3"
+          >
             <input
-              id="keywords"
-              name="keywords"
+              id="keywordsText"
+              {...register("keywordsText")}
               placeholder="audio, headphones, wireless"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-            <p className="mt-2 text-xs text-muted-foreground">
-              Separate keywords with commas.
-            </p>
-          </div>
+          </FormField>
 
-          <div className="md:col-span-3">
-            <ProductFieldLabel
-              htmlFor="metaTitle"
-              label="Meta title"
-              infoKey="metaTitle"
-            />
+          <FormField
+            htmlFor="metaTitle"
+            label="Meta title"
+            info={productFieldHelp.metaTitle}
+            error={errors.metaTitle?.message}
+            className="md:col-span-3"
+          >
             <input
               id="metaTitle"
-              name="metaTitle"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("metaTitle")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div className="md:col-span-3">
-            <ProductFieldLabel
-              htmlFor="metaDescription"
-              label="Meta description"
-              infoKey="metaDescription"
-            />
+          <FormField
+            htmlFor="metaDescription"
+            label="Meta description"
+            info={productFieldHelp.metaDescription}
+            error={errors.metaDescription?.message}
+            className="md:col-span-3"
+          >
             <textarea
               id="metaDescription"
-              name="metaDescription"
+              {...register("metaDescription")}
               rows={3}
-              className="mt-2 w-full rounded-3xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+              className="w-full rounded-3xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel
-              htmlFor="weight"
-              label="Weight"
-              infoKey="weight"
-            />
+          <FormField
+            htmlFor="weight"
+            label="Weight"
+            info={productFieldHelp.weight}
+            error={errors.weight?.message}
+          >
             <input
               id="weight"
-              name="weight"
               type="number"
               min="0"
               step="0.01"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("weight")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel
-              htmlFor="length"
-              label="Length"
-              infoKey="length"
-            />
+          <FormField
+            htmlFor="length"
+            label="Length"
+            info={productFieldHelp.length}
+            error={errors.length?.message}
+          >
             <input
               id="length"
-              name="length"
               type="number"
               min="0"
               step="0.01"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("length")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel htmlFor="width" label="Width" infoKey="width" />
+          <FormField
+            htmlFor="width"
+            label="Width"
+            info={productFieldHelp.width}
+            error={errors.width?.message}
+          >
             <input
               id="width"
-              name="width"
               type="number"
               min="0"
               step="0.01"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("width")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <ProductFieldLabel
-              htmlFor="height"
-              label="Height"
-              infoKey="height"
-            />
+          <FormField
+            htmlFor="height"
+            label="Height"
+            info={productFieldHelp.height}
+            error={errors.height?.message}
+          >
             <input
               id="height"
-              name="height"
               type="number"
               min="0"
               step="0.01"
-              className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              {...register("height")}
+              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
             />
-          </div>
+          </FormField>
         </div>
       </section>
 
       <div className="flex flex-wrap items-center justify-end gap-3">
         <Button asChild variant="outline" className="rounded-full">
-          <Link href="/admin">Cancel</Link>
+          <Link href="/admin/products">Cancel</Link>
         </Button>
 
         <Button type="submit" disabled={isSubmitting} className="rounded-full">
