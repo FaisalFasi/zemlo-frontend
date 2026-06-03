@@ -5,6 +5,7 @@ import { getDemoProductDetailBySlug } from "@/features/product-detail/lib/produc
 
 import ProductDetailPage from "@/features/product-detail/ProductDetailPage";
 import { mapCatalogProductToProductDetail } from "@/features/product-detail/data/demo-product-details";
+import { serverConfig } from "@/config/server";
 
 type ProductRoutePageProps = {
   params: Promise<{
@@ -13,7 +14,7 @@ type ProductRoutePageProps = {
 };
 
 function shouldUseDemoCatalog() {
-  return process.env.NEXT_DEMO_CATALOG_ENABLED === "true";
+  return serverConfig.demoCatalogEnabled;
 }
 
 async function getSafeProductDetail(slug: string) {

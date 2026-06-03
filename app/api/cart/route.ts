@@ -1,8 +1,8 @@
-import { proxyCartRequest } from "@/features/cart/server/cart-backend-proxy";
+import { proxyToBackend } from "@/lib/api/backend";
 
 export async function GET(request: Request) {
-  return proxyCartRequest(request, {
+  return proxyToBackend(request, {
     method: "GET",
-    backendPath: "/cart",
+    path: "/cart",
   });
 }

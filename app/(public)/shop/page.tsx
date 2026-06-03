@@ -1,3 +1,4 @@
+import { serverConfig } from "@/config/server";
 import {
   getCatalogCategories,
   getCatalogProducts,
@@ -18,7 +19,7 @@ type ShopRoutePageProps = {
 };
 
 function shouldUseDemoCatalog() {
-  return process.env.NEXT_DEMO_CATALOG_ENABLED === "true";
+  return serverConfig.demoCatalogEnabled;
 }
 
 async function getSafeShopData() {

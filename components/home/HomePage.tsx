@@ -12,9 +12,10 @@ import MarketplaceHeroSection from "./sections/MarketplaceHeroSection";
 import PopularProductsSection from "./sections/PopularProductsSection";
 import TrustSection from "./sections/TrustSection";
 import { createHomePageData } from "./lib/home-page-mappers";
+import { serverConfig } from "@/config/server";
 
 function shouldUseDemoCatalog() {
-  return process.env.NEXT_DEMO_CATALOG_ENABLED === "true";
+  return serverConfig.demoCatalogEnabled;
 }
 
 async function getSafeHomePageData() {

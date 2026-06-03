@@ -1,9 +1,9 @@
-import { proxyCartRequest } from "@/features/cart/server/cart-backend-proxy";
+import { proxyToBackend } from "@/lib/api/backend";
 
 export async function POST(request: Request) {
-  return proxyCartRequest(request, {
+  return proxyToBackend(request, {
     method: "POST",
-    backendPath: "/cart/items",
+    path: "/cart/items",
     includeBody: true,
   });
 }

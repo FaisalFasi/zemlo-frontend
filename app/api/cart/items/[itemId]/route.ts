@@ -1,4 +1,4 @@
-import { proxyCartRequest } from "@/features/cart/server/cart-backend-proxy";
+import { proxyToBackend } from "@/lib/api/backend";
 
 type CartItemRouteContext = {
   params: Promise<{
@@ -9,9 +9,9 @@ type CartItemRouteContext = {
 export async function PATCH(request: Request, context: CartItemRouteContext) {
   const { itemId } = await context.params;
 
-  return proxyCartRequest(request, {
+  return proxyToBackend(request, {
     method: "PATCH",
-    backendPath: `/cart/items/${itemId}`,
+    path: `/cart/items/${itemId}`,
     includeBody: true,
   });
 }
@@ -19,8 +19,8 @@ export async function PATCH(request: Request, context: CartItemRouteContext) {
 export async function DELETE(request: Request, context: CartItemRouteContext) {
   const { itemId } = await context.params;
 
-  return proxyCartRequest(request, {
+  return proxyToBackend(request, {
     method: "DELETE",
-    backendPath: `/cart/items/${itemId}`,
+    path: `/cart/items/${itemId}`,
   });
 }
