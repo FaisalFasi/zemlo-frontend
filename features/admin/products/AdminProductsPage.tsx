@@ -1,42 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PackagePlus, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import {
-  archiveAdminProduct,
-  getAdminProducts,
-} from "./api/admin-products-api";
 import AdminProductsTable from "./components/AdminProductsTable";
-import type { AdminProductListItem } from "./types/admin-product.types";
+import {
+  useAdminProductsQuery,
+  useArchiveAdminProductMutation,
+} from "./hooks/use-admin-products";
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<AdminProductListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [pendingProductId, setPendingProductId] = useState("");
-  const [error, setError] = useState("");
+  const productsQuery = useAdminProductsQuery();
+  const archiveProductMutation = useArchiveAdminProductMutation();
 
-  async function loadProducts() {
-    try {
-      setError("");
-      setIsLoading(true);
-
-      const result = await getAdminProducts();
-
-      setProducts(result);
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Could not load products.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const products = productsQuery.data ?? [];
+  const error =
+    productsQuery.error instanceof Error
+      ? productsQuery.error.message
+      : archiveProductMutation.error instanceof Error
+        ? archiveProductMutation.error.message
+        : "";
 
   async function handleArchiveProduct(productId: string) {
     const confirmed = window.confirm(
@@ -45,26 +30,8 @@ export default function AdminProductsPage() {
 
     if (!confirmed) return;
 
-    try {
-      setError("");
-      setPendingProductId(productId);
-
-      await archiveAdminProduct(productId);
-      await loadProducts();
-    } catch (archiveError) {
-      setError(
-        archiveError instanceof Error
-          ? archiveError.message
-          : "Could not archive product.",
-      );
-    } finally {
-      setPendingProductId("");
-    }
+    await archiveProductMutation.mutateAsync(productId);
   }
-
-  useEffect(() => {
-    void loadProducts();
-  }, []);
 
   return (
     <section>
@@ -84,7 +51,7 @@ export default function AdminProductsPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => void loadProducts()}
+            onClick={() => void productsQuery.refetch()}
             className="rounded-full"
           >
             <RefreshCw className="size-4" />
@@ -101,20 +68,26 @@ export default function AdminProductsPage() {
       </div>
 
       {error ? (
-        <div className="mb-5 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">
+        <div className="mb-5 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
         </div>
       ) : null}
 
-      {isLoading ? (
+      {productsQuery.isLoading ? (
         <div className="rounded-[2rem] border border-border bg-card p-10 text-center text-muted-foreground">
           Loading products...
         </div>
       ) : (
         <AdminProductsTable
           products={products}
-          pendingProductId={pendingProductId}
-          onArchiveProduct={handleArchiveProduct}
+          pendingProductId={
+            archiveProductMutation.isPending
+              ? String(archiveProductMutation.variables ?? "")
+              : ""
+          }
+          onArchiveProduct={(productId) => {
+            void handleArchiveProduct(productId);
+          }}
         />
       )}
     </section>
