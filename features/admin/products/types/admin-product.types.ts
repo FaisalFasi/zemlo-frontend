@@ -65,6 +65,23 @@ export type AdminProductListItem = {
   }[];
 };
 
+export type AdminProductDetail = AdminProductListItem & {
+  description: string | null;
+  shortDescription: string | null;
+  costPrice: string | number | null;
+  trackInventory: boolean;
+  allowBackorder: boolean;
+  hasVariants: boolean;
+  weight: string | number | null;
+  length: string | number | null;
+  width: string | number | null;
+  height: string | number | null;
+  keywords: string[];
+  metaTitle: string | null;
+  metaDescription: string | null;
+};
+
+export type UpdateAdminProductInput = Partial<CreateAdminProductInput>;
 export type CreatedAdminProduct = AdminProductListItem;
 
 export type ArchiveAdminProductResponse = {

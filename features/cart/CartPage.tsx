@@ -1,100 +1,75 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import {
-  clearCart,
-  getCart,
-  removeCartItem,
-  updateCartItem,
-} from "./api/cart-api";
+import { useCart } from "./hooks/use-cart";
 import CartEmptyState from "./components/CartEmptyState";
 import CartLineItem from "./components/CartLineItem";
 import CartSummary from "./components/CartSummary";
-import type { Cart } from "./types/cart.types";
 
 export default function CartPage() {
-  const [cart, setCart] = useState<Cart | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [pendingAction, setPendingAction] = useState("");
-  const [error, setError] = useState("");
+  const {
+    cart,
+    cartItems,
+    subtotal,
+    totalQuantity,
+    isCartLoading,
+    cartError,
+    updateItemQuantityAsync,
+    removeItemAsync,
+    clearCurrentCartAsync,
+    isClearingCart,
+  } = useCart();
 
-  async function loadCart() {
-    try {
-      setError("");
-      const nextCart = await getCart();
-      setCart(nextCart);
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error ? loadError.message : "Could not load cart.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const [pendingItemId, setPendingItemId] = useState("");
+  const [actionError, setActionError] = useState("");
 
   async function handleUpdateQuantity(itemId: string, quantity: number) {
     try {
-      setPendingAction(itemId);
-      setError("");
+      setActionError("");
+      setPendingItemId(itemId);
 
-      const nextCart = await updateCartItem(itemId, { quantity });
-
-      setCart(nextCart);
-    } catch (updateError) {
-      setError(
-        updateError instanceof Error
-          ? updateError.message
-          : "Could not update cart item.",
+      await updateItemQuantityAsync({
+        itemId,
+        input: { quantity },
+      });
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : "Could not update cart item.",
       );
     } finally {
-      setPendingAction("");
+      setPendingItemId("");
     }
   }
 
   async function handleRemoveItem(itemId: string) {
     try {
-      setPendingAction(itemId);
-      setError("");
+      setActionError("");
+      setPendingItemId(itemId);
 
-      const nextCart = await removeCartItem(itemId);
-
-      setCart(nextCart);
-    } catch (removeError) {
-      setError(
-        removeError instanceof Error
-          ? removeError.message
-          : "Could not remove cart item.",
+      await removeItemAsync(itemId);
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : "Could not remove cart item.",
       );
     } finally {
-      setPendingAction("");
+      setPendingItemId("");
     }
   }
 
   async function handleClearCart() {
     try {
-      setPendingAction("clear-cart");
-      setError("");
+      setActionError("");
 
-      const nextCart = await clearCart();
-
-      setCart(nextCart);
-    } catch (clearError) {
-      setError(
-        clearError instanceof Error
-          ? clearError.message
-          : "Could not clear cart.",
+      await clearCurrentCartAsync();
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : "Could not clear cart.",
       );
-    } finally {
-      setPendingAction("");
     }
   }
 
-  useEffect(() => {
-    void loadCart();
-  }, []);
-
-  if (isLoading) {
+  if (isCartLoading) {
     return (
       <main className="bg-background text-foreground">
         <section className="container-page py-10 md:py-14">
@@ -106,15 +81,15 @@ export default function CartPage() {
     );
   }
 
-  if (!cart || cart.items.length === 0) {
+  if (!cart || cartItems.length === 0) {
     return (
       <main className="bg-background text-foreground">
         <section className="container-page py-10 md:py-14">
           <CartEmptyState />
 
-          {error ? (
-            <div className="mt-5 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">
-              {error}
+          {cartError || actionError ? (
+            <div className="mt-5 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {cartError || actionError}
             </div>
           ) : null}
         </section>
@@ -133,24 +108,24 @@ export default function CartPage() {
           </h1>
 
           <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-            This cart is connected to your backend guest cart API using
-            x-guest-id.
+            Your cart is connected to the backend guest cart API and stays
+            synced across product pages and navigation.
           </p>
         </div>
 
-        {error ? (
-          <div className="mb-5 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">
-            {error}
+        {cartError || actionError ? (
+          <div className="mb-5 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {cartError || actionError}
           </div>
         ) : null}
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="space-y-4">
-            {cart.items.map((item) => (
+            {cartItems.map((item) => (
               <CartLineItem
                 key={item.id}
                 item={item}
-                isPending={pendingAction === item.id}
+                isPending={pendingItemId === item.id}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemove={handleRemoveItem}
               />
@@ -158,9 +133,9 @@ export default function CartPage() {
           </div>
 
           <CartSummary
-            subtotal={cart.subtotal}
-            totalQuantity={cart.totalQuantity}
-            isPending={pendingAction === "clear-cart"}
+            subtotal={subtotal}
+            totalQuantity={totalQuantity}
+            isPending={isClearingCart}
             onClearCart={handleClearCart}
           />
         </div>

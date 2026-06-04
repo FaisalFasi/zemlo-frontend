@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Archive, ExternalLink, PackagePlus } from "lucide-react";
-
+import { Archive, ExternalLink, PackagePlus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import AdminProductStatusBadge from "./AdminProductStatusBadge";
@@ -103,6 +102,17 @@ export default function AdminProductsTable({
 
                 <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full"
+                    >
+                      <Link href={`/admin/products/${product.id}/edit`}>
+                        <Pencil className="size-4" />
+                        Edit
+                      </Link>
+                    </Button>
                     <Button
                       asChild
                       variant="outline"

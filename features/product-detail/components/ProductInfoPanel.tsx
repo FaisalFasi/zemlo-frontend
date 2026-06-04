@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { Minus, Plus, ShieldCheck, Truck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { addCartItem } from "@/features/cart/api/cart-api";
+import { useCart } from "@/features/cart/hooks/use-cart";
 
 import type {
   ProductDetail,
@@ -43,7 +43,7 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
   const [selectedVariantId, setSelectedVariantId] = useState(
     product.variants[0]?.id ?? "",
   );
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const { addItemAsync, isAddingItem } = useCart();
   const [cartMessage, setCartMessage] = useState("");
   const [cartError, setCartError] = useState("");
 
@@ -60,7 +60,7 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
   const isOutOfStock = stock <= 0;
   const requiresVariant = product.hasVariants && !selectedVariantId;
   const canAddToCart =
-    !product.isDemo && !isOutOfStock && !requiresVariant && !isAddingToCart;
+    !product.isDemo && !isOutOfStock && !requiresVariant && !isAddingItem;
 
   async function handleAddToCart() {
     setCartMessage("");
@@ -77,9 +77,7 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
     }
 
     try {
-      setIsAddingToCart(true);
-
-      await addCartItem({
+      await addItemAsync({
         productId: product.id,
         quantity,
         ...(selectedVariantId ? { variantId: selectedVariantId } : {}),
@@ -90,8 +88,6 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
       setCartError(
         error instanceof Error ? error.message : "Could not add item to cart.",
       );
-    } finally {
-      setIsAddingToCart(false);
     }
   }
 
@@ -218,15 +214,16 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
         >
           {product.isDemo
             ? "Demo product"
-            : isAddingToCart
+            : isAddingItem
               ? "Adding..."
               : "Add to cart"}
         </Button>
         {product.isDemo
           ? "Demo product"
-          : isAddingToCart
+          : isAddingItem
             ? "Adding..."
             : "Add to cart"}
+
         {cartMessage ? (
           <div className="mt-4 rounded-2xl bg-success-soft px-4 py-3 text-sm text-success">
             {cartMessage}{" "}

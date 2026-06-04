@@ -114,21 +114,22 @@ export async function proxyToBackend(
   });
 
   const responseBody = await readBackendResponse(response);
-
-  if (
-    responseBody &&
-    typeof responseBody === "object" &&
-    !Array.isArray(responseBody)
-  ) {
+  if (responseBody !== null && typeof responseBody === "object") {
     return NextResponse.json(responseBody, {
       status: response.status,
     });
   }
 
-  return new Response(typeof responseBody === "string" ? responseBody : null, {
+  if (typeof responseBody === "string") {
+    return new Response(responseBody, {
+      status: response.status,
+      headers: {
+        "Content-Type": "text/plain",
+      },
+    });
+  }
+
+  return new Response(null, {
     status: response.status,
-    headers: {
-      "Content-Type": "text/plain",
-    },
   });
 }

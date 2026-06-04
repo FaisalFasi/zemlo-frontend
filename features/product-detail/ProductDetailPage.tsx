@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 import ProductImageGallery from "./components/ProductImageGallery";
 import ProductInfoPanel from "./components/ProductInfoPanel";
-
+import { useCart } from "@/features/cart/hooks/use-cart";
 import type { ProductDetail } from "./types/product-detail.types";
 
 type ProductDetailPageProps = {
@@ -11,6 +11,7 @@ type ProductDetailPageProps = {
 };
 
 export default function ProductDetailPage({ product }: ProductDetailPageProps) {
+  const { addItemAsync, isAddingItem } = useCart();
   return (
     <main className="bg-background text-foreground">
       <section className="container-page py-8 md:py-12">

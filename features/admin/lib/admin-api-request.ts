@@ -5,6 +5,10 @@ import { getAdminAccessToken } from "@/features/admin/auth/lib/admin-session";
 async function readResponseBody(response: Response) {
   const contentType = response.headers.get("content-type");
 
+  if (response.status === 204) {
+    return null;
+  }
+
   if (contentType?.includes("application/json")) {
     try {
       return await response.json();
@@ -54,17 +58,17 @@ export async function adminApiRequest<TResponse>(
     method: options.method ?? "GET",
     headers: {
       Accept: "application/json",
-      "Content-Type": "application/json",
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
       Authorization: `Bearer ${token}`,
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
-  if (!response.ok) {
-    const errorBody = await readResponseBody(response);
+  const responseBody = await readResponseBody(response);
 
-    throw new Error(getErrorMessage(errorBody, "Admin request failed."));
+  if (!response.ok) {
+    throw new Error(getErrorMessage(responseBody, "Admin request failed."));
   }
 
-  return response.json() as Promise<TResponse>;
+  return responseBody as TResponse;
 }

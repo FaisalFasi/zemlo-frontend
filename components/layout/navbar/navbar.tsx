@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils";
 
 import MobileNavbar from "./mobile-navbar";
 import { menuItems } from "./menu-items";
+import { useCartTotalQuantity } from "@/features/cart/hooks/use-cart";
 
 const Navbar = () => {
   const pathname = usePathname();
+  const { totalQuantity } = useCartTotalQuantity();
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -60,9 +62,11 @@ const Navbar = () => {
             >
               <Link href="/cart" aria-label="Open cart">
                 <ShoppingBag className="size-5" />
-                <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium leading-none text-primary-foreground">
-                  0
-                </span>
+                {totalQuantity > 0 ? (
+                  <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium leading-none text-primary-foreground">
+                    {totalQuantity > 9 ? "9+" : totalQuantity}
+                  </span>
+                ) : null}
               </Link>
             </Button>
           </div>
@@ -140,9 +144,11 @@ const Navbar = () => {
             >
               <Link href="/cart" aria-label="Open cart">
                 <ShoppingBag className="size-5" />
-                <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium leading-none text-primary-foreground">
-                  0
-                </span>
+                {totalQuantity > 0 ? (
+                  <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium leading-none text-primary-foreground">
+                    {totalQuantity > 9 ? "9+" : totalQuantity}
+                  </span>
+                ) : null}
               </Link>
             </Button>
           </div>
