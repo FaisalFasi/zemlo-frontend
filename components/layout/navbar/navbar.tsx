@@ -9,11 +9,11 @@ import { cn } from "@/lib/utils";
 
 import MobileNavbar from "./mobile-navbar";
 import { menuItems } from "./menu-items";
-import { useCartTotalQuantity } from "@/features/cart/hooks/use-cart";
+import { useCachedCartTotalQuantity } from "@/features/cart/hooks/use-cart";
 
 const Navbar = () => {
   const pathname = usePathname();
-  const { totalQuantity } = useCartTotalQuantity();
+  const { totalQuantity } = useCachedCartTotalQuantity();
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";

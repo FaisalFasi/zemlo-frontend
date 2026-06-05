@@ -11,6 +11,7 @@ import {
 
 import type {
   AddCartItemInput,
+  Cart,
   UpdateCartItemInput,
 } from "../types/cart.types";
 import { cartQueryKeys, cartQueryOptions } from "../queries/cart-query-options";
@@ -68,6 +69,15 @@ export function useClearCartMutation() {
     },
   });
 }
+export function useCachedCartTotalQuantity() {
+  const queryClient = useQueryClient();
+
+  const cart = queryClient.getQueryData<Cart>(cartQueryKeys.current());
+
+  return {
+    totalQuantity: cart?.totalQuantity ?? 0,
+  };
+}
 
 export function useCart() {
   const cartQuery = useCartQuery();
@@ -108,14 +118,5 @@ export function useCart() {
     clearCurrentCart: clearCartMutation.mutate,
     clearCurrentCartAsync: clearCartMutation.mutateAsync,
     isClearingCart: clearCartMutation.isPending,
-  };
-}
-
-export function useCartTotalQuantity() {
-  const cartQuery = useCartQuery();
-
-  return {
-    totalQuantity: cartQuery.data?.totalQuantity ?? 0,
-    isCartLoading: cartQuery.isLoading,
   };
 }

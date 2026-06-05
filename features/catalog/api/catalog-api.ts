@@ -7,40 +7,26 @@ import type {
   CatalogProductListItem,
 } from "../types/catalog.types";
 
-const CATALOG_REVALIDATE_SECONDS = 60;
-
 export async function getCatalogProducts() {
   return apiFetch<CatalogProductListItem[]>("/products", {
-    next: {
-      revalidate: CATALOG_REVALIDATE_SECONDS,
-      tags: ["catalog-products"],
-    },
+    cache: "no-store",
   });
 }
 
 export async function getCatalogProductBySlug(slug: string) {
   return apiFetch<CatalogProductDetail>(`/products/${slug}`, {
-    next: {
-      revalidate: CATALOG_REVALIDATE_SECONDS,
-      tags: ["catalog-products", `catalog-product-${slug}`],
-    },
+    cache: "no-store",
   });
 }
 
 export async function getCatalogCategories() {
   return apiFetch<CatalogCategory[]>("/categories", {
-    next: {
-      revalidate: CATALOG_REVALIDATE_SECONDS,
-      tags: ["catalog-categories"],
-    },
+    cache: "no-store",
   });
 }
 
 export async function getCatalogBrands() {
   return apiFetch<CatalogBrand[]>("/brands", {
-    next: {
-      revalidate: CATALOG_REVALIDATE_SECONDS,
-      tags: ["catalog-brands"],
-    },
+    cache: "no-store",
   });
 }

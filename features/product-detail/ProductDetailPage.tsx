@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 import ProductImageGallery from "./components/ProductImageGallery";
 import ProductInfoPanel from "./components/ProductInfoPanel";
-import { useCart } from "@/features/cart/hooks/use-cart";
+
 import type { ProductDetail } from "./types/product-detail.types";
 
 type ProductDetailPageProps = {
@@ -11,7 +11,6 @@ type ProductDetailPageProps = {
 };
 
 export default function ProductDetailPage({ product }: ProductDetailPageProps) {
-  const { addItemAsync, isAddingItem } = useCart();
   return (
     <main className="bg-background text-foreground">
       <section className="container-page py-8 md:py-12">
@@ -28,6 +27,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             images={product.images}
             productName={product.name}
           />
+
           <ProductInfoPanel product={product} />
         </div>
 
@@ -37,11 +37,9 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
               Product details
             </p>
 
-            <div className="prose-zemlo mt-4">
-              <p className="leading-8 text-muted-foreground">
-                {product.description}
-              </p>
-            </div>
+            <p className="mt-4 leading-8 text-muted-foreground">
+              {product.description}
+            </p>
           </section>
 
           <section className="rounded-[2rem] border border-border bg-card p-6 md:p-8">
@@ -54,6 +52,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                   className="flex items-start justify-between gap-4 py-3 text-sm"
                 >
                   <span className="text-muted-foreground">{spec.label}</span>
+
                   <span className="text-right font-medium text-foreground">
                     {spec.value}
                   </span>

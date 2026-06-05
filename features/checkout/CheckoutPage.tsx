@@ -1,82 +1,61 @@
 "use client";
 
-import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
+import FormField from "@/components/forms/FormField";
+import FormStatusMessage from "@/components/forms/FormStatusMessage";
+import { useCart } from "@/features/cart/hooks/use-cart";
 
+import CheckoutCartSummary from "./components/CheckoutCartSummary";
 import CheckoutSuccessPanel from "./components/CheckoutSuccessPanel";
-import type {
-  CheckoutFromCartInput,
-  CheckoutFromCartResponse,
-} from "./types/checkout.types";
-import { checkoutFromCart } from "./api/checkout.api";
-
-const DEFAULT_COUNTRY = "US";
-
-function getFormValue(formData: FormData, name: string) {
-  return String(formData.get(name) ?? "").trim();
-}
-
-function buildCheckoutPayload(formData: FormData): CheckoutFromCartInput {
-  const guestFirstName = getFormValue(formData, "firstName");
-  const guestLastName = getFormValue(formData, "lastName");
-  const guestPhone = getFormValue(formData, "phone");
-
-  const shippingAddress = {
-    firstName: guestFirstName,
-    lastName: guestLastName,
-    company: getFormValue(formData, "company") || undefined,
-    phone: guestPhone,
-    street: getFormValue(formData, "street"),
-    apartment: getFormValue(formData, "apartment") || undefined,
-    city: getFormValue(formData, "city"),
-    state: getFormValue(formData, "state"),
-    zipCode: getFormValue(formData, "zipCode"),
-    country: getFormValue(formData, "country") || DEFAULT_COUNTRY,
-  };
-
-  return {
-    guestEmail: getFormValue(formData, "email"),
-    guestPhone,
-    guestFirstName,
-    guestLastName,
-    shippingAddress,
-    paymentMethod: "STRIPE",
-    customerNote: getFormValue(formData, "customerNote") || undefined,
-  };
-}
+import { useCheckoutFromCartMutation } from "./hooks/use-checkou";
+import { checkoutFormValuesToInput } from "./lib/checkout-mappers";
+import {
+  checkoutDefaultValues,
+  checkoutSchema,
+  type CheckoutFormInput,
+  type CheckoutFormValues,
+} from "./schemas/checkout.schema";
+import type { CheckoutFromCartResponse } from "./types/checkout.types";
 
 export default function CheckoutPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [checkoutResult, setCheckoutResult] =
-    useState<CheckoutFromCartResponse | null>(null);
-  const [error, setError] = useState("");
+  const { cart, isCartLoading, cartError } = useCart();
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const checkoutMutation = useCheckoutFromCartMutation();
 
-    setError("");
-    setCheckoutResult(null);
-    setIsSubmitting(true);
+  const form = useForm<CheckoutFormInput, undefined, CheckoutFormValues>({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: checkoutDefaultValues,
+    mode: "onBlur",
+  });
 
-    try {
-      const formData = new FormData(event.currentTarget);
-      const payload = buildCheckoutPayload(formData);
-      const result = await checkoutFromCart(payload);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = form;
 
-      setCheckoutResult(result);
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Could not create checkout.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+  async function onSubmit(values: CheckoutFormValues) {
+    const payload = checkoutFormValuesToInput(values);
+
+    await checkoutMutation.mutateAsync(payload);
   }
+
+  const checkoutResult = checkoutMutation.data as
+    | CheckoutFromCartResponse
+    | undefined;
+
+  const mutationError =
+    checkoutMutation.error instanceof Error
+      ? checkoutMutation.error.message
+      : "";
+
+  const isCartEmpty = !cart || cart.items.length === 0;
+  const canSubmit = !isCartLoading && !isCartEmpty && !isSubmitting;
 
   if (checkoutResult) {
     return (
@@ -107,20 +86,35 @@ export default function CheckoutPage() {
           </h1>
 
           <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-            This creates an order from the current cart and receives the Stripe
+            This creates an order from your current cart and receives the Stripe
             PaymentIntent client secret from your backend.
           </p>
         </div>
 
-        {error ? (
-          <div className="mb-6 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">
-            {error}
+        {cartError ? (
+          <div className="mb-6">
+            <FormStatusMessage
+              type="error"
+              title="Cart could not be loaded"
+              message={cartError}
+            />
+          </div>
+        ) : null}
+
+        {mutationError ? (
+          <div className="mb-6">
+            <FormStatusMessage
+              type="error"
+              title="Checkout was not created"
+              message={mutationError}
+            />
           </div>
         ) : null}
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]"
+          noValidate
         >
           <div className="space-y-6">
             <section className="rounded-[2rem] border border-border bg-card p-6 md:p-8">
@@ -129,48 +123,62 @@ export default function CheckoutPage() {
               </h2>
 
               <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="md:col-span-2">
-                  <label htmlFor="email">Email</label>
+                <FormField
+                  htmlFor="email"
+                  label="Email"
+                  error={errors.email?.message}
+                  className="md:col-span-2"
+                >
                   <input
                     id="email"
-                    name="email"
                     type="email"
-                    required
+                    autoComplete="email"
                     placeholder="guest@example.com"
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+                    {...register("email")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
 
-                <div>
-                  <label htmlFor="firstName">First name</label>
+                <FormField
+                  htmlFor="firstName"
+                  label="First name"
+                  error={errors.firstName?.message}
+                >
                   <input
                     id="firstName"
-                    name="firstName"
-                    required
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+                    autoComplete="given-name"
+                    {...register("firstName")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
 
-                <div>
-                  <label htmlFor="lastName">Last name</label>
+                <FormField
+                  htmlFor="lastName"
+                  label="Last name"
+                  error={errors.lastName?.message}
+                >
                   <input
                     id="lastName"
-                    name="lastName"
-                    required
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+                    autoComplete="family-name"
+                    {...register("lastName")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
 
-                <div className="md:col-span-2">
-                  <label htmlFor="phone">Phone</label>
+                <FormField
+                  htmlFor="phone"
+                  label="Phone"
+                  error={errors.phone?.message}
+                  className="md:col-span-2"
+                >
                   <input
                     id="phone"
-                    name="phone"
-                    required
+                    autoComplete="tel"
                     placeholder="+13001234567"
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+                    {...register("phone")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
               </div>
             </section>
 
@@ -180,122 +188,161 @@ export default function CheckoutPage() {
               </h2>
 
               <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="md:col-span-2">
-                  <label htmlFor="street">Street address</label>
+                <FormField
+                  htmlFor="street"
+                  label="Street address"
+                  error={errors.street?.message}
+                  className="md:col-span-2"
+                >
                   <input
                     id="street"
-                    name="street"
-                    required
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+                    autoComplete="address-line1"
+                    {...register("street")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
 
-                <div className="md:col-span-2">
-                  <label htmlFor="apartment">Apartment, suite, etc.</label>
+                <FormField
+                  htmlFor="apartment"
+                  label="Apartment, suite, etc."
+                  error={errors.apartment?.message}
+                  className="md:col-span-2"
+                >
                   <input
                     id="apartment"
-                    name="apartment"
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+                    autoComplete="address-line2"
+                    {...register("apartment")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
 
-                <div>
-                  <label htmlFor="city">City</label>
+                <FormField
+                  htmlFor="city"
+                  label="City"
+                  error={errors.city?.message}
+                >
                   <input
                     id="city"
-                    name="city"
-                    required
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+                    autoComplete="address-level2"
+                    {...register("city")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
 
-                <div>
-                  <label htmlFor="state">State</label>
+                <FormField
+                  htmlFor="state"
+                  label="State"
+                  error={errors.state?.message}
+                >
                   <input
                     id="state"
-                    name="state"
-                    required
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+                    autoComplete="address-level1"
+                    {...register("state")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
 
-                <div>
-                  <label htmlFor="zipCode">ZIP / postal code</label>
+                <FormField
+                  htmlFor="zipCode"
+                  label="ZIP / postal code"
+                  error={errors.zipCode?.message}
+                >
                   <input
                     id="zipCode"
-                    name="zipCode"
-                    required
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+                    autoComplete="postal-code"
+                    {...register("zipCode")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
 
-                <div>
-                  <label htmlFor="country">Country code</label>
+                <FormField
+                  htmlFor="country"
+                  label="Country code"
+                  error={errors.country?.message}
+                >
                   <input
                     id="country"
-                    name="country"
-                    required
-                    defaultValue={DEFAULT_COUNTRY}
                     maxLength={2}
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm uppercase outline-none focus:border-foreground"
+                    autoComplete="country"
+                    {...register("country")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm uppercase outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
 
-                <div className="md:col-span-2">
-                  <label htmlFor="company">Company</label>
+                <FormField
+                  htmlFor="company"
+                  label="Company"
+                  error={errors.company?.message}
+                  className="md:col-span-2"
+                >
                   <input
                     id="company"
-                    name="company"
-                    className="mt-2 h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+                    autoComplete="organization"
+                    {...register("company")}
+                    className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
 
-                <div className="md:col-span-2">
-                  <label htmlFor="customerNote">Order note</label>
+                <FormField
+                  htmlFor="customerNote"
+                  label="Order note"
+                  error={errors.customerNote?.message}
+                  className="md:col-span-2"
+                >
                   <textarea
                     id="customerNote"
-                    name="customerNote"
                     rows={4}
                     placeholder="Please call before delivery"
-                    className="mt-2 w-full rounded-3xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
+                    {...register("customerNote")}
+                    className="w-full rounded-3xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-foreground"
                   />
-                </div>
+                </FormField>
               </div>
             </section>
           </div>
 
-          <aside className="h-fit rounded-[2rem] border border-border bg-card p-6 lg:sticky lg:top-[calc(var(--navbar-height)+2rem)]">
-            <p className="text-eyebrow text-muted-foreground">Payment</p>
+          <div className="space-y-5">
+            <CheckoutCartSummary cart={cart} isLoading={isCartLoading} />
 
-            <h2 className="mt-3 text-xl font-medium tracking-tight">
-              Stripe PaymentIntent
-            </h2>
+            <aside className="rounded-[2rem] border border-border bg-card p-6">
+              <p className="text-eyebrow text-muted-foreground">Payment</p>
 
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              This step creates the order and receives the client secret. Stripe
-              Elements will be connected next.
-            </p>
+              <h2 className="mt-3 text-xl font-medium tracking-tight">
+                Stripe PaymentIntent
+              </h2>
 
-            <div className="mt-5 rounded-2xl bg-muted p-4 text-sm text-muted-foreground">
-              Payment method:{" "}
-              <span className="font-medium text-foreground">STRIPE</span>
-            </div>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                This step creates the order and receives the Stripe client
+                secret. Stripe Elements will be connected next.
+              </p>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="mt-6 w-full rounded-full"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Creating checkout...
-                </>
-              ) : (
-                "Create checkout"
-              )}
-            </Button>
-          </aside>
+              <div className="mt-5 rounded-2xl bg-muted p-4 text-sm text-muted-foreground">
+                Payment method:{" "}
+                <span className="font-medium text-foreground">STRIPE</span>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={!canSubmit || checkoutMutation.isPending}
+                className="mt-6 w-full rounded-full"
+              >
+                {checkoutMutation.isPending ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Creating checkout...
+                  </>
+                ) : (
+                  "Create checkout"
+                )}
+              </Button>
+
+              {isCartEmpty ? (
+                <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
+                  Add products to cart before checkout.
+                </p>
+              ) : null}
+            </aside>
+          </div>
         </form>
       </section>
     </main>
