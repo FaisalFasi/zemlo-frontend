@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Search } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 
 import { heroHighlights, heroQuickLinks } from "../data/home-page-data";
 

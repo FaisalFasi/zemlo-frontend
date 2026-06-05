@@ -1,4 +1,4 @@
-import FieldInfo from "@/components/shared/FieldInfo";
+import FieldInfo from "@/shared/FieldInfo";
 
 import {
   productFieldHelp,

@@ -1,4 +1,4 @@
-import { proxyToBackend } from "@/src/lib/api/backend";
+import { proxyToBackend } from "@/lib/api/backend";
 
 type CartItemRouteContext = {
   params: Promise<{

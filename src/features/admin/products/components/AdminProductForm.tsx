@@ -6,10 +6,9 @@ import { Loader2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { Button } from "@/components/ui/button";
-import FormField from "@/components/forms/FormField";
-import FormStatusMessage from "@/components/forms/FormStatusMessage";
-import FieldInfo from "@/components/shared/FieldInfo";
+import FormField from "@/shared/forms/FormField";
+import FormStatusMessage from "@/shared/forms/FormStatusMessage";
+import FieldInfo from "@/shared/FieldInfo";
 import type {
   CatalogBrand,
   CatalogCategory,
@@ -21,6 +20,7 @@ import {
   type CreateAdminProductFormInput,
   type CreateAdminProductFormValues,
 } from "../schemas/create-admin-product.schema";
+import { Button } from "@/shared/ui/button";
 
 type AdminProductFormSubmitResult = {
   message: string;
@@ -102,7 +102,6 @@ export default function AdminProductForm({
         <h1 className="text-2xl font-medium tracking-tight text-foreground">
           No categories found.
         </h1>
-
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
           Please create or activate categories in the backend before creating a
           product.

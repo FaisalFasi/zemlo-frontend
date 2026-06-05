@@ -4,14 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, ShoppingBag, UserRound } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import {
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
-import { cn } from "@/src/lib/utils";
+} from "@/shared/ui/sheet";
+import { cn } from "@/lib/utils";
 
 import { menuItems } from "./menu-items";
 

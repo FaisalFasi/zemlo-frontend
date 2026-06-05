@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 
 import HomeProductCard from "./HomeProductCard";
 import type { HomeProduct } from "../data/home-page-data";

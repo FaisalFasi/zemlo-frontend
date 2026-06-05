@@ -1,4 +1,4 @@
-import { apiFetch } from "@/src/lib/api/api-client";
+import { apiFetch } from "@/lib/api/api-client";
 
 import type {
   CatalogBrand,

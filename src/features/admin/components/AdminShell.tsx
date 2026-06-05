@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Box, LayoutDashboard, LogOut, PackagePlus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import {
   getCurrentAdminUser,
   logoutAdmin,

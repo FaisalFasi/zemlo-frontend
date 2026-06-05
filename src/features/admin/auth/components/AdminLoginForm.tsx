@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 
 import { loginAdmin } from "../api/admin-auth-api";
 import { canAccessAdmin } from "../lib/admin-permissions";

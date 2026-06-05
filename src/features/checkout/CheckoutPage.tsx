@@ -5,9 +5,9 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { Button } from "@/components/ui/button";
-import FormField from "@/components/forms/FormField";
-import FormStatusMessage from "@/components/forms/FormStatusMessage";
+import { Button } from "@/shared/ui/button";
+import FormField from "@/shared/forms/FormField";
+import FormStatusMessage from "@/shared/forms/FormStatusMessage";
 import { useCart } from "@/features/cart/hooks/use-cart";
 
 import CheckoutCartSummary from "./components/CheckoutCartSummary";

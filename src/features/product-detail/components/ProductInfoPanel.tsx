@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Minus, Plus, ShieldCheck, Truck } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import { useCart } from "@/features/cart/hooks/use-cart";
 
 import type {

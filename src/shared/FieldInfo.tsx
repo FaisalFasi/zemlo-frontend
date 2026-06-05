@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { HelpCircle, X } from "lucide-react";
 
-import { cn } from "@/src/lib/utils";
+import { cn } from "@/lib/utils";
 
 type FieldInfoProps = {
   title: string;

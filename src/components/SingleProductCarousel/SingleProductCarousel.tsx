@@ -1,125 +1,128 @@
 "use client";
-import { useState } from "react";
-// Import Swiper React components
-import { Swiper, SwiperClass, SwiperSlide } from "swiper/react";
-import { Zoom, Pagination, Mousewheel } from "swiper/modules";
-// import required modules
-import { FreeMode, Navigation, Thumbs } from "swiper/modules";
 
-// Import Swiper styles
+import Image from "next/image";
+import { useState } from "react";
+import { FreeMode, Navigation, Thumbs, Zoom } from "swiper/modules";
+import { Swiper, SwiperClass, SwiperSlide } from "swiper/react";
+
 import "swiper/css/bundle";
 import "./style.css";
 
+const productImages = [
+  {
+    src: "https://swiperjs.com/demos/images/nature-1.jpg",
+    alt: "Nature landscape product view 1",
+  },
+  {
+    src: "https://swiperjs.com/demos/images/nature-2.jpg",
+    alt: "Nature landscape product view 2",
+  },
+  {
+    src: "https://swiperjs.com/demos/images/nature-3.jpg",
+    alt: "Nature landscape product view 3",
+  },
+  {
+    src: "https://swiperjs.com/demos/images/nature-4.jpg",
+    alt: "Nature landscape product view 4",
+  },
+  {
+    src: "https://swiperjs.com/demos/images/nature-5.jpg",
+    alt: "Nature landscape product view 5",
+  },
+  {
+    src: "https://swiperjs.com/demos/images/nature-6.jpg",
+    alt: "Nature landscape product view 6",
+  },
+  {
+    src: "https://swiperjs.com/demos/images/nature-7.jpg",
+    alt: "Nature landscape product view 7",
+  },
+  {
+    src: "https://swiperjs.com/demos/images/nature-8.jpg",
+    alt: "Nature landscape product view 8",
+  },
+  {
+    src: "https://swiperjs.com/demos/images/nature-9.jpg",
+    alt: "Nature landscape product view 9",
+  },
+  {
+    src: "https://swiperjs.com/demos/images/nature-10.jpg",
+    alt: "Nature landscape product view 10",
+  },
+];
+
 export function SingleProductCarousel() {
-  const [thumbsSwiper, setThumbsSwiper] = useState<SwiperClass>();
+  const [thumbsSwiper, setThumbsSwiper] = useState<SwiperClass | null>(null);
 
   return (
-    <div className="flex flex-col-reverse lg:flex-row h-fit w-fit p-2 gap-2">
-      <div className="w-full h-full lg:w-fit">
+    <div className="flex h-fit w-fit flex-col-reverse gap-2 p-2 lg:flex-row">
+      <div className="h-full w-full lg:w-fit">
         <Swiper
           onSwiper={setThumbsSwiper}
-          direction={`horizontal`}
+          direction="horizontal"
           spaceBetween={10}
           slidesPerView="auto"
-          watchOverflow={true}
-          watchSlidesProgress={true}
-          modules={[Navigation, Thumbs]}
-          className="max-w-111 lg:max-w-fit max-h-111 lg:m-0!"
+          watchOverflow
+          watchSlidesProgress
+          modules={[FreeMode, Navigation, Thumbs]}
+          className="max-h-111 max-w-111 lg:m-0! lg:max-w-fit"
           breakpoints={{
             768: {
-              direction: "horizontal", // md and up
+              direction: "horizontal",
             },
             1024: {
-              direction: "vertical", // lg and up (optional)
+              direction: "vertical",
             },
           }}
         >
-          <SwiperSlide className="max-h-fit w-28! h-fit opacity-50 [&.swiper-slide-thumb-active]:opacity-100 ">
-            <img
-              src="https://swiperjs.com/demos/images/nature-1.jpg"
-              className="rounded-2xl"
-            />
-          </SwiperSlide>
-          <SwiperSlide className="max-h-fit w-28! h-fit opacity-50 [&.swiper-slide-thumb-active]:opacity-100 ">
-            <img
-              src="https://swiperjs.com/demos/images/nature-1.jpg"
-              className="rounded-2xl"
-            />
-          </SwiperSlide>{" "}
-          <SwiperSlide className="max-h-fit w-28! h-fit opacity-50 [&.swiper-slide-thumb-active]:opacity-100 ">
-            <img
-              src="https://swiperjs.com/demos/images/nature-1.jpg"
-              className="rounded-2xl"
-            />
-          </SwiperSlide>{" "}
-          <SwiperSlide className="max-h-fit w-28! h-fit opacity-50 [&.swiper-slide-thumb-active]:opacity-100 ">
-            <img
-              src="https://swiperjs.com/demos/images/nature-1.jpg"
-              className="rounded-2xl"
-            />
-          </SwiperSlide>{" "}
-          <SwiperSlide className="max-h-fit w-28! h-fit opacity-50 [&.swiper-slide-thumb-active]:opacity-100 ">
-            <img
-              src="https://swiperjs.com/demos/images/nature-1.jpg"
-              className="rounded-2xl"
-            />
-          </SwiperSlide>{" "}
-          <SwiperSlide className="max-h-fit w-28! h-fit opacity-50 [&.swiper-slide-thumb-active]:opacity-100 ">
-            <img
-              src="https://swiperjs.com/demos/images/nature-1.jpg"
-              className="rounded-2xl"
-            />
-          </SwiperSlide>
+          {productImages.slice(0, 6).map((image) => (
+            <SwiperSlide
+              key={image.src}
+              className="max-h-fit h-fit w-28! opacity-50 [&.swiper-slide-thumb-active]:opacity-100"
+            >
+              <Image
+                src={image.src}
+                alt={image.alt}
+                width={112}
+                height={112}
+                className="rounded-2xl object-cover"
+                sizes="112px"
+              />
+            </SwiperSlide>
+          ))}
         </Swiper>
       </div>
-      <div className="w-full h-full lg:w-fit">
+
+      <div className="h-full w-full lg:w-fit">
         <Swiper
           zoom={{
             maxRatio: 5,
             panOnMouseMove: false,
           }}
-          // mousewheel={{ forceToAxis: true }}
           spaceBetween={10}
-          // freeMode={true}
-          navigation={true}
-          thumbs={{ swiper: thumbsSwiper }}
-          modules={[FreeMode, Navigation, Thumbs, Zoom, Mousewheel]}
-          className="w-full h-full max-w-111 max-h-132.5 rounded-2xl"
+          navigation
+          thumbs={{
+            swiper:
+              thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null,
+          }}
+          modules={[FreeMode, Navigation, Thumbs, Zoom]}
+          className="max-h-132.5 h-full w-full max-w-111 rounded-2xl"
         >
-          <SwiperSlide>
-            <div className="swiper-zoom-container w-full! h-full! ">
-              <img src="https://swiperjs.com/demos/images/nature-1.jpg" />
-            </div>
-          </SwiperSlide>
-          <SwiperSlide>
-            <div className="swiper-zoom-container">
-              <img src="https://swiperjs.com/demos/images/nature-2.jpg" />
-            </div>
-          </SwiperSlide>
-          <SwiperSlide>
-            <img src="https://swiperjs.com/demos/images/nature-3.jpg" />
-          </SwiperSlide>
-          <SwiperSlide>
-            <img src="https://swiperjs.com/demos/images/nature-4.jpg" />
-          </SwiperSlide>
-          <SwiperSlide>
-            <img src="https://swiperjs.com/demos/images/nature-5.jpg" />
-          </SwiperSlide>
-          <SwiperSlide>
-            <img src="https://swiperjs.com/demos/images/nature-6.jpg" />
-          </SwiperSlide>
-          <SwiperSlide>
-            <img src="https://swiperjs.com/demos/images/nature-7.jpg" />
-          </SwiperSlide>
-          <SwiperSlide>
-            <img src="https://swiperjs.com/demos/images/nature-8.jpg" />
-          </SwiperSlide>
-          <SwiperSlide>
-            <img src="https://swiperjs.com/demos/images/nature-9.jpg" />
-          </SwiperSlide>
-          <SwiperSlide>
-            <img src="https://swiperjs.com/demos/images/nature-10.jpg" />
-          </SwiperSlide>
+          {productImages.map((image) => (
+            <SwiperSlide key={image.src}>
+              <div className="swiper-zoom-container h-full! w-full!">
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  width={444}
+                  height={530}
+                  className="h-full w-full object-cover"
+                  sizes="(min-width: 1024px) 444px, 100vw"
+                  priority={image.src.endsWith("nature-1.jpg")}
+                />
+              </div>
+            </SwiperSlide>
+          ))}
         </Swiper>
       </div>
     </div>

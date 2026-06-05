@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, ShoppingBag, UserRound } from "lucide-react";
 
-import { Button } from "../../ui/button";
-import { cn } from "@/src/lib/utils";
+import { Button } from "@/shared/ui/button";
 
 import MobileNavbar from "./mobile-navbar";
 import { menuItems } from "./menu-items";
-import { useCachedCartTotalQuantity } from "@/src/features/cart/hooks/use-cart";
+import { useCachedCartTotalQuantity } from "@/features/cart/hooks/use-cart";
+import { cn } from "@/lib/utils";
 
 const Navbar = () => {
   const pathname = usePathname();

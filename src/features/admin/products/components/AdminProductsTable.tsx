@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Archive, ExternalLink, PackagePlus, Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 
 import AdminProductStatusBadge from "./AdminProductStatusBadge";
 import type { AdminProductListItem } from "../types/admin-product.types";

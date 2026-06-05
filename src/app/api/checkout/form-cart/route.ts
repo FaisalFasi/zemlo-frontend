@@ -1,4 +1,4 @@
-import { proxyToBackend } from "@/src/lib/api/backend";
+import { proxyToBackend } from "@/lib/api/backend";
 
 export async function POST(request: Request) {
   return proxyToBackend(request, {

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/shared/ui/input-otp";
 
 type InputOTPProps = {
   value: string;

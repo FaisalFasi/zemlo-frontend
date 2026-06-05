@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import FieldInfo from "@/components/shared/FieldInfo";
-import { cn } from "@/src/lib/utils";
+import FieldInfo from "../FieldInfo";
+import { cn } from "@/lib/utils";
 
 type FormFieldProps = {
   htmlFor?: string;

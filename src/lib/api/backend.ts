@@ -2,7 +2,7 @@ import "server-only";
 
 import { NextResponse } from "next/server";
 
-import { serverConfig } from "@/src/config/server";
+import { serverConfig } from "@/shared/config/server";
 
 type BackendMethod = "GET" | "POST" | "PATCH" | "DELETE";
 

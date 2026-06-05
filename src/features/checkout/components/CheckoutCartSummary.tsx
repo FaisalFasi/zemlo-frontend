@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import type { Cart } from "@/features/cart/types/cart.types";
 
 type CheckoutCartSummaryProps = {

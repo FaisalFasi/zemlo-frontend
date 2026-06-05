@@ -12,7 +12,7 @@ import MarketplaceHeroSection from "./sections/MarketplaceHeroSection";
 import PopularProductsSection from "./sections/PopularProductsSection";
 import TrustSection from "./sections/TrustSection";
 import { createHomePageData } from "./lib/home-page-mappers";
-import { serverConfig } from "@/src/config/server";
+import { serverConfig } from "@/shared/config/server";
 
 function shouldUseDemoCatalog() {
   return serverConfig.demoCatalogEnabled;

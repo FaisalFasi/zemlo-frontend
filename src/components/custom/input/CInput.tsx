@@ -1,6 +1,7 @@
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/src/lib/utils";
+import { cn } from "@/lib/utils";
+import { Checkbox } from "@/shared/ui/checkbox";
+import { Input } from "@/shared/ui/input";
+
 import React from "react";
 
 type InputProps = React.ComponentProps<typeof Input>;

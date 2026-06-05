@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PackageSearch } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 
 type ShopEmptyStateProps = {
   hasFilters: boolean;

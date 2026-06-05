@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { PackagePlus, RefreshCw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-
 import AdminProductsTable from "./components/AdminProductsTable";
 import {
   useAdminProductsQuery,
   useArchiveAdminProductMutation,
 } from "./hooks/use-admin-products";
+import { Button } from "@/shared/ui/button";
 
 export default function AdminProductsPage() {
   const productsQuery = useAdminProductsQuery();

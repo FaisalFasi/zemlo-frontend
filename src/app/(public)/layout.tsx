@@ -1,4 +1,4 @@
-import Navbar from "@/components/layout/navbar/navbar";
+import Navbar from "@/widgets/public-navbar/navbar/navbar";
 
 export default function PublicLayout({
   children,

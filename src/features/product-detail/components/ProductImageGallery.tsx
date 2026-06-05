@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
-import { cn } from "@/src/lib/utils";
+import { cn } from "@/lib/utils";
 
 import type { ProductDetailImage } from "../types/product-detail.types";
 

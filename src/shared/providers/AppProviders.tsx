@@ -1,6 +1,6 @@
 "use client";
 
-import QueryProvider from "@/src/lib/query/query-provider";
+import QueryProvider from "../query/query-provider";
 
 type AppProvidersProps = {
   children: React.ReactNode;

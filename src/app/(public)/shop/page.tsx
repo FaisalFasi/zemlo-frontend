@@ -1,4 +1,4 @@
-import { serverConfig } from "@/src/config/server";
+import { serverConfig } from "@/shared/config/server";
 import {
   getCatalogCategories,
   getCatalogProducts,

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/shared/ui/button";
+import { Sheet, SheetTrigger } from "@/shared/ui/sheet";
 
 import { AppSidebar } from "./app-sidebar";
 

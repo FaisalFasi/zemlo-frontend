@@ -4,7 +4,7 @@ import { getCatalogProductBySlug } from "@/features/catalog/api/catalog-api";
 import { getDemoProductDetailBySlug } from "@/features/product-detail/lib/product-detail-mappers";
 
 import ProductDetailPage from "@/features/product-detail/ProductDetailPage";
-import { serverConfig } from "@/src/config/server";
+import { serverConfig } from "@/shared/config/server";
 import { mapCatalogProductToProductDetail } from "@/features/product-detail/data/demo-product-details";
 
 export const dynamic = "force-dynamic";
