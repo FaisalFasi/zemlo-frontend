@@ -20,6 +20,13 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
+import type {
+  PublicBrandResponseDto,
+  PublicCategoryResponseDto,
+  PublicProductDetailResponseDto,
+  PublicProductListItemResponseDto
+} from '../schemas';
+
 import { axiosMutator } from '../../axios-mutator';
 
 
@@ -34,7 +41,7 @@ export const catalogControllerFindProducts = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<PublicProductListItemResponseDto[]>(
       {url: `/products`, method: 'GET', signal
     },
       );
@@ -126,7 +133,7 @@ export const catalogControllerFindProductBySlug = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<PublicProductDetailResponseDto>(
       {url: `/products/${slug}`, method: 'GET', signal
     },
       );
@@ -218,7 +225,7 @@ export const catalogControllerFindCategories = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<PublicCategoryResponseDto[]>(
       {url: `/categories`, method: 'GET', signal
     },
       );
@@ -310,7 +317,7 @@ export const catalogControllerFindBrands = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<PublicBrandResponseDto[]>(
       {url: `/brands`, method: 'GET', signal
     },
       );

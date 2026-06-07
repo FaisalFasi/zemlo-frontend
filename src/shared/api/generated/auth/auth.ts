@@ -25,7 +25,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AuthSessionResponseDto,
+  CurrentUserResponseDto,
   LoginDto,
+  MessageResponseDto,
   RegisterDto
 } from '../schemas';
 
@@ -43,7 +46,7 @@ export const authControllerRegister = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AuthSessionResponseDto>(
       {url: `/auth/register`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: registerDto, signal
@@ -106,7 +109,7 @@ export const authControllerLogin = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AuthSessionResponseDto>(
       {url: `/auth/login`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: loginDto, signal
@@ -169,7 +172,7 @@ export const authControllerMe = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CurrentUserResponseDto>(
       {url: `/auth/me`, method: 'GET', signal
     },
       );
@@ -261,7 +264,7 @@ export const authControllerLogout = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<MessageResponseDto>(
       {url: `/auth/logout`, method: 'POST', signal
     },
       );

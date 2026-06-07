@@ -1,6 +1,6 @@
 import "server-only";
 
-const DEFAULT_API_BASE_URL = "http://localhost:3000";
+import { apiConfig } from "./api";
 
 function readStringEnv(key: string, fallback?: string) {
   const value = process.env[key]?.trim();
@@ -26,12 +26,10 @@ function removeTrailingSlash(value: string) {
 
 export const serverConfig = Object.freeze({
   apiBaseUrl: removeTrailingSlash(
-    readStringEnv("API_BASE_URL", DEFAULT_API_BASE_URL),
+    readStringEnv("API_BASE_URL", apiConfig.defaultBackendBaseUrl),
   ),
-
   demoCatalogEnabled: readBooleanEnv("DEMO_CATALOG_ENABLED", false),
-
   nodeEnv: readStringEnv("NODE_ENV", "development"),
-});
+} as const);
 
 export type ServerConfig = typeof serverConfig;

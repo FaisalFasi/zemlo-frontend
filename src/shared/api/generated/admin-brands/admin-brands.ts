@@ -25,6 +25,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminBrandResponseDto,
+  AdminMessageResponseDto,
   CreateAdminBrandDto,
   UpdateAdminBrandDto
 } from '../schemas';
@@ -43,7 +45,7 @@ export const adminBrandsControllerFindAll = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminBrandResponseDto[]>(
       {url: `/admin/brands`, method: 'GET', signal
     },
       );
@@ -135,7 +137,7 @@ export const adminBrandsControllerCreate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminBrandResponseDto>(
       {url: `/admin/brands`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createAdminBrandDto, signal
@@ -198,7 +200,7 @@ export const adminBrandsControllerFindOne = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminBrandResponseDto>(
       {url: `/admin/brands/${id}`, method: 'GET', signal
     },
       );
@@ -291,7 +293,7 @@ export const adminBrandsControllerUpdate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminBrandResponseDto>(
       {url: `/admin/brands/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateAdminBrandDto, signal
@@ -354,7 +356,7 @@ export const adminBrandsControllerDisable = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminMessageResponseDto>(
       {url: `/admin/brands/${id}`, method: 'DELETE', signal
     },
       );

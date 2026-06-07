@@ -26,6 +26,8 @@ import type {
 
 import type {
   GuestOrderLookupDto,
+  OrderDetailResponseDto,
+  OrderSummaryResponseDto,
   UpdateAdminOrderShippingDto,
   UpdateAdminOrderStatusDto
 } from '../schemas';
@@ -44,7 +46,7 @@ export const ordersControllerFindMyOrders = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<OrderSummaryResponseDto[]>(
       {url: `/orders/my-orders`, method: 'GET', signal
     },
       );
@@ -136,7 +138,7 @@ export const ordersControllerFindMyOrderByOrderNumber = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<OrderDetailResponseDto>(
       {url: `/orders/my-orders/${orderNumber}`, method: 'GET', signal
     },
       );
@@ -228,7 +230,7 @@ export const ordersControllerFindGuestOrder = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<OrderDetailResponseDto>(
       {url: `/orders/guest/lookup`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: guestOrderLookupDto, signal
@@ -291,7 +293,7 @@ export const ordersControllerFindAllAdminOrders = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<OrderSummaryResponseDto[]>(
       {url: `/admin/orders`, method: 'GET', signal
     },
       );
@@ -375,70 +377,6 @@ export function useOrdersControllerFindAllAdminOrders<TData = Awaited<ReturnType
 
 
 /**
- * @summary Admin: update order shipping and tracking
- */
-export const ordersControllerUpdateAdminOrderShipping = (
-    id: string,
-    updateAdminOrderShippingDto: UpdateAdminOrderShippingDto,
- signal?: AbortSignal
-) => {
-
-
-      return axiosMutator<void>(
-      {url: `/admin/orders/${id}/shipping`, method: 'PATCH',
-      headers: {'Content-Type': 'application/json', },
-      data: updateAdminOrderShippingDto, signal
-    },
-      );
-    }
-
-
-
-export const getOrdersControllerUpdateAdminOrderShippingMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>, TError,{id: string;data: UpdateAdminOrderShippingDto}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>, TError,{id: string;data: UpdateAdminOrderShippingDto}, TContext> => {
-
-const mutationKey = ['ordersControllerUpdateAdminOrderShipping'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>, {id: string;data: UpdateAdminOrderShippingDto}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  ordersControllerUpdateAdminOrderShipping(id,data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type OrdersControllerUpdateAdminOrderShippingMutationResult = NonNullable<Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>>
-    export type OrdersControllerUpdateAdminOrderShippingMutationBody = UpdateAdminOrderShippingDto
-    export type OrdersControllerUpdateAdminOrderShippingMutationError = unknown
-
-    /**
- * @summary Admin: update order shipping and tracking
- */
-export const useOrdersControllerUpdateAdminOrderShipping = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>, TError,{id: string;data: UpdateAdminOrderShippingDto}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>,
-        TError,
-        {id: string;data: UpdateAdminOrderShippingDto},
-        TContext
-      > => {
-      return useMutation(getOrdersControllerUpdateAdminOrderShippingMutationOptions(options), queryClient);
-    }
-    /**
  * @summary Admin: get order by ID
  */
 export const ordersControllerFindAdminOrderById = (
@@ -447,7 +385,7 @@ export const ordersControllerFindAdminOrderById = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<OrderDetailResponseDto>(
       {url: `/admin/orders/${id}`, method: 'GET', signal
     },
       );
@@ -540,7 +478,7 @@ export const ordersControllerUpdateAdminOrderStatus = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<OrderDetailResponseDto>(
       {url: `/admin/orders/${id}/status`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateAdminOrderStatusDto, signal
@@ -593,4 +531,68 @@ export const useOrdersControllerUpdateAdminOrderStatus = <TError = unknown,
         TContext
       > => {
       return useMutation(getOrdersControllerUpdateAdminOrderStatusMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Admin: update order shipping and tracking
+ */
+export const ordersControllerUpdateAdminOrderShipping = (
+    id: string,
+    updateAdminOrderShippingDto: UpdateAdminOrderShippingDto,
+ signal?: AbortSignal
+) => {
+
+
+      return axiosMutator<OrderDetailResponseDto>(
+      {url: `/admin/orders/${id}/shipping`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateAdminOrderShippingDto, signal
+    },
+      );
+    }
+
+
+
+export const getOrdersControllerUpdateAdminOrderShippingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>, TError,{id: string;data: UpdateAdminOrderShippingDto}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>, TError,{id: string;data: UpdateAdminOrderShippingDto}, TContext> => {
+
+const mutationKey = ['ordersControllerUpdateAdminOrderShipping'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>, {id: string;data: UpdateAdminOrderShippingDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  ordersControllerUpdateAdminOrderShipping(id,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type OrdersControllerUpdateAdminOrderShippingMutationResult = NonNullable<Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>>
+    export type OrdersControllerUpdateAdminOrderShippingMutationBody = UpdateAdminOrderShippingDto
+    export type OrdersControllerUpdateAdminOrderShippingMutationError = unknown
+
+    /**
+ * @summary Admin: update order shipping and tracking
+ */
+export const useOrdersControllerUpdateAdminOrderShipping = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>, TError,{id: string;data: UpdateAdminOrderShippingDto}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof ordersControllerUpdateAdminOrderShipping>>,
+        TError,
+        {id: string;data: UpdateAdminOrderShippingDto},
+        TContext
+      > => {
+      return useMutation(getOrdersControllerUpdateAdminOrderShippingMutationOptions(options), queryClient);
     }

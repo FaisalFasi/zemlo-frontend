@@ -25,6 +25,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  PaymentMethodSettingResponseDto,
   UpdatePaymentMethodSettingDto
 } from '../schemas';
 
@@ -42,7 +43,7 @@ export const paymentSettingsControllerFindAll = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<PaymentMethodSettingResponseDto[]>(
       {url: `/admin/payment-settings`, method: 'GET', signal
     },
       );
@@ -134,7 +135,7 @@ export const paymentSettingsControllerFindOne = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<PaymentMethodSettingResponseDto>(
       {url: `/admin/payment-settings/${method}`, method: 'GET', signal
     },
       );
@@ -227,7 +228,7 @@ export const paymentSettingsControllerUpdate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<PaymentMethodSettingResponseDto>(
       {url: `/admin/payment-settings/${method}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updatePaymentMethodSettingDto, signal

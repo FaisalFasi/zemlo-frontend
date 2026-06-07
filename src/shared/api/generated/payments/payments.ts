@@ -16,7 +16,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  CreateStripePaymentIntentDto
+  CreateStripePaymentIntentDto,
+  StripePaymentIntentResponseDto,
+  StripeWebhookResponseDto
 } from '../schemas';
 
 import { axiosMutator } from '../../axios-mutator';
@@ -33,7 +35,7 @@ export const paymentsControllerCreateStripePaymentIntent = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<StripePaymentIntentResponseDto>(
       {url: `/payments/stripe/create-intent`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createStripePaymentIntentDto, signal
@@ -96,7 +98,7 @@ export const paymentsControllerHandleStripeWebhook = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<StripeWebhookResponseDto>(
       {url: `/payments/stripe/webhook`, method: 'POST', signal
     },
       );

@@ -20,6 +20,18 @@ export function useCartQuery() {
   return useQuery(cartQueryOptions.current());
 }
 
+export function useCartBadgeQuantity() {
+  const cartQuery = useQuery({
+    queryKey: cartQueryKeys.current(),
+    queryFn: async () => null as Cart | null,
+    enabled: false,
+  });
+
+  return {
+    totalQuantity: cartQuery.data?.totalQuantity ?? 0,
+  };
+}
+
 export function useAddCartItemMutation() {
   const queryClient = useQueryClient();
 
@@ -68,15 +80,6 @@ export function useClearCartMutation() {
       queryClient.setQueryData(cartQueryKeys.current(), cart);
     },
   });
-}
-export function useCachedCartTotalQuantity() {
-  const queryClient = useQueryClient();
-
-  const cart = queryClient.getQueryData<Cart>(cartQueryKeys.current());
-
-  return {
-    totalQuantity: cart?.totalQuantity ?? 0,
-  };
 }
 
 export function useCart() {

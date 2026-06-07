@@ -8,12 +8,12 @@ import { Button } from "@/shared/ui/button";
 
 import MobileNavbar from "./mobile-navbar";
 import { menuItems } from "./menu-items";
-import { useCachedCartTotalQuantity } from "@/features/cart/hooks/use-cart";
+import { useCartBadgeQuantity } from "@/features/cart/hooks/use-cart";
 import { cn } from "@/lib/utils";
 
 const Navbar = () => {
   const pathname = usePathname();
-  const { totalQuantity } = useCachedCartTotalQuantity();
+  const { totalQuantity } = useCartBadgeQuantity();
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";

@@ -25,6 +25,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminMessageResponseDto,
+  CountrySettingResponseDto,
   CreateCountrySettingDto,
   UpdateCountrySettingDto
 } from '../schemas';
@@ -43,7 +45,7 @@ export const countrySettingsControllerFindAll = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CountrySettingResponseDto[]>(
       {url: `/admin/countries`, method: 'GET', signal
     },
       );
@@ -135,7 +137,7 @@ export const countrySettingsControllerCreate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CountrySettingResponseDto>(
       {url: `/admin/countries`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createCountrySettingDto, signal
@@ -199,7 +201,7 @@ export const countrySettingsControllerUpdate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CountrySettingResponseDto>(
       {url: `/admin/countries/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateCountrySettingDto, signal
@@ -262,7 +264,7 @@ export const countrySettingsControllerRemove = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminMessageResponseDto>(
       {url: `/admin/countries/${id}`, method: 'DELETE', signal
     },
       );

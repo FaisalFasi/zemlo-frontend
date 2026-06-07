@@ -20,6 +20,10 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query';
 
+import type {
+  PublicSettingsResponseDto
+} from '../schemas';
+
 import { axiosMutator } from '../../axios-mutator';
 
 
@@ -34,7 +38,7 @@ export const publicSettingsControllerGetPublicSettings = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<PublicSettingsResponseDto>(
       {url: `/public/settings`, method: 'GET', signal
     },
       );

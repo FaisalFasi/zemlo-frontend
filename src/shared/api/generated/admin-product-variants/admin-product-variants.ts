@@ -25,7 +25,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminMessageResponseDto,
   CreateProductVariantDto,
+  ProductVariantResponseDto,
   UpdateProductVariantDto
 } from '../schemas';
 
@@ -43,7 +45,7 @@ export const productVariantsControllerFindAll = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<ProductVariantResponseDto[]>(
       {url: `/admin/products/${productId}/variants`, method: 'GET', signal
     },
       );
@@ -136,7 +138,7 @@ export const productVariantsControllerCreate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<ProductVariantResponseDto>(
       {url: `/admin/products/${productId}/variants`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createProductVariantDto, signal
@@ -201,7 +203,7 @@ export const productVariantsControllerUpdate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<ProductVariantResponseDto>(
       {url: `/admin/products/${productId}/variants/${variantId}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateProductVariantDto, signal
@@ -265,7 +267,7 @@ export const productVariantsControllerRemove = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminMessageResponseDto>(
       {url: `/admin/products/${productId}/variants/${variantId}`, method: 'DELETE', signal
     },
       );

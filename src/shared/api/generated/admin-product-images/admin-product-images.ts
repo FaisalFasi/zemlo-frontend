@@ -25,7 +25,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminMessageResponseDto,
   CreateProductImageDto,
+  ProductImageResponseDto,
   UpdateProductImageDto
 } from '../schemas';
 
@@ -43,7 +45,7 @@ export const productImagesControllerFindAll = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<ProductImageResponseDto[]>(
       {url: `/admin/products/${productId}/images`, method: 'GET', signal
     },
       );
@@ -136,7 +138,7 @@ export const productImagesControllerCreate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<ProductImageResponseDto>(
       {url: `/admin/products/${productId}/images`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createProductImageDto, signal
@@ -201,7 +203,7 @@ export const productImagesControllerUpdate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<ProductImageResponseDto>(
       {url: `/admin/products/${productId}/images/${imageId}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateProductImageDto, signal
@@ -265,7 +267,7 @@ export const productImagesControllerRemove = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminMessageResponseDto>(
       {url: `/admin/products/${productId}/images/${imageId}`, method: 'DELETE', signal
     },
       );
@@ -327,7 +329,7 @@ export const productImagesControllerSetDefault = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<ProductImageResponseDto>(
       {url: `/admin/products/${productId}/images/${imageId}/default`, method: 'PATCH', signal
     },
       );

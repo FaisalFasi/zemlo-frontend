@@ -1,10 +1,10 @@
 import { defineConfig } from "orval";
 
-const apiSpecUrl =
-  process.env.ORVAL_API_SPEC_URL_LOCAL_HOST ??
-  "https://zemlo-store.onrender.com/api-json";
+const DEFAULT_API_SPEC_URL = "https://zemlo-store.onrender.com/api-json";
 
-console.log("ORVAL_API_SPEC_URL_LOCAL_HOST---:", apiSpecUrl);
+const apiSpecUrl = process.env.ORVAL_API_SPEC_URL ?? DEFAULT_API_SPEC_URL;
+
+console.log("ORVAL_API_SPEC_URL:", apiSpecUrl);
 
 export default defineConfig({
   zemlo: {

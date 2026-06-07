@@ -1,13 +1,18 @@
 import axios from "axios";
 
-const DEFAULT_API_BASE_URL = "http://localhost:3000";
+import { apiConfig } from "@/shared/config/api";
+import { storageKeys } from "@/shared/config/storage-keys";
+import { getOrCreateGuestId } from "@/shared/lib/guest-id";
 
 function getBaseURL() {
   if (typeof window !== "undefined") {
-    return "/api/backend";
+    return apiConfig.browserBackendProxyBaseUrl;
   }
 
-  return (process.env.API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, "");
+  return (process.env.API_BASE_URL ?? apiConfig.defaultBackendBaseUrl).replace(
+    /\/$/,
+    "",
+  );
 }
 
 export const axiosInstance = axios.create({
@@ -23,8 +28,8 @@ axiosInstance.interceptors.request.use((config) => {
     return config;
   }
 
-  const adminToken = window.localStorage.getItem("zemlo_admin_access_token");
-  const guestId = window.localStorage.getItem("zemlo_guest_cart_id");
+  const adminToken = window.localStorage.getItem(storageKeys.adminAccessToken);
+  const guestId = getOrCreateGuestId();
 
   if (adminToken) {
     config.headers.Authorization = `Bearer ${adminToken}`;

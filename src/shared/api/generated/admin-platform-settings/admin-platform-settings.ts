@@ -25,6 +25,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  PlatformSettingsResponseDto,
   UpdatePlatformSettingsDto
 } from '../schemas';
 
@@ -42,7 +43,7 @@ export const platformSettingsControllerGetSettings = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<PlatformSettingsResponseDto>(
       {url: `/admin/platform-settings`, method: 'GET', signal
     },
       );
@@ -134,7 +135,7 @@ export const platformSettingsControllerUpdateSettings = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<PlatformSettingsResponseDto>(
       {url: `/admin/platform-settings`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updatePlatformSettingsDto, signal

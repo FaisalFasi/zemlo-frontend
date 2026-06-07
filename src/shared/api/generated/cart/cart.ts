@@ -26,6 +26,7 @@ import type {
 
 import type {
   AddCartItemDto,
+  CartResponseDto,
   UpdateCartItemDto
 } from '../schemas';
 
@@ -43,7 +44,7 @@ export const cartControllerGetCart = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CartResponseDto>(
       {url: `/cart`, method: 'GET', signal
     },
       );
@@ -135,7 +136,7 @@ export const cartControllerAddItem = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CartResponseDto>(
       {url: `/cart/items`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: addCartItemDto, signal
@@ -199,7 +200,7 @@ export const cartControllerUpdateItem = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CartResponseDto>(
       {url: `/cart/items/${itemId}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateCartItemDto, signal
@@ -262,7 +263,7 @@ export const cartControllerRemoveItem = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CartResponseDto>(
       {url: `/cart/items/${itemId}`, method: 'DELETE', signal
     },
       );
@@ -323,7 +324,7 @@ export const cartControllerClearCart = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CartResponseDto>(
       {url: `/cart/clear`, method: 'DELETE', signal
     },
       );

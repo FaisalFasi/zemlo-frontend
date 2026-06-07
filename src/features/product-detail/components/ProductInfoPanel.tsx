@@ -5,8 +5,7 @@ import { useMemo, useState } from "react";
 import { Minus, Plus, ShieldCheck, Truck } from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
-import { useCart } from "@/features/cart/hooks/use-cart";
-
+import { useAddCartItemMutation } from "@/features/cart/hooks/use-cart";
 import type {
   ProductDetail,
   ProductDetailVariant,
@@ -43,7 +42,8 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
   const [selectedVariantId, setSelectedVariantId] = useState(
     product.variants[0]?.id ?? "",
   );
-  const { addItemAsync, isAddingItem } = useCart();
+  const addCartItemMutation = useAddCartItemMutation();
+  const isAddingItem = addCartItemMutation.isPending;
   const [cartMessage, setCartMessage] = useState("");
   const [cartError, setCartError] = useState("");
 
@@ -77,7 +77,7 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
     }
 
     try {
-      await addItemAsync({
+      await addCartItemMutation.mutateAsync({
         productId: product.id,
         quantity,
         ...(selectedVariantId ? { variantId: selectedVariantId } : {}),

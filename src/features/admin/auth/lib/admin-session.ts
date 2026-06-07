@@ -1,25 +1,24 @@
-import { AdminUser } from "../types/admin-auth.types";
+import { storageKeys } from "@/shared/config/storage-keys";
 
-const ADMIN_ACCESS_TOKEN_KEY = "zemlo_admin_access_token";
-const ADMIN_USER_KEY = "zemlo_admin_user";
+import type { AdminUser } from "../types/admin-auth.types";
 
 export function getAdminAccessToken() {
   if (typeof window === "undefined") return null;
 
-  return window.localStorage.getItem(ADMIN_ACCESS_TOKEN_KEY);
+  return window.localStorage.getItem(storageKeys.adminAccessToken);
 }
 
 export function setAdminSession(accessToken: string, user: AdminUser) {
   if (typeof window === "undefined") return;
 
-  window.localStorage.setItem(ADMIN_ACCESS_TOKEN_KEY, accessToken);
-  window.localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
+  window.localStorage.setItem(storageKeys.adminAccessToken, accessToken);
+  window.localStorage.setItem(storageKeys.adminUser, JSON.stringify(user));
 }
 
 export function getStoredAdminUser() {
   if (typeof window === "undefined") return null;
 
-  const value = window.localStorage.getItem(ADMIN_USER_KEY);
+  const value = window.localStorage.getItem(storageKeys.adminUser);
 
   if (!value) return null;
 
@@ -33,6 +32,6 @@ export function getStoredAdminUser() {
 export function clearAdminSession() {
   if (typeof window === "undefined") return;
 
-  window.localStorage.removeItem(ADMIN_ACCESS_TOKEN_KEY);
-  window.localStorage.removeItem(ADMIN_USER_KEY);
+  window.localStorage.removeItem(storageKeys.adminAccessToken);
+  window.localStorage.removeItem(storageKeys.adminUser);
 }

@@ -25,6 +25,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminCategoryResponseDto,
+  AdminMessageResponseDto,
   CreateAdminCategoryDto,
   UpdateAdminCategoryDto
 } from '../schemas';
@@ -43,7 +45,7 @@ export const adminCategoriesControllerFindAll = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminCategoryResponseDto[]>(
       {url: `/admin/categories`, method: 'GET', signal
     },
       );
@@ -135,7 +137,7 @@ export const adminCategoriesControllerCreate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminCategoryResponseDto>(
       {url: `/admin/categories`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createAdminCategoryDto, signal
@@ -198,7 +200,7 @@ export const adminCategoriesControllerFindOne = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminCategoryResponseDto>(
       {url: `/admin/categories/${id}`, method: 'GET', signal
     },
       );
@@ -291,7 +293,7 @@ export const adminCategoriesControllerUpdate = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminCategoryResponseDto>(
       {url: `/admin/categories/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateAdminCategoryDto, signal
@@ -354,7 +356,7 @@ export const adminCategoriesControllerDisable = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<AdminMessageResponseDto>(
       {url: `/admin/categories/${id}`, method: 'DELETE', signal
     },
       );

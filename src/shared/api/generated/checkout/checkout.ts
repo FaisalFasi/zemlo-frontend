@@ -17,6 +17,7 @@ import type {
 
 import type {
   AuthCheckoutDto,
+  CheckoutResponseDto,
   FromCartCheckoutDto,
   GuestCheckoutDto
 } from '../schemas';
@@ -35,7 +36,7 @@ export const checkoutControllerGuestCheckout = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CheckoutResponseDto>(
       {url: `/checkout/guest`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: guestCheckoutDto, signal
@@ -98,7 +99,7 @@ export const checkoutControllerAuthCheckout = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CheckoutResponseDto>(
       {url: `/checkout/auth`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: authCheckoutDto, signal
@@ -161,7 +162,7 @@ export const checkoutControllerCheckoutFromCart = (
 ) => {
 
 
-      return axiosMutator<void>(
+      return axiosMutator<CheckoutResponseDto>(
       {url: `/checkout/from-cart`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: fromCartCheckoutDto, signal
