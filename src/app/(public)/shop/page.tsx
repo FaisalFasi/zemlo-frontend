@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
+
 import { serverConfig } from "@/shared/config/server";
+import { routes } from "@/shared/config/routes";
+import { createPageMetadata } from "@/shared/lib/seo";
 
 import {
   getCatalogCategories,
@@ -15,6 +19,13 @@ import ShopPage from "@/features/shop/ShopPage";
 import type { ShopSearchParams } from "@/features/shop/types/shop.types";
 
 export const revalidate = 300;
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Shop",
+  description:
+    "Explore Zemlo products across curated categories, brands, and everyday essentials.",
+  path: routes.shop,
+});
 
 type ShopRoutePageProps = {
   searchParams: Promise<ShopSearchParams>;
