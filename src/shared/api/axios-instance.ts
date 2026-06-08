@@ -1,25 +1,44 @@
 import axios from "axios";
 
-import { apiConfig } from "@/shared/config/api";
-import { storageKeys } from "@/shared/config/storage-keys";
+import {
+  apiConfig,
+  apiContentTypes,
+  apiHeaders,
+  storageKeys,
+} from "@/shared/config";
 import { getOrCreateGuestId } from "@/shared/lib/guest-id";
+
+function removeTrailingSlash(value: string) {
+  return value.replace(/\/$/, "");
+}
 
 function getBaseURL() {
   if (typeof window !== "undefined") {
     return apiConfig.browserBackendProxyBaseUrl;
   }
 
-  return (process.env.API_BASE_URL ?? apiConfig.defaultBackendBaseUrl).replace(
-    /\/$/,
-    "",
+  return removeTrailingSlash(
+    process.env.API_BASE_URL ?? apiConfig.defaultBackendBaseUrl,
   );
+}
+
+function getStoredAdminToken() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  try {
+    return window.localStorage.getItem(storageKeys.adminAccessToken) ?? "";
+  } catch {
+    return "";
+  }
 }
 
 export const axiosInstance = axios.create({
   baseURL: getBaseURL(),
   withCredentials: false,
   headers: {
-    Accept: "application/json",
+    [apiHeaders.accept]: apiContentTypes.json,
   },
 });
 
@@ -28,15 +47,15 @@ axiosInstance.interceptors.request.use((config) => {
     return config;
   }
 
-  const adminToken = window.localStorage.getItem(storageKeys.adminAccessToken);
+  const adminToken = getStoredAdminToken();
   const guestId = getOrCreateGuestId();
 
   if (adminToken) {
-    config.headers.Authorization = `Bearer ${adminToken}`;
+    config.headers.set(apiHeaders.authorization, `Bearer ${adminToken}`);
   }
 
   if (guestId) {
-    config.headers["x-guest-id"] = guestId;
+    config.headers.set(apiHeaders.guestId, guestId);
   }
 
   return config;
