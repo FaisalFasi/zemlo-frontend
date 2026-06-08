@@ -14,7 +14,7 @@ import {
   createShopCategoriesFromProducts,
   mapCatalogCategoriesToShopCategories,
   mapCatalogProductToShopProduct,
-} from "@/features/shop/lib/shop-prodct-mappers";
+} from "@/features/shop/lib/shop-product-mappers";
 import ShopPage from "@/features/shop/ShopPage";
 import type { ShopSearchParams } from "@/features/shop/types/shop.types";
 
