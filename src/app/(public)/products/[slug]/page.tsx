@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 
-import { serverConfig } from "@/shared/config/server";
 import { getCatalogProductBySlug } from "@/features/catalog/api/catalog-api";
 import { mapCatalogProductToProductDetail } from "@/features/product-detail/data/demo-product-details";
 import { getDemoProductDetailBySlug } from "@/features/product-detail/lib/product-detail-mappers";
 import ProductDetailPage from "@/features/product-detail/ProductDetailPage";
+import { serverConfig } from "@/shared/config/server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 type ProductRoutePageProps = {
   params: Promise<{
