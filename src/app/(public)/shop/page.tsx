@@ -23,25 +23,18 @@ function shouldUseDemoCatalog() {
 }
 
 async function getSafeShopData() {
-  const [productsResult, categoriesResult] = await Promise.allSettled([
-    getCatalogProducts(),
-    getCatalogCategories(),
-  ]);
+  const productsResult = await getCatalogProducts();
+  const categoriesResult = await getCatalogCategories();
 
-  const backendProducts =
-    productsResult.status === "fulfilled" ? productsResult.value : [];
+  const realProducts = productsResult.map(mapCatalogProductToShopProduct);
 
-  const backendCategories =
-    categoriesResult.status === "fulfilled" ? categoriesResult.value : [];
-
-  const realProducts = backendProducts.map(mapCatalogProductToShopProduct);
   const useDemoCatalog = realProducts.length === 0 && shouldUseDemoCatalog();
 
   const products = useDemoCatalog ? demoShopProducts : realProducts;
 
   const categories =
     realProducts.length > 0
-      ? mapCatalogCategoriesToShopCategories(backendCategories, products)
+      ? mapCatalogCategoriesToShopCategories(categoriesResult, products)
       : createShopCategoriesFromProducts(products);
 
   return {
@@ -50,6 +43,34 @@ async function getSafeShopData() {
     isDemoCatalog: useDemoCatalog,
   };
 }
+// async function getSafeShopData() {
+//   const [productsResult, categoriesResult] = await Promise.allSettled([
+//     getCatalogProducts(),
+//     getCatalogCategories(),
+//   ]);
+
+//   const backendProducts =
+//     productsResult.status === "fulfilled" ? productsResult.value : [];
+
+//   const backendCategories =
+//     categoriesResult.status === "fulfilled" ? categoriesResult.value : [];
+
+//   const realProducts = backendProducts.map(mapCatalogProductToShopProduct);
+//   const useDemoCatalog = realProducts.length === 0 && shouldUseDemoCatalog();
+
+//   const products = useDemoCatalog ? demoShopProducts : realProducts;
+
+//   const categories =
+//     realProducts.length > 0
+//       ? mapCatalogCategoriesToShopCategories(backendCategories, products)
+//       : createShopCategoriesFromProducts(products);
+
+//   return {
+//     products,
+//     categories,
+//     isDemoCatalog: useDemoCatalog,
+//   };
+// }
 
 export default async function ShopRoutePage({
   searchParams,

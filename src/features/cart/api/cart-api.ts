@@ -1,37 +1,38 @@
 "use client";
 
-// import type {
-//   cartControllerAddItem,
-//   cartControllerClearCart,
-//   cartControllerGetCart,
-//   cartControllerRemoveItem,
-//   cartControllerUpdateItem,
-// } from "@/shared/api/generated/cart/cart";
 import {
+  cartControllerAddItem,
+  cartControllerClearCart,
+  cartControllerGetCart,
+  cartControllerRemoveItem,
+  cartControllerUpdateItem,
+} from "@/shared/api/generated/cart/cart";
+
+import type {
   AddCartItemInput,
   Cart,
   UpdateCartItemInput,
 } from "../types/cart.types";
 
-// export async function getCart(): Promise<Cart> {
-//   return cartControllerGetCart() as Promise<Cart>;
-// }
+export function getCart(): Promise<Cart> {
+  return cartControllerGetCart();
+}
 
-// export async function addCartItem(input: AddCartItemInput): Promise<Cart> {
-//   return cartControllerAddItem(input) as Promise<Cart>;
-// }
+export function addCartItem(input: AddCartItemInput): Promise<Cart> {
+  return cartControllerAddItem(input);
+}
 
-// export async function updateCartItem(
-//   itemId: string,
-//   input: UpdateCartItemInput,
-// ): Promise<Cart> {
-//   return cartControllerUpdateItem(itemId, input) as Promise<Cart>;
-// }
+export function updateCartItem(
+  itemId: string,
+  input: UpdateCartItemInput,
+): Promise<Cart> {
+  return cartControllerUpdateItem(itemId, input);
+}
 
-// export async function removeCartItem(itemId: string): Promise<Cart> {
-//   return cartControllerRemoveItem(itemId) as Promise<Cart>;
-// }
+export function removeCartItem(itemId: string): Promise<Cart> {
+  return cartControllerRemoveItem(itemId);
+}
 
-// export async function clearCart(): Promise<Cart> {
-//   return cartControllerClearCart() as Promise<Cart>;
-// }
+export function clearCart(): Promise<Cart> {
+  return cartControllerClearCart();
+}
