@@ -8,27 +8,24 @@ import {
   removeCartItem,
   updateCartItem,
 } from "../api/cart-api";
-
+import { cartQueryKeys, cartQueryOptions } from "../queries/cart-query-options";
 import type {
   AddCartItemInput,
   Cart,
   UpdateCartItemInput,
 } from "../types/cart.types";
-import { cartQueryKeys, cartQueryOptions } from "../queries/cart-query-options";
 
 export function useCartQuery() {
   return useQuery(cartQueryOptions.current());
 }
 
 export function useCartBadgeQuantity() {
-  const cartQuery = useQuery({
-    queryKey: cartQueryKeys.current(),
-    queryFn: async () => null as Cart | null,
-    enabled: false,
-  });
+  const queryClient = useQueryClient();
+
+  const cart = queryClient.getQueryData<Cart>(cartQueryKeys.current());
 
   return {
-    totalQuantity: cartQuery.data?.totalQuantity ?? 0,
+    totalQuantity: cart?.totalQuantity ?? 0,
   };
 }
 
@@ -99,7 +96,6 @@ export function useCart() {
     isCartLoading: cartQuery.isLoading,
     isCartFetching: cartQuery.isFetching,
     cartError: cartQuery.error instanceof Error ? cartQuery.error.message : "",
-
     refetchCart: cartQuery.refetch,
 
     addItem: addItemMutation.mutate,
