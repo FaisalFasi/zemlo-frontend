@@ -4,6 +4,14 @@ export const routes = Object.freeze({
   cart: "/cart",
   checkout: "/checkout",
 
+  legal: {
+    impressum: "/impressum",
+    privacy: "/privacy",
+    terms: "/terms",
+    returns: "/returns",
+    shipping: "/shipping",
+  },
+
   auth: {
     login: "/login",
     register: "/register",
@@ -20,20 +28,3 @@ export const routes = Object.freeze({
   productDetail: (slug: string) => `/products/${slug}`,
   categoryDetail: (slug: string) => `/categories/${slug}`,
 } as const);
-
-// export const routes = Object.freeze({
-//   home: "/",
-//   shop: "/shop",
-//   cart: "/cart",
-//   checkout: "/checkout",
-
-//   admin: {
-//     root: "/admin",
-//     login: "/admin/login",
-//     products: "/admin/products",
-//     createProduct: "/admin/products/new",
-//     editProduct: (productId: string) => `/admin/products/${productId}/edit`,
-//   },
-
-//   productDetail: (slug: string) => `/products/${slug}`,
-// } as const);
