@@ -12,7 +12,7 @@ import { useCart } from "@/features/cart/hooks/use-cart";
 
 import CheckoutCartSummary from "./components/CheckoutCartSummary";
 import CheckoutSuccessPanel from "./components/CheckoutSuccessPanel";
-import { useCheckoutFromCartMutation } from "./hooks/use-checkou";
+import { useCheckoutFromCartMutation } from "./hooks/use-checkout";
 import { checkoutFormValuesToInput } from "./lib/checkout-mappers";
 import {
   checkoutDefaultValues,
