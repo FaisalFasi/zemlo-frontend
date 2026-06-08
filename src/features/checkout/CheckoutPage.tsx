@@ -1,5 +1,11 @@
 "use client";
 
+import { StripePaymentSection } from "./components/StripePaymentSection";
+import {
+  getCheckoutClientSecret,
+  getCheckoutOrderId,
+} from "./lib/checkout-response";
+
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +17,6 @@ import FormStatusMessage from "@/shared/forms/FormStatusMessage";
 import { useCart } from "@/features/cart/hooks/use-cart";
 
 import CheckoutCartSummary from "./components/CheckoutCartSummary";
-import CheckoutSuccessPanel from "./components/CheckoutSuccessPanel";
 import { useCheckoutFromCartMutation } from "./hooks/use-checkout";
 import { checkoutFormValuesToInput } from "./lib/checkout-mappers";
 import {
@@ -58,10 +63,40 @@ export default function CheckoutPage() {
   const canSubmit = !isCartLoading && !isCartEmpty && !isSubmitting;
 
   if (checkoutResult) {
+    const orderId = getCheckoutOrderId(checkoutResult);
+    const clientSecret = getCheckoutClientSecret(checkoutResult);
+
     return (
-      <main className="bg-background text-foreground">
-        <section className="container-page py-10 md:py-14">
-          <CheckoutSuccessPanel result={checkoutResult} />
+      <main className="mx-auto w-full max-w-3xl px-4 py-16">
+        <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-emerald-700">
+              Order created successfully.
+            </p>
+
+            <h1 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">
+              Complete your payment
+            </h1>
+
+            <p className="text-sm leading-6 text-muted-foreground">
+              Your order is reserved. Confirm the payment securely with Stripe.
+            </p>
+          </div>
+
+          {clientSecret && orderId ? (
+            <div className="mt-6">
+              <StripePaymentSection
+                clientSecret={clientSecret}
+                orderId={orderId}
+              />
+            </div>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              Checkout was created, but Stripe client secret is missing from the
+              API response. Backend DTO/OpenAPI needs to expose clientSecret
+              before Stripe Elements can render.
+            </div>
+          )}
         </section>
       </main>
     );
@@ -345,6 +380,21 @@ export default function CheckoutPage() {
           </div>
         </form>
       </section>
+      {checkoutResult ? (
+        <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-emerald-700">
+              Order created successfully.
+            </p>
+            <h2 className="text-xl font-semibold text-foreground">
+              Complete your payment
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Your order is reserved. Confirm the payment securely with Stripe.
+            </p>
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }
