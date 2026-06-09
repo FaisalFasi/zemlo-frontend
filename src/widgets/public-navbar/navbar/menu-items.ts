@@ -1,7 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { mainNavigationItems } from "@/shared/config/navigation";
-
+import { mainNavigationItems } from "@/shared/navigation";
 export type NavbarMenuItem = {
   title: string;
   href: string;

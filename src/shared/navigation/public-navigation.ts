@@ -7,7 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { routes } from "./routes";
+import { routes } from "@/shared/config/routes";
 
 export type NavigationItem = {
   title: string;

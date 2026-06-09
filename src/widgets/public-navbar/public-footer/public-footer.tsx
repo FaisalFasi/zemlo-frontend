@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { appConfig } from "@/shared/config/app";
 import { defaultMarket } from "@/shared/config/markets";
-import { footerNavigationGroups } from "@/shared/config/navigation";
+import { footerNavigationGroups } from "@/shared/navigation";
 import { routes } from "@/shared/config/routes";
 
 export function PublicFooter() {
