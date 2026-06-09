@@ -14,4 +14,14 @@ export interface CheckoutPaymentResponseDto {
   status: PaymentStatus;
   amount: number;
   currency: string;
+  /**
+     * Stripe PaymentIntent id or provider payment intent id.
+     * @nullable
+     */
+  paymentIntentId?: string | null;
+  /**
+     * Stripe client secret used by the frontend PaymentElement.
+     * @nullable
+     */
+  clientSecret?: string | null;
 }
