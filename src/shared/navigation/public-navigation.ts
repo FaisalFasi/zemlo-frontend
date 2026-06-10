@@ -36,19 +36,19 @@ export const mainNavigationItems = [
   },
   {
     title: "Our Story",
-    href: "/story",
+    href: routes.company.story,
     description: "Learn more about Zemlo.",
     icon: BookOpen,
   },
   {
     title: "Journal",
-    href: "/blog",
+    href: routes.company.blog,
     description: "Guides, updates, and product stories.",
     icon: Newspaper,
   },
   {
     title: "Contact",
-    href: "/contact",
+    href: routes.company.contact,
     description: "Get in touch with us.",
     icon: Contact,
   },
@@ -77,15 +77,15 @@ export const footerNavigationGroups = [
     items: [
       {
         title: "Our Story",
-        href: "/story",
+        href: routes.company.story,
       },
       {
         title: "Journal",
-        href: "/blog",
+        href: routes.company.blog,
       },
       {
         title: "Contact",
-        href: "/contact",
+        href: routes.company.contact,
       },
     ],
   },

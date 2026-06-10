@@ -6,6 +6,12 @@ export const routes = Object.freeze({
   checkoutSuccess: "/checkout/success",
   checkoutFailure: "/checkout/failure",
 
+  company: {
+    story: "/story",
+    blog: "/blog",
+    contact: "/contact",
+  },
+
   legal: {
     impressum: "/impressum",
     privacy: "/privacy",
