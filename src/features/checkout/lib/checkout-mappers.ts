@@ -1,3 +1,4 @@
+import { checkoutPaymentMethods } from "../types/checkout.types";
 import type { CheckoutFormValues } from "../schemas/checkout.schema";
 import type { CheckoutFromCartInput } from "../types/checkout.types";
 
@@ -23,7 +24,7 @@ export function checkoutFormValuesToInput(
     guestFirstName: values.firstName,
     guestLastName: values.lastName,
     shippingAddress,
-    paymentMethod: "STRIPE",
+    paymentMethod: checkoutPaymentMethods.STRIPE,
     customerNote: values.customerNote,
   };
 }

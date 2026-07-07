@@ -1,4 +1,9 @@
-import { apiFetch } from "@/lib/api/api-client";
+import {
+  catalogControllerFindBrands,
+  catalogControllerFindCategories,
+  catalogControllerFindProductBySlug,
+  catalogControllerFindProducts,
+} from "@/shared/api/generated/catalog/catalog";
 
 import type {
   CatalogBrand,
@@ -7,26 +12,22 @@ import type {
   CatalogProductListItem,
 } from "../types/catalog.types";
 
-export async function getCatalogProducts() {
-  return apiFetch<CatalogProductListItem[]>("/products", {
-    cache: "no-store",
-  });
+export async function getCatalogProducts(): Promise<CatalogProductListItem[]> {
+  return catalogControllerFindProducts() as Promise<CatalogProductListItem[]>;
 }
 
-export async function getCatalogProductBySlug(slug: string) {
-  return apiFetch<CatalogProductDetail>(`/products/${slug}`, {
-    cache: "no-store",
-  });
+export async function getCatalogProductBySlug(
+  slug: string,
+): Promise<CatalogProductDetail> {
+  return catalogControllerFindProductBySlug(
+    slug,
+  ) as Promise<CatalogProductDetail>;
 }
 
-export async function getCatalogCategories() {
-  return apiFetch<CatalogCategory[]>("/categories", {
-    cache: "no-store",
-  });
+export async function getCatalogCategories(): Promise<CatalogCategory[]> {
+  return catalogControllerFindCategories() as Promise<CatalogCategory[]>;
 }
 
-export async function getCatalogBrands() {
-  return apiFetch<CatalogBrand[]>("/brands", {
-    cache: "no-store",
-  });
+export async function getCatalogBrands(): Promise<CatalogBrand[]> {
+  return catalogControllerFindBrands() as Promise<CatalogBrand[]>;
 }

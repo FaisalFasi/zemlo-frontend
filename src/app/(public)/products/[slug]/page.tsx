@@ -1,12 +1,18 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { serverConfig } from "@/shared/config/server";
 import { getCatalogProductBySlug } from "@/features/catalog/api/catalog-api";
 import { mapCatalogProductToProductDetail } from "@/features/product-detail/data/demo-product-details";
+import {
+  createProductJsonLd,
+  createProductMetadata,
+} from "@/features/product-detail/lib/product-seo";
 import { getDemoProductDetailBySlug } from "@/features/product-detail/lib/product-detail-mappers";
 import ProductDetailPage from "@/features/product-detail/ProductDetailPage";
+import { serverConfig } from "@/shared/config/server";
+import { safeJsonLd } from "@/shared/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 type ProductRoutePageProps = {
   params: Promise<{
@@ -32,6 +38,25 @@ async function getSafeProductDetail(slug: string) {
   }
 }
 
+export async function generateMetadata({
+  params,
+}: ProductRoutePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getSafeProductDetail(slug);
+
+  if (!product) {
+    return {
+      title: "Product not found | Zemlo",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  return createProductMetadata(product);
+}
+
 export default async function ProductRoutePage({
   params,
 }: ProductRoutePageProps) {
@@ -42,5 +67,18 @@ export default async function ProductRoutePage({
     notFound();
   }
 
-  return <ProductDetailPage product={product} />;
+  const productJsonLd = createProductJsonLd(product);
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: safeJsonLd(productJsonLd),
+        }}
+      />
+
+      <ProductDetailPage product={product} />
+    </>
+  );
 }

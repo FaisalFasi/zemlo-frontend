@@ -1,5 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 
+import { queryDurations } from "@/shared/config";
+
 import { getCart } from "../api/cart-api";
 
 export const cartQueryKeys = {
@@ -12,5 +14,7 @@ export const cartQueryOptions = {
     queryOptions({
       queryKey: cartQueryKeys.current(),
       queryFn: getCart,
+      staleTime: queryDurations.short,
+      gcTime: queryDurations.medium,
     }),
 };

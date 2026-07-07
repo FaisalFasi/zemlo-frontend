@@ -1,6 +1,12 @@
 export const appConfig = Object.freeze({
   name: "Zemlo",
-  description: "Modern multi-category e-commerce marketplace",
-  defaultCurrency: "USD",
-  defaultLocale: "en-US",
+  description: "A modern multi-category e-commerce marketplace.",
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+
+  defaultLocale: "de-DE",
+  defaultCurrency: "EUR",
+  defaultCountry: "DE",
+  defaultMarket: "de",
 } as const);
+
+export type AppConfig = typeof appConfig;

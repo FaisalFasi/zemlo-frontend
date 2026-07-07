@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { apiContentTypes, apiHeaders } from "@/shared/config/api";
 import { serverConfig } from "@/shared/config/server";
 
 type BackendProxyContext = {
@@ -8,37 +9,44 @@ type BackendProxyContext = {
   }>;
 };
 
-async function readRequestBody(request: Request) {
-  const text = await request.text();
+const METHODS_WITHOUT_BODY = new Set(["GET", "HEAD"]);
 
-  return text.length > 0 ? text : undefined;
+async function readRequestBody(request: Request) {
+  if (METHODS_WITHOUT_BODY.has(request.method)) {
+    return undefined;
+  }
+
+  const body = await request.arrayBuffer();
+
+  return body.byteLength > 0 ? body : undefined;
 }
 
 function createBackendUrl(pathSegments: string[], request: Request) {
   const path = pathSegments.join("/");
-  const url = new URL(request.url);
+  const requestUrl = new URL(request.url);
 
-  return `${serverConfig.apiBaseUrl}/${path}${url.search}`;
+  return `${serverConfig.apiBaseUrl}/${path}${requestUrl.search}`;
 }
 
 function createProxyHeaders(request: Request, hasBody: boolean) {
   const headers = new Headers();
 
-  headers.set("Accept", "application/json");
+  headers.set(apiHeaders.accept, apiContentTypes.json);
+
+  const contentType = request.headers.get(apiHeaders.contentType);
+  const authorization = request.headers.get(apiHeaders.authorization);
+  const guestId = request.headers.get(apiHeaders.guestId);
 
   if (hasBody) {
-    headers.set("Content-Type", "application/json");
+    headers.set(apiHeaders.contentType, contentType || apiContentTypes.json);
   }
 
-  const authorization = request.headers.get("authorization");
-  const guestId = request.headers.get("x-guest-id");
-
   if (authorization) {
-    headers.set("Authorization", authorization);
+    headers.set(apiHeaders.authorization, authorization);
   }
 
   if (guestId) {
-    headers.set("x-guest-id", guestId);
+    headers.set(apiHeaders.guestId, guestId);
   }
 
   return headers;
@@ -46,10 +54,7 @@ function createProxyHeaders(request: Request, hasBody: boolean) {
 
 async function proxyRequest(request: Request, context: BackendProxyContext) {
   const { path } = await context.params;
-
-  const body = ["GET", "HEAD"].includes(request.method)
-    ? undefined
-    : await readRequestBody(request);
+  const body = await readRequestBody(request);
 
   const backendResponse = await fetch(createBackendUrl(path, request), {
     method: request.method,
@@ -63,8 +68,9 @@ async function proxyRequest(request: Request, context: BackendProxyContext) {
   return new NextResponse(responseBody || null, {
     status: backendResponse.status,
     headers: {
-      "Content-Type":
-        backendResponse.headers.get("content-type") ?? "application/json",
+      [apiHeaders.contentType]:
+        backendResponse.headers.get(apiHeaders.contentType) ??
+        apiContentTypes.json,
     },
   });
 }

@@ -1,5 +1,9 @@
 import { storageKeys } from "@/shared/config/storage-keys";
 
+function canUseBrowserStorage() {
+  return typeof window !== "undefined" && Boolean(window.localStorage);
+}
+
 function createGuestId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
@@ -9,18 +13,42 @@ function createGuestId() {
 }
 
 export function getStoredGuestId() {
-  if (typeof window === "undefined") {
+  if (!canUseBrowserStorage()) {
     return "";
   }
 
-  return window.localStorage.getItem(storageKeys.guestCartId) ?? "";
+  try {
+    return window.localStorage.getItem(storageKeys.guestCartId) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function setStoredGuestId(guestId: string) {
+  if (!canUseBrowserStorage()) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(storageKeys.guestCartId, guestId);
+  } catch {
+    // Ignore storage failures. Cart requests can still continue without a guest id.
+  }
+}
+
+export function clearStoredGuestId() {
+  if (!canUseBrowserStorage()) {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(storageKeys.guestCartId);
+  } catch {
+    // Ignore storage failures.
+  }
 }
 
 export function getOrCreateGuestId() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
   const existingGuestId = getStoredGuestId();
 
   if (existingGuestId) {
@@ -28,8 +56,7 @@ export function getOrCreateGuestId() {
   }
 
   const guestId = createGuestId();
-
-  window.localStorage.setItem(storageKeys.guestCartId, guestId);
+  setStoredGuestId(guestId);
 
   return guestId;
 }

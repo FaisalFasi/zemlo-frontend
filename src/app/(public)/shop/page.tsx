@@ -1,18 +1,31 @@
+import type { Metadata } from "next";
+
 import { serverConfig } from "@/shared/config/server";
+import { routes } from "@/shared/config/routes";
+import { createPageMetadata } from "@/shared/lib/seo";
+
 import {
   getCatalogCategories,
   getCatalogProducts,
 } from "@/features/catalog/api/catalog-api";
 import { demoShopProducts } from "@/features/shop/data/demo-shop-products";
-
 import { resolveShopSearchParams } from "@/features/shop/lib/shop-filters";
 import {
   createShopCategoriesFromProducts,
   mapCatalogCategoriesToShopCategories,
   mapCatalogProductToShopProduct,
-} from "@/features/shop/lib/shop-prodct-mappers";
+} from "@/features/shop/lib/shop-product-mappers";
 import ShopPage from "@/features/shop/ShopPage";
 import type { ShopSearchParams } from "@/features/shop/types/shop.types";
+
+export const revalidate = 300;
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Shop",
+  description:
+    "Explore Zemlo products across curated categories, brands, and everyday essentials.",
+  path: routes.shop,
+});
 
 type ShopRoutePageProps = {
   searchParams: Promise<ShopSearchParams>;
@@ -23,54 +36,42 @@ function shouldUseDemoCatalog() {
 }
 
 async function getSafeShopData() {
-  const productsResult = await getCatalogProducts();
-  const categoriesResult = await getCatalogCategories();
+  try {
+    const [productsResult, categoriesResult] = await Promise.all([
+      getCatalogProducts(),
+      getCatalogCategories(),
+    ]);
 
-  const realProducts = productsResult.map(mapCatalogProductToShopProduct);
+    const realProducts = productsResult.map(mapCatalogProductToShopProduct);
+    const useDemoCatalog = realProducts.length === 0 && shouldUseDemoCatalog();
+    const products = useDemoCatalog ? demoShopProducts : realProducts;
 
-  const useDemoCatalog = realProducts.length === 0 && shouldUseDemoCatalog();
+    const categories =
+      realProducts.length > 0
+        ? mapCatalogCategoriesToShopCategories(categoriesResult, products)
+        : createShopCategoriesFromProducts(products);
 
-  const products = useDemoCatalog ? demoShopProducts : realProducts;
+    return {
+      products,
+      categories,
+      isDemoCatalog: useDemoCatalog,
+    };
+  } catch {
+    if (!shouldUseDemoCatalog()) {
+      return {
+        products: [],
+        categories: [],
+        isDemoCatalog: false,
+      };
+    }
 
-  const categories =
-    realProducts.length > 0
-      ? mapCatalogCategoriesToShopCategories(categoriesResult, products)
-      : createShopCategoriesFromProducts(products);
-
-  return {
-    products,
-    categories,
-    isDemoCatalog: useDemoCatalog,
-  };
+    return {
+      products: demoShopProducts,
+      categories: createShopCategoriesFromProducts(demoShopProducts),
+      isDemoCatalog: true,
+    };
+  }
 }
-// async function getSafeShopData() {
-//   const [productsResult, categoriesResult] = await Promise.allSettled([
-//     getCatalogProducts(),
-//     getCatalogCategories(),
-//   ]);
-
-//   const backendProducts =
-//     productsResult.status === "fulfilled" ? productsResult.value : [];
-
-//   const backendCategories =
-//     categoriesResult.status === "fulfilled" ? categoriesResult.value : [];
-
-//   const realProducts = backendProducts.map(mapCatalogProductToShopProduct);
-//   const useDemoCatalog = realProducts.length === 0 && shouldUseDemoCatalog();
-
-//   const products = useDemoCatalog ? demoShopProducts : realProducts;
-
-//   const categories =
-//     realProducts.length > 0
-//       ? mapCatalogCategoriesToShopCategories(backendCategories, products)
-//       : createShopCategoriesFromProducts(products);
-
-//   return {
-//     products,
-//     categories,
-//     isDemoCatalog: useDemoCatalog,
-//   };
-// }
 
 export default async function ShopRoutePage({
   searchParams,

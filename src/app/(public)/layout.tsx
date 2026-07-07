@@ -1,4 +1,5 @@
 import Navbar from "@/widgets/public-navbar/navbar/navbar";
+import { PublicFooter } from "@/widgets/public-navbar/public-footer";
 
 export default function PublicLayout({
   children,
@@ -7,10 +8,9 @@ export default function PublicLayout({
 }>) {
   return (
     <>
-      <div className="w-full fixed top-0 z-50">
-        <Navbar />
-      </div>
-      <div className="pt-20">{children}</div>
+      <Navbar />
+      {children}
+      <PublicFooter />
     </>
   );
 }

@@ -13,7 +13,7 @@ export function useCheckoutFromCartMutation() {
   return useMutation({
     mutationFn: (input: CheckoutFromCartInput) => checkoutFromCart(input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({
+      queryClient.removeQueries({
         queryKey: cartQueryKeys.current(),
       });
     },
