@@ -1,35 +1,34 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+
+import { useCart } from "@/features/cart/hooks/use-cart";
+import FormField from "@/shared/forms/FormField";
+import FormStatusMessage from "@/shared/forms/FormStatusMessage";
+import { routes } from "@/shared/config/routes";
+import { Button } from "@/shared/ui/button";
+
+import CheckoutCartSummary from "./components/CheckoutCartSummary";
+import CheckoutSuccessPanel from "./components/CheckoutSuccessPanel";
 import { StripePaymentSection } from "./components/StripePaymentSection";
+import { useCheckoutFromCartMutation } from "./hooks/use-checkout";
+import { checkoutFormValuesToInput } from "./lib/checkout-mappers";
 import {
   getCheckoutClientSecret,
   getCheckoutOrderId,
 } from "./lib/checkout-response";
-
-import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-
-import { Button } from "@/shared/ui/button";
-import FormField from "@/shared/forms/FormField";
-import FormStatusMessage from "@/shared/forms/FormStatusMessage";
-import { useCart } from "@/features/cart/hooks/use-cart";
-
-import CheckoutCartSummary from "./components/CheckoutCartSummary";
-import { useCheckoutFromCartMutation } from "./hooks/use-checkout";
-import { checkoutFormValuesToInput } from "./lib/checkout-mappers";
 import {
   checkoutDefaultValues,
   checkoutSchema,
   type CheckoutFormInput,
   type CheckoutFormValues,
 } from "./schemas/checkout.schema";
-import type { CheckoutFromCartResponse } from "./types/checkout.types";
 
 export default function CheckoutPage() {
   const { cart, isCartLoading, cartError } = useCart();
-
   const checkoutMutation = useCheckoutFromCartMutation();
 
   const form = useForm<CheckoutFormInput, undefined, CheckoutFormValues>({
@@ -50,9 +49,7 @@ export default function CheckoutPage() {
     await checkoutMutation.mutateAsync(payload);
   }
 
-  const checkoutResult = checkoutMutation.data as
-    | CheckoutFromCartResponse
-    | undefined;
+  const checkoutResult = checkoutMutation.data;
 
   const mutationError =
     checkoutMutation.error instanceof Error
@@ -60,7 +57,11 @@ export default function CheckoutPage() {
       : "";
 
   const isCartEmpty = !cart || cart.items.length === 0;
-  const canSubmit = !isCartLoading && !isCartEmpty && !isSubmitting;
+  const canSubmit =
+    !isCartLoading &&
+    !isCartEmpty &&
+    !isSubmitting &&
+    !checkoutMutation.isPending;
 
   if (checkoutResult) {
     const orderId = getCheckoutOrderId(checkoutResult);
@@ -68,33 +69,20 @@ export default function CheckoutPage() {
 
     return (
       <main className="mx-auto w-full max-w-3xl px-4 py-16">
-        <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-emerald-700">
-              Order created successfully.
-            </p>
+        <section className="rounded-3xl border border-border bg-card p-6 shadow-sm md:p-8">
+          <CheckoutSuccessPanel result={checkoutResult} />
 
-            <h1 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">
-              Complete your payment
-            </h1>
-
-            <p className="text-sm leading-6 text-muted-foreground">
-              Your order is reserved. Confirm the payment securely with Stripe.
-            </p>
-          </div>
-
-          {clientSecret && orderId ? (
-            <div className="mt-6">
+          {clientSecret ? (
+            <div className="mt-8">
               <StripePaymentSection
                 clientSecret={clientSecret}
                 orderId={orderId}
               />
             </div>
           ) : (
-            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              Checkout was created, but Stripe client secret is missing from the
-              API response. Backend DTO/OpenAPI needs to expose clientSecret
-              before Stripe Elements can render.
+            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              Stripe payment details are missing. Please return to your cart and
+              try again.
             </div>
           )}
         </section>
@@ -106,7 +94,7 @@ export default function CheckoutPage() {
     <main className="bg-background text-foreground">
       <section className="container-page py-10 md:py-14">
         <Link
-          href="/cart"
+          href={routes.cart}
           className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground no-underline transition-zemlo hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
@@ -121,8 +109,8 @@ export default function CheckoutPage() {
           </h1>
 
           <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-            This creates an order from your current cart and receives the Stripe
-            PaymentIntent client secret from your backend.
+            Enter your delivery information to reserve the products in your cart
+            and continue to secure Stripe payment.
           </p>
         </div>
 
@@ -168,7 +156,7 @@ export default function CheckoutPage() {
                     id="email"
                     type="email"
                     autoComplete="email"
-                    placeholder="guest@example.com"
+                    placeholder="customer@example.com"
                     {...register("email")}
                     className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
@@ -208,8 +196,9 @@ export default function CheckoutPage() {
                 >
                   <input
                     id="phone"
+                    type="tel"
                     autoComplete="tel"
-                    placeholder="+13001234567"
+                    placeholder="+49 170 1234567"
                     {...register("phone")}
                     className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
                   />
@@ -266,7 +255,7 @@ export default function CheckoutPage() {
 
                 <FormField
                   htmlFor="state"
-                  label="State"
+                  label="State / region"
                   error={errors.state?.message}
                 >
                   <input
@@ -343,12 +332,12 @@ export default function CheckoutPage() {
               <p className="text-eyebrow text-muted-foreground">Payment</p>
 
               <h2 className="mt-3 text-xl font-medium tracking-tight">
-                Stripe PaymentIntent
+                Secure Stripe payment
               </h2>
 
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                This step creates the order and receives the Stripe client
-                secret. Stripe Elements will be connected next.
+                Your order and inventory reservation will be created first.
+                Stripe PaymentElement will then appear for secure payment.
               </p>
 
               <div className="mt-5 rounded-2xl bg-muted p-4 text-sm text-muted-foreground">
@@ -358,7 +347,7 @@ export default function CheckoutPage() {
 
               <Button
                 type="submit"
-                disabled={!canSubmit || checkoutMutation.isPending}
+                disabled={!canSubmit}
                 className="mt-6 w-full rounded-full"
               >
                 {checkoutMutation.isPending ? (
@@ -367,7 +356,7 @@ export default function CheckoutPage() {
                     Creating checkout...
                   </>
                 ) : (
-                  "Create checkout"
+                  "Continue to payment"
                 )}
               </Button>
 
@@ -380,21 +369,6 @@ export default function CheckoutPage() {
           </div>
         </form>
       </section>
-      {checkoutResult ? (
-        <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-emerald-700">
-              Order created successfully.
-            </p>
-            <h2 className="text-xl font-semibold text-foreground">
-              Complete your payment
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Your order is reserved. Confirm the payment securely with Stripe.
-            </p>
-          </div>
-        </section>
-      ) : null}
     </main>
   );
 }
