@@ -11,7 +11,6 @@ import {
 import { cartQueryKeys, cartQueryOptions } from "../queries/cart-query-options";
 import type {
   AddCartItemInput,
-  Cart,
   UpdateCartItemInput,
 } from "../types/cart.types";
 
@@ -20,12 +19,13 @@ export function useCartQuery() {
 }
 
 export function useCartBadgeQuantity() {
-  const queryClient = useQueryClient();
-
-  const cart = queryClient.getQueryData<Cart>(cartQueryKeys.current());
+  const cartQuery = useQuery({
+    ...cartQueryOptions.current(),
+    enabled: false,
+  });
 
   return {
-    totalQuantity: cart?.totalQuantity ?? 0,
+    totalQuantity: cartQuery.data?.totalQuantity ?? 0,
   };
 }
 

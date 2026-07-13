@@ -16,10 +16,7 @@ import CheckoutSuccessPanel from "./components/CheckoutSuccessPanel";
 import { StripePaymentSection } from "./components/StripePaymentSection";
 import { useCheckoutFromCartMutation } from "./hooks/use-checkout";
 import { checkoutFormValuesToInput } from "./lib/checkout-mappers";
-import {
-  getCheckoutClientSecret,
-  getCheckoutOrderId,
-} from "./lib/checkout-response";
+import { useCreateStripePaymentIntentMutation } from "../payments/hooks/use-stripe-payments";
 import {
   checkoutDefaultValues,
   checkoutSchema,
@@ -31,6 +28,8 @@ export default function CheckoutPage() {
   const { cart, isCartLoading, cartError } = useCart();
   const checkoutMutation = useCheckoutFromCartMutation();
 
+  const stripePaymentMutation = useCreateStripePaymentIntentMutation();
+
   const form = useForm<CheckoutFormInput, undefined, CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: checkoutDefaultValues,
@@ -40,20 +39,43 @@ export default function CheckoutPage() {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isSubmitting },
   } = form;
 
   async function onSubmit(values: CheckoutFormValues) {
     const payload = checkoutFormValuesToInput(values);
 
-    await checkoutMutation.mutateAsync(payload);
+    const checkoutResult = await checkoutMutation.mutateAsync(payload);
+
+    await stripePaymentMutation.mutateAsync({
+      orderId: checkoutResult.order.id,
+      guestEmail: values.email,
+    });
+  }
+
+  async function retryStripePayment() {
+    if (!checkoutResult) {
+      return;
+    }
+
+    await stripePaymentMutation.mutateAsync({
+      orderId: checkoutResult.order.id,
+      guestEmail: getValues("email"),
+    });
   }
 
   const checkoutResult = checkoutMutation.data;
+  const stripePaymentResult = stripePaymentMutation.data;
 
-  const mutationError =
+  const checkoutError =
     checkoutMutation.error instanceof Error
       ? checkoutMutation.error.message
+      : "";
+
+  const stripePaymentError =
+    stripePaymentMutation.error instanceof Error
+      ? stripePaymentMutation.error.message
       : "";
 
   const isCartEmpty = !cart || cart.items.length === 0;
@@ -61,16 +83,24 @@ export default function CheckoutPage() {
     !isCartLoading &&
     !isCartEmpty &&
     !isSubmitting &&
-    !checkoutMutation.isPending;
+    !checkoutMutation.isPending &&
+    !stripePaymentMutation.isPending;
 
   if (checkoutResult) {
-    const orderId = getCheckoutOrderId(checkoutResult);
-    const clientSecret = getCheckoutClientSecret(checkoutResult);
+    const orderId = checkoutResult.order.id;
+    const clientSecret = stripePaymentResult?.clientSecret ?? "";
 
     return (
       <main className="mx-auto w-full max-w-3xl px-4 py-16">
         <section className="rounded-3xl border border-border bg-card p-6 shadow-sm md:p-8">
           <CheckoutSuccessPanel result={checkoutResult} />
+
+          {stripePaymentMutation.isPending ? (
+            <div className="mt-8 flex items-center gap-3 rounded-2xl bg-muted p-4 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" />
+              Preparing secure Stripe payment...
+            </div>
+          ) : null}
 
           {clientSecret ? (
             <div className="mt-8">
@@ -79,12 +109,38 @@ export default function CheckoutPage() {
                 orderId={orderId}
               />
             </div>
-          ) : (
-            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              Stripe payment details are missing. Please return to your cart and
-              try again.
+          ) : null}
+
+          {!clientSecret &&
+          !stripePaymentMutation.isPending &&
+          stripePaymentError ? (
+            <div className="mt-8 space-y-4 rounded-2xl border border-red-200 bg-red-50 p-4">
+              <FormStatusMessage
+                type="error"
+                title="Stripe payment could not be prepared"
+                message={stripePaymentError}
+              />
+
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-full"
+                onClick={retryStripePayment}
+                disabled={stripePaymentMutation.isPending}
+              >
+                Try payment again
+              </Button>
             </div>
-          )}
+          ) : null}
+
+          {!clientSecret &&
+          !stripePaymentMutation.isPending &&
+          !stripePaymentError ? (
+            <div className="mt-8 flex items-center gap-3 rounded-2xl bg-muted p-4 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" />
+              Preparing payment...
+            </div>
+          ) : null}
         </section>
       </main>
     );
@@ -124,12 +180,12 @@ export default function CheckoutPage() {
           </div>
         ) : null}
 
-        {mutationError ? (
+        {checkoutError ? (
           <div className="mb-6">
             <FormStatusMessage
               type="error"
               title="Checkout was not created"
-              message={mutationError}
+              message={checkoutError}
             />
           </div>
         ) : null}
