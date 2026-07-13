@@ -1,12 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
+    // Only hosts we actually serve product/demo images from.
+    // Add your CDN (e.g. res.cloudinary.com) here when image uploads land.
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "*",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "swiperjs.com",
       },
     ],
   },

@@ -7,7 +7,6 @@ import { useState } from "react";
 
 const OTP = () => {
   const [value, setValue] = useState<string>("");
-  console.log(value);
 
   return (
     <div className="w-full min-h-screen h-full grid grid-cols-1 md:grid-cols-2">

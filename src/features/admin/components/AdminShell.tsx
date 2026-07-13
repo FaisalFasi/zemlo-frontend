@@ -27,6 +27,12 @@ export default function AdminShell({ children }: AdminShellProps) {
       const currentUser = await getCurrentAdminUser();
 
       if (!canAccessAdmin(currentUser)) {
+        // Clear the session for authenticated-but-not-admin users so
+        // middleware doesn't bounce them back here in a loop.
+        if (currentUser) {
+          await logoutAdmin();
+        }
+
         router.replace("/admin/login");
         return;
       }
@@ -38,8 +44,8 @@ export default function AdminShell({ children }: AdminShellProps) {
     void checkUser();
   }, [router]);
 
-  function handleLogout() {
-    logoutAdmin();
+  async function handleLogout() {
+    await logoutAdmin();
     router.replace("/admin/login");
   }
 

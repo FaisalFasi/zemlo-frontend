@@ -1,10 +1,5 @@
 "use client";
 
-import {
-  clearAdminSession,
-  getAdminAccessToken,
-  setAdminSession,
-} from "../lib/admin-session";
 import type {
   AdminLoginInput,
   AdminLoginResponse,
@@ -44,6 +39,8 @@ function getErrorMessage(errorBody: unknown, fallback: string) {
   return fallback;
 }
 
+// The session token lives in an httpOnly cookie set by the login route
+// handler — client JS never sees or stores it.
 export async function loginAdmin(input: AdminLoginInput) {
   const response = await fetch("/api/admin/auth/login", {
     method: "POST",
@@ -60,28 +57,18 @@ export async function loginAdmin(input: AdminLoginInput) {
     throw new Error(getErrorMessage(errorBody, "Could not login."));
   }
 
-  const result = (await response.json()) as AdminLoginResponse;
-
-  setAdminSession(result.accessToken, result.user);
-
-  return result;
+  return (await response.json()) as AdminLoginResponse;
 }
 
 export async function getCurrentAdminUser() {
-  const token = getAdminAccessToken();
-
-  if (!token) return null;
-
   const response = await fetch("/api/admin/auth/me", {
     method: "GET",
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${token}`,
     },
   });
 
   if (!response.ok) {
-    clearAdminSession();
     return null;
   }
 
@@ -90,6 +77,11 @@ export async function getCurrentAdminUser() {
   return result.user;
 }
 
-export function logoutAdmin() {
-  clearAdminSession();
+export async function logoutAdmin() {
+  await fetch("/api/admin/auth/logout", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+    },
+  });
 }

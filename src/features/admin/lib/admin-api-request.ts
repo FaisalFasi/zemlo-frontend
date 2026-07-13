@@ -1,7 +1,5 @@
 "use client";
 
-import { getAdminAccessToken } from "@/features/admin/auth/lib/admin-session";
-
 async function readResponseBody(response: Response) {
   const contentType = response.headers.get("content-type");
 
@@ -44,25 +42,25 @@ type AdminApiRequestOptions = {
   body?: unknown;
 };
 
+// Auth rides on the httpOnly session cookie (sent automatically on
+// same-origin requests); the proxy route attaches the bearer token.
 export async function adminApiRequest<TResponse>(
   path: string,
   options: AdminApiRequestOptions = {},
 ): Promise<TResponse> {
-  const token = getAdminAccessToken();
-
-  if (!token) {
-    throw new Error("Admin session not found. Please login again.");
-  }
-
   const response = await fetch(path, {
     method: options.method ?? "GET",
     headers: {
       Accept: "application/json",
       ...(options.body ? { "Content-Type": "application/json" } : {}),
-      Authorization: `Bearer ${token}`,
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
+
+  if (response.status === 401) {
+    window.location.assign("/admin/login");
+    throw new Error("Admin session expired. Please login again.");
+  }
 
   const responseBody = await readResponseBody(response);
 

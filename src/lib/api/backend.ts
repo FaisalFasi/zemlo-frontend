@@ -3,6 +3,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 
 import { serverConfig } from "@/shared/config/server";
+import { getAdminSessionToken } from "@/lib/auth/admin-session-cookie";
 
 type BackendMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
@@ -95,7 +96,11 @@ export async function proxyToBackend(
   request: Request,
   options: ProxyToBackendOptions,
 ) {
-  const authorization = request.headers.get("authorization");
+  // Prefer the httpOnly session cookie; fall back to an explicit header.
+  const sessionToken = await getAdminSessionToken();
+  const authorization = sessionToken
+    ? `Bearer ${sessionToken}`
+    : request.headers.get("authorization");
   const guestId = request.headers.get("x-guest-id");
 
   const body = options.includeBody ? await readRequestBody(request) : undefined;

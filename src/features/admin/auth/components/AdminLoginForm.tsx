@@ -6,7 +6,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
 
-import { loginAdmin } from "../api/admin-auth-api";
+import { loginAdmin, logoutAdmin } from "../api/admin-auth-api";
 import { canAccessAdmin } from "../lib/admin-permissions";
 
 function getFormValue(formData: FormData, name: string) {
@@ -35,11 +35,16 @@ export default function AdminLoginForm() {
       });
 
       if (!canAccessAdmin(result.user)) {
+        // Drop the session cookie, otherwise middleware would bounce this
+        // non-admin user between /admin and /admin/login forever.
+        await logoutAdmin();
         setError("Your account does not have admin access.");
         return;
       }
 
-      router.push("/admin");
+      const from = new URLSearchParams(window.location.search).get("from");
+
+      router.push(from?.startsWith("/admin") ? from : "/admin");
       router.refresh();
     } catch (submitError) {
       setError(

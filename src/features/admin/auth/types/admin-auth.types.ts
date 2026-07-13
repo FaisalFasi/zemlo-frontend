@@ -44,7 +44,6 @@ export type AdminLoginInput = {
 export type AdminLoginResponse = {
   message: string;
   user: AdminUser;
-  accessToken: string;
 };
 
 export type AdminMeResponse = {

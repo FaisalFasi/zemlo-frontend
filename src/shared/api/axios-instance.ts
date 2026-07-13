@@ -1,11 +1,6 @@
 import axios from "axios";
 
-import {
-  apiConfig,
-  apiContentTypes,
-  apiHeaders,
-  storageKeys,
-} from "@/shared/config";
+import { apiConfig, apiContentTypes, apiHeaders } from "@/shared/config";
 import { getOrCreateGuestId } from "@/shared/lib/guest-id";
 
 function removeTrailingSlash(value: string) {
@@ -22,18 +17,6 @@ function getBaseURL() {
   );
 }
 
-function getStoredAdminToken() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  try {
-    return window.localStorage.getItem(storageKeys.adminAccessToken) ?? "";
-  } catch {
-    return "";
-  }
-}
-
 export const axiosInstance = axios.create({
   baseURL: getBaseURL(),
   withCredentials: false,
@@ -47,12 +30,7 @@ axiosInstance.interceptors.request.use((config) => {
     return config;
   }
 
-  const adminToken = getStoredAdminToken();
   const guestId = getOrCreateGuestId();
-
-  if (adminToken) {
-    config.headers.set(apiHeaders.authorization, `Bearer ${adminToken}`);
-  }
 
   if (guestId) {
     config.headers.set(apiHeaders.guestId, guestId);
@@ -60,3 +38,20 @@ axiosInstance.interceptors.request.use((config) => {
 
   return config;
 });
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Expired admin session: the proxy answers 401 — send the user back to login.
+    if (
+      typeof window !== "undefined" &&
+      axios.isAxiosError(error) &&
+      error.response?.status === 401 &&
+      window.location.pathname.startsWith("/admin")
+    ) {
+      window.location.assign("/admin/login");
+    }
+
+    return Promise.reject(error);
+  },
+);
