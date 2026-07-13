@@ -1,43 +1,12 @@
 "use client";
 
+import { getErrorMessage, readResponseBody } from "@/shared/lib/http";
+
 import type {
   AdminLoginInput,
   AdminLoginResponse,
   AdminMeResponse,
 } from "../types/admin-auth.types";
-
-async function readResponseBody(response: Response) {
-  const contentType = response.headers.get("content-type");
-
-  if (contentType?.includes("application/json")) {
-    try {
-      return await response.json();
-    } catch {
-      return null;
-    }
-  }
-
-  try {
-    return await response.text();
-  } catch {
-    return null;
-  }
-}
-
-function getErrorMessage(errorBody: unknown, fallback: string) {
-  if (errorBody && typeof errorBody === "object" && "message" in errorBody) {
-    const message = errorBody.message;
-
-    if (typeof message === "string") return message;
-    if (Array.isArray(message)) return message.join(", ");
-  }
-
-  if (typeof errorBody === "string" && errorBody.trim().length > 0) {
-    return errorBody;
-  }
-
-  return fallback;
-}
 
 // The session token lives in an httpOnly cookie set by the login route
 // handler — client JS never sees or stores it.

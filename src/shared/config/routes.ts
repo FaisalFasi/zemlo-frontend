@@ -22,8 +22,10 @@ export const routes = Object.freeze({
 
   auth: {
     login: "/login",
-    register: "/register",
+    register: "/signup",
   },
+
+  account: "/account",
 
   admin: {
     root: "/admin",

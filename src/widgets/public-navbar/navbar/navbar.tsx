@@ -9,20 +9,20 @@ import { Button } from "@/shared/ui/button";
 import MobileNavbar from "./mobile-navbar";
 import { menuItems } from "./menu-items";
 import { useCartBadgeQuantity } from "@/features/cart/hooks/use-cart";
+import { useCurrentCustomerQuery } from "@/features/auth/hooks/use-customer-auth";
 import { cn } from "@/lib/utils";
 
 const Navbar = () => {
   const pathname = usePathname();
   const { totalQuantity } = useCartBadgeQuantity();
+  const currentUserQuery = useCurrentCustomerQuery();
+  const isSignedIn = Boolean(currentUserQuery.data);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname?.startsWith(href);
   };
 
-  const RandomNumber = () => {
-    return Math.random() * 100;
-  };
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/90 backdrop-blur-xl">
       <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8">
@@ -97,7 +97,7 @@ const Navbar = () => {
 
               return (
                 <Link
-                  key={item.href + RandomNumber}
+                  key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
@@ -129,10 +129,16 @@ const Navbar = () => {
               asChild
               variant="ghost"
               size="icon"
-              className="rounded-full text-foreground hover:bg-muted hover:text-foreground"
+              className="relative rounded-full text-foreground hover:bg-muted hover:text-foreground"
             >
-              <Link href="/login" aria-label="Sign in">
+              <Link
+                href={isSignedIn ? "/account" : "/login"}
+                aria-label={isSignedIn ? "Your account" : "Sign in"}
+              >
                 <UserRound className="size-5" />
+                {isSignedIn ? (
+                  <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-primary" />
+                ) : null}
               </Link>
             </Button>
 

@@ -12,6 +12,7 @@ import {
   SheetTitle,
 } from "@/shared/ui/sheet";
 import { cn } from "@/lib/utils";
+import { useCurrentCustomerQuery } from "@/features/auth/hooks/use-customer-auth";
 
 import { menuItems } from "./menu-items";
 
@@ -21,6 +22,8 @@ type AppSidebarProps = {
 
 export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const pathname = usePathname();
+  const currentUserQuery = useCurrentCustomerQuery();
+  const isSignedIn = Boolean(currentUserQuery.data);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -120,7 +123,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             </Button>
 
             <Button asChild variant="secondary" className="h-12 rounded-2xl">
-              <Link href="/login" onClick={onNavigate} aria-label="Sign in">
+              <Link
+                href={isSignedIn ? "/account" : "/login"}
+                onClick={onNavigate}
+                aria-label={isSignedIn ? "Your account" : "Sign in"}
+              >
                 <UserRound className="size-4" />
               </Link>
             </Button>

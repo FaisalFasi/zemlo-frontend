@@ -26,15 +26,15 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 ## Phase 2 — Customer Authentication 👤
 *Biggest missing product feature. Generated API hooks already exist — wire them.*
 
-- [ ] 🔧 **Login page** — rebuild `/login` with react-hook-form + Zod + `shared/ui` components, wired to generated `authControllerLogin`
-- [ ] 🔧 **Signup page** — same treatment for `/signup`; fix `routes.auth.register` mismatch (`/register` vs `/signup`)
-- [ ] 🔧 **Forgot password + OTP** — wire `/forgot-password` and `/otp` flows to backend (confirm backend endpoints exist; if not, defer with a note)
-- [ ] 🆕 **Customer session** — httpOnly cookie (same pattern as Phase 1), `useCurrentUser()` hook, navbar login/account state
-- [ ] 🆕 **Guest→user cart merge** — on login, merge `x-guest-id` cart into the user's cart (check backend support)
-- [ ] 🆕 **Logout** — calls backend, clears session, resets query cache
-- [ ] 🧹 Delete legacy `CInput`/`CButton`/custom OTP kit once auth pages no longer use them
+- [x] 🔧 **Login page** — done 2026-07-14: rebuilt with RHF + Zod + `shared/ui`, wired via `/api/auth/login` route handler (cookie set server-side; generated types reused, token never reaches client JS)
+- [x] 🔧 **Signup page** — done: `/signup` with full backend-matching validation (password strength, name lengths); `routes.auth.register` now points to `/signup`
+- [ ] 🔧 **Forgot password + OTP** — **DEFERRED: backend has no endpoints** (`/auth` module only has register/login/me/logout). Stub pages deleted; re-add when backend ships password-reset (needs email sending, see Phase 9)
+- [x] 🆕 **Customer session** — done: `zemlo_customer_session` httpOnly cookie, `/api/auth/*` route handlers share `session-auth-routes.ts` with admin; `useCurrentCustomerQuery()` hook; navbar/sidebar show account state; `/account` page with sign-out; middleware guards `/account` and skips auth pages when signed in
+- [x] 🆕 **Guest→user cart merge** — done client-side (backend has no merge endpoint — cart owner resolution prefers userId): guest cart snapshotted before login, items replayed into user cart, guest id cleared. Verified via proxy: authenticated `/cart` resolves to user cart
+- [x] 🆕 **Logout** — done: revokes backend session, clears cookie, resets user + cart query cache
+- [x] 🧹 Deleted legacy `CInput`/`CButton`/custom OTP kit + dead `HorizontalCarousel`/`brandSlider`/`card`/`container`/`mainCarousel`/`HeroCarousel` (zero consumers); admin api helpers now use shared `shared/lib/http.ts`
 
-**Done when:** a customer can register, log in, keep their cart, and log out — full round trip against the real backend.
+**Done when:** a customer can register, log in, keep their cart, and log out — full round trip against the real backend. ✅ Verified 2026-07-14 (register → me → authenticated cart → logout → re-login, all against hosted backend)
 
 ---
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { customerSessionCookie } from "@/lib/auth/session-cookies";
 import { apiContentTypes, apiHeaders } from "@/shared/config/api";
 import { serverConfig } from "@/shared/config/server";
 
@@ -28,14 +29,21 @@ function createBackendUrl(pathSegments: string[], request: Request) {
   return `${serverConfig.apiBaseUrl}/${path}${requestUrl.search}`;
 }
 
-function createProxyHeaders(request: Request, hasBody: boolean) {
+async function createProxyHeaders(request: Request, hasBody: boolean) {
   const headers = new Headers();
 
   headers.set(apiHeaders.accept, apiContentTypes.json);
 
   const contentType = request.headers.get(apiHeaders.contentType);
-  const authorization = request.headers.get(apiHeaders.authorization);
   const guestId = request.headers.get(apiHeaders.guestId);
+
+  // Storefront requests authenticate via the httpOnly customer session
+  // cookie — browser JS never holds the token. An explicit header (if any)
+  // wins so server-side callers can pass their own.
+  const customerToken = await customerSessionCookie.get();
+  const authorization =
+    request.headers.get(apiHeaders.authorization) ??
+    (customerToken ? `Bearer ${customerToken}` : null);
 
   if (hasBody) {
     headers.set(apiHeaders.contentType, contentType || apiContentTypes.json);
@@ -58,7 +66,7 @@ async function proxyRequest(request: Request, context: BackendProxyContext) {
 
   const backendResponse = await fetch(createBackendUrl(path, request), {
     method: request.method,
-    headers: createProxyHeaders(request, Boolean(body)),
+    headers: await createProxyHeaders(request, Boolean(body)),
     body,
     cache: "no-store",
   });

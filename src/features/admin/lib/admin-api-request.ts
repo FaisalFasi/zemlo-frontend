@@ -1,41 +1,6 @@
 "use client";
 
-async function readResponseBody(response: Response) {
-  const contentType = response.headers.get("content-type");
-
-  if (response.status === 204) {
-    return null;
-  }
-
-  if (contentType?.includes("application/json")) {
-    try {
-      return await response.json();
-    } catch {
-      return null;
-    }
-  }
-
-  try {
-    return await response.text();
-  } catch {
-    return null;
-  }
-}
-
-function getErrorMessage(errorBody: unknown, fallback: string) {
-  if (errorBody && typeof errorBody === "object" && "message" in errorBody) {
-    const message = errorBody.message;
-
-    if (typeof message === "string") return message;
-    if (Array.isArray(message)) return message.join(", ");
-  }
-
-  if (typeof errorBody === "string" && errorBody.trim().length > 0) {
-    return errorBody;
-  }
-
-  return fallback;
-}
+import { getErrorMessage, readResponseBody } from "@/shared/lib/http";
 
 type AdminApiRequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
