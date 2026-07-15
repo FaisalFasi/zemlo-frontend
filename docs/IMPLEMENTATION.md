@@ -81,12 +81,20 @@ On login/register: snapshot guest cart → sign in → replay items into user ca
 
 - Shipping: backend computes flat cost + free-over threshold (no selectable methods yet).
 
-## Customer Orders (Phase 4)
+## Orders (Phase 4)
 
+**Customer side:**
 - Pages: `/account/orders` (history list) · `/account/orders/[orderNumber]` (detail: items, totals, address, tracking). Both noIndex + middleware-protected.
 - Feature: `src/features/orders/` — `api/orders-api.ts` (wraps generated `ordersControllerFindMyOrders` / `...ByOrderNumber`), `queries/`, `hooks/use-orders.ts`, `lib/order-status.ts` (status code → label + badge color, exhaustive via `Record<OrderStatus,...>`), components `OrdersList` / `OrderDetailPanel` / `OrderStatusBadge`.
 - Order detail renders the order **snapshot** (productName/prices saved at purchase) — editing products later never rewrites old receipts. Totals come from backend, never recalculated.
 - Account page (`AccountPanel`) links to orders.
+
+**Admin side:**
+- Pages: `/admin/orders` (table) · `/admin/orders/[orderId]` (fulfilment view: customer contact, items/totals, address, status history, update forms).
+- Proxy routes `/api/admin/orders*` (GET list/detail, PATCH `/status`, PATCH `/shipping`) — attach the admin token from the httpOnly cookie via `proxyToBackend`, same as admin products.
+- Feature: `src/features/admin/orders/` — `api/admin-orders-api.ts` (via `adminApiRequest`), `hooks/use-admin-orders.ts` (update mutations sync detail cache + invalidate list), components `AdminOrdersTable` / `AdminOrderDetailPanel` / `AdminOrderUpdateForms` / `AdminDashboardStats`.
+- Status badges reused from `features/orders` — one status mapping everywhere.
+- Dashboard (`/admin`) shows total orders / needs-action / paid revenue, computed **client-side** from the orders list (backend has no stats endpoint yet — needed at scale).
 
 ---
 
@@ -118,4 +126,4 @@ On login/register: snapshot guest cart → sign in → replay items into user ca
 - **Phase 1** (2026-07-13): httpOnly admin session, middleware, 401 interceptor, image-host allowlist, `.env.example`
 - **Phase 2** (2026-07-14): customer auth (login/signup/account), shared session helpers, proxy auth, guest-cart merge, legacy UI kit deleted
 - **Phase 3** (2026-07-14): single EUR formatter, Stripe-verified success page, reachable failure page, optimistic cart
-- **Phase 4** (2026-07-14): customer order history + detail — *admin orders & dashboard still pending*
+- **Phase 4** (2026-07-14): customer order history + detail; admin orders table + fulfilment view (status/shipping updates, history) + dashboard stats; admin nav Orders link (duplicate "Add product" removed)

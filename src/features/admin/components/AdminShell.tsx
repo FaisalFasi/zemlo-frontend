@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Box, LayoutDashboard, LogOut, PackagePlus } from "lucide-react";
+import {
+  Box,
+  LayoutDashboard,
+  LogOut,
+  PackagePlus,
+  ShoppingCart,
+} from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
 import {
@@ -107,13 +113,17 @@ export default function AdminShell({ children }: AdminShellProps) {
               Dashboard
             </Link>
 
+            {/* EXPLANATION: pehle yahan "Add product" ka link 2 dafa tha
+                (copy-paste bug) — ek hata kar Orders ka link lagaya jo
+                naye /admin/orders pages par le jata hai. */}
             <Link
-              href="/admin/products/new"
+              href="/admin/orders"
               className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-foreground no-underline hover:bg-muted"
             >
-              <PackagePlus className="size-4" />
-              Add product
+              <ShoppingCart className="size-4" />
+              Orders
             </Link>
+
             <Link
               href="/admin/products"
               className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-foreground no-underline hover:bg-muted"

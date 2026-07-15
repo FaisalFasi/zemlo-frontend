@@ -57,10 +57,10 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 
 - [x] 🆕 **Customer order history** — done 2026-07-14: `/account/orders` with loading/error/empty/list states, status + payment badges, linked from AccountPanel
 - [x] 🆕 **Order detail** — done: `/account/orders/[orderNumber]` — items from order snapshot, totals breakdown (subtotal/shipping/tax/discount), shipping address, tracking link; feature code in `src/features/orders/`
-- [ ] 🔧 **Real order confirmation** — success page shows actual order summary (items, total, delivery estimate), not just an ID
-- [ ] 🆕 **Admin orders list** — table with status, customer, total, date; status update actions
-- [ ] 🆕 **Admin order detail** — full order view for fulfilment
-- [ ] 🆕 **Admin dashboard metrics** — replace placeholder card with real numbers (orders today, revenue, low stock)
+- [ ] 🔧 **Real order confirmation** — success page verifies payment (Phase 3) but still shows only the order id; full summary (items/totals) is a later polish
+- [x] 🆕 **Admin orders list** — done 2026-07-14: `/admin/orders` table (customer, status/payment badges, total, date) via cookie-authenticated proxy routes
+- [x] 🆕 **Admin order detail** — done: `/admin/orders/[orderId]` — customer/guest contact, items + totals, address, status history (audit trail), status update form (+note) and shipping/tracking form
+- [x] 🆕 **Admin dashboard metrics** — done: total orders / needs-action / paid revenue, computed client-side from the orders list. NOTE: backend has no stats endpoint yet — add one when order volume grows (client-side counting won't scale past a few hundred orders)
 
 **Done when:** customer sees their orders; the store owner (your friend) can see and fulfil every order from `/admin`.
 
