@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
+import { formatDefaultMoney } from "@/shared/lib/formatters";
 import type { CartItem } from "../types/cart.types";
 
 type CartLineItemProps = {
@@ -12,11 +13,7 @@ type CartLineItemProps = {
 };
 
 function formatPrice(price: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(price);
+  return formatDefaultMoney(price);
 }
 
 function getCartItemImage(item: CartItem) {

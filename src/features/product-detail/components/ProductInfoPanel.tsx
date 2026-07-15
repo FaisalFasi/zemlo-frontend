@@ -241,9 +241,7 @@ export default function ProductInfoPanel({ product }: ProductInfoPanelProps) {
 
         <div className="flex items-center gap-3">
           <ShieldCheck className="size-4 text-foreground" />
-          <span>
-            Secure checkout will use your existing Stripe PaymentIntent flow.
-          </span>
+          <span>Secure checkout powered by Stripe.</span>
         </div>
       </div>
     </section>

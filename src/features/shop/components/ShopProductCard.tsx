@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { formatMoney } from "@/shared/lib/formatters";
 import type { ShopProduct } from "../types/shop.types";
 
 type ShopProductCardProps = {
@@ -8,11 +9,7 @@ type ShopProductCardProps = {
 };
 
 function formatPrice(price: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(price);
+  return formatMoney({ amount: price, maximumFractionDigits: 0 });
 }
 
 export default function ShopProductCard({ product }: ShopProductCardProps) {

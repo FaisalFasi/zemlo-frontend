@@ -9,8 +9,8 @@ export default function AdminRoutePage() {
         <h1 className="mt-3 text-section-title">Admin workspace</h1>
 
         <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-          Admin access is connected. Next we will add the product creation form
-          using your backend admin product API.
+          Manage your catalog from the sidebar. Orders and sales metrics will
+          appear here once the orders dashboard ships.
         </p>
       </section>
     </AdminShell>

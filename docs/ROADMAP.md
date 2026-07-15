@@ -41,14 +41,14 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 ## Phase 3 — Money Correctness & Checkout Polish 💶
 *A store that shows the wrong currency or a wrong "success" page is broken.*
 
-- [ ] 🔧 **Single currency formatter** — one `formatMoney` driven by `defaultMarket.currency` (EUR); delete hardcoded-USD copies in `CartLineItem`, `CartSummary`, `CheckoutCartSummary`, `ShopProductCard`; delete duplicate `shared/config/formatters.ts` vs `shared/lib/formatters.ts`
-- [ ] 🔧 **Success page verifies payment** — handle `redirect_status=failed`/`requires_payment_method` on `/checkout/success`; verify order/payment state via API instead of trusting URL params
-- [ ] 🔧 **Make `/checkout/failure` reachable** (or remove it) — route hard failures there from `StripePaymentForm`
-- [ ] 🆕 **Shipping method selection** — confirm with backend whether shipping options exist; add selection UI or explicit "free shipping" logic
-- [ ] 🔧 **Cart optimistic updates** — `onMutate` + rollback in `use-cart.ts` for snappy qty changes
-- [ ] 🧹 Remove stale "coming next" copy (`CartSummary.tsx:54-56`, `ProductInfoPanel.tsx:236-247`, `admin/page.tsx:11-14`)
+- [x] 🔧 **Single currency formatter** — done 2026-07-14: all 6 hardcoded-USD copies (CartLineItem, CartSummary, CheckoutCartSummary, ShopProductCard, HomeProductCard, AdminProductsTable) now delegate to `shared/lib/formatters.ts` driven by `defaultMarket` (EUR, de-DE format "49,99 €"); duplicate `shared/config/formatters.ts` deleted
+- [x] 🔧 **Success page verifies payment** — done: new `CheckoutResultPanel` retrieves the PaymentIntent from Stripe via `payment_intent_client_secret` (official Stripe pattern — URL params are never trusted); states: verifying → succeeded / processing / unknown; definitive failures redirect to `/checkout/failure`
+- [x] 🔧 **`/checkout/failure` reachable** — done: failed/canceled PaymentIntent states route there from the result panel; page shows order reference for support
+- [ ] 🆕 **Shipping method selection** — **DEFERRED: backend has no shipping methods** — it computes a flat default cost + free-shipping-over threshold from platform settings (`checkout.service.ts`). Selectable methods = backend feature first; revisit with backend work
+- [x] 🔧 **Cart optimistic updates** — done: `onMutate` snapshot + instant cache update + `onError` rollback for update/remove/clear (add-to-cart stays server-first — building a cart line needs product data the client may not have)
+- [x] 🧹 Stale "coming next" copy replaced with accurate text (cart summary, admin dashboard, product panel)
 
-**Done when:** currency is EUR everywhere; a declined test card never lands on a success screen.
+**Done when:** currency is EUR everywhere; a declined test card never lands on a success screen. ✅ Verified 2026-07-14: shop renders "50 €" (de-DE), success page without params shows neutral "Order received", with client secret starts "Verifying", failure page reachable with reference
 
 ---
 

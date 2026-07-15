@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
 
 import {
   addCartItem,
@@ -11,6 +12,8 @@ import {
 import { cartQueryKeys, cartQueryOptions } from "../queries/cart-query-options";
 import type {
   AddCartItemInput,
+  Cart,
+  CartItem,
   UpdateCartItemInput,
 } from "../types/cart.types";
 
@@ -29,9 +32,56 @@ export function useCartBadgeQuantity() {
   };
 }
 
+// --- Optimistic update helpers -------------------------------------------
+// The UI updates instantly from the cached cart; the server response (or a
+// rollback on error) is the source of truth afterwards.
+
+function recalculateCart(cart: Cart, items: CartItem[]): Cart {
+  return {
+    ...cart,
+    items,
+    totalItems: items.length,
+    totalQuantity: items.reduce((sum, item) => sum + item.quantity, 0),
+    subtotal: items.reduce((sum, item) => sum + item.lineTotal, 0),
+  };
+}
+
+type OptimisticContext = {
+  previousCart: Cart | undefined;
+};
+
+async function applyOptimisticCart(
+  queryClient: QueryClient,
+  updateItems: (items: CartItem[]) => CartItem[],
+): Promise<OptimisticContext> {
+  // Stop in-flight refetches from overwriting our optimistic state.
+  await queryClient.cancelQueries({ queryKey: cartQueryKeys.current() });
+
+  const previousCart = queryClient.getQueryData<Cart>(cartQueryKeys.current());
+
+  if (previousCart) {
+    queryClient.setQueryData(
+      cartQueryKeys.current(),
+      recalculateCart(previousCart, updateItems(previousCart.items)),
+    );
+  }
+
+  return { previousCart };
+}
+
+function rollbackCart(queryClient: QueryClient, context?: OptimisticContext) {
+  if (context?.previousCart) {
+    queryClient.setQueryData(cartQueryKeys.current(), context.previousCart);
+  }
+}
+
+// --------------------------------------------------------------------------
+
 export function useAddCartItemMutation() {
   const queryClient = useQueryClient();
 
+  // No optimistic update here: building a full cart line requires product
+  // data (name, price, image) the client may not have yet.
   return useMutation({
     mutationFn: (input: AddCartItemInput) => addCartItem(input),
     onSuccess: (cart) => {
@@ -51,6 +101,20 @@ export function useUpdateCartItemMutation() {
       itemId: string;
       input: UpdateCartItemInput;
     }) => updateCartItem(itemId, input),
+    onMutate: ({ itemId, input }) =>
+      applyOptimisticCart(queryClient, (items) =>
+        items.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                quantity: input.quantity,
+                lineTotal: item.unitPrice * input.quantity,
+              }
+            : item,
+        ),
+      ),
+    onError: (_error, _variables, context) =>
+      rollbackCart(queryClient, context),
     onSuccess: (cart) => {
       queryClient.setQueryData(cartQueryKeys.current(), cart);
     },
@@ -62,6 +126,12 @@ export function useRemoveCartItemMutation() {
 
   return useMutation({
     mutationFn: (itemId: string) => removeCartItem(itemId),
+    onMutate: (itemId) =>
+      applyOptimisticCart(queryClient, (items) =>
+        items.filter((item) => item.id !== itemId),
+      ),
+    onError: (_error, _variables, context) =>
+      rollbackCart(queryClient, context),
     onSuccess: (cart) => {
       queryClient.setQueryData(cartQueryKeys.current(), cart);
     },
@@ -73,6 +143,9 @@ export function useClearCartMutation() {
 
   return useMutation({
     mutationFn: clearCart,
+    onMutate: () => applyOptimisticCart(queryClient, () => []),
+    onError: (_error, _variables, context) =>
+      rollbackCart(queryClient, context),
     onSuccess: (cart) => {
       queryClient.setQueryData(cartQueryKeys.current(), cart);
     },
