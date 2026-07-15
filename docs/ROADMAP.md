@@ -55,8 +55,8 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 ## Phase 4 — Orders 📦
 *The other half of a store: what happens after payment.*
 
-- [ ] 🆕 **Customer order history** — `/account/orders` list page (needs Phase 2 auth)
-- [ ] 🆕 **Order detail** — `/account/orders/[id]` with items, totals, status, shipping address
+- [x] 🆕 **Customer order history** — done 2026-07-14: `/account/orders` with loading/error/empty/list states, status + payment badges, linked from AccountPanel
+- [x] 🆕 **Order detail** — done: `/account/orders/[orderNumber]` — items from order snapshot, totals breakdown (subtotal/shipping/tax/discount), shipping address, tracking link; feature code in `src/features/orders/`
 - [ ] 🔧 **Real order confirmation** — success page shows actual order summary (items, total, delivery estimate), not just an ID
 - [ ] 🆕 **Admin orders list** — table with status, customer, total, date; status update actions
 - [ ] 🆕 **Admin order detail** — full order view for fulfilment

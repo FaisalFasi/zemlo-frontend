@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, LogOut } from "lucide-react";
+import { Loader2, LogOut, Package } from "lucide-react";
 
 import { routes } from "@/shared/config";
 import { Button } from "@/shared/ui/button";
@@ -61,24 +62,32 @@ export default function AccountPanel() {
         </div>
       </dl>
 
-      <p className="mt-6 text-sm leading-6 text-muted-foreground">
-        Order history and saved addresses are coming soon.
-      </p>
+      {/* EXPLANATION: "coming soon" ki jagah asal order-history ka link —
+          Phase 4 mein /account/orders ban gaya hai, ab customer ko wahan
+          pahunchne ka button chahiye. */}
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Button asChild className="rounded-full">
+          <Link href={`${routes.account}/orders`}>
+            <Package className="size-4" />
+            View your orders
+          </Link>
+        </Button>
 
-      <Button
-        type="button"
-        variant="outline"
-        onClick={handleLogout}
-        disabled={logoutMutation.isPending}
-        className="mt-6 rounded-full"
-      >
-        {logoutMutation.isPending ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : (
-          <LogOut className="size-4" />
-        )}
-        Sign out
-      </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleLogout}
+          disabled={logoutMutation.isPending}
+          className="rounded-full"
+        >
+          {logoutMutation.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <LogOut className="size-4" />
+          )}
+          Sign out
+        </Button>
+      </div>
     </div>
   );
 }
