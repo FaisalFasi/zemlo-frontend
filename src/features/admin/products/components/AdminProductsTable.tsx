@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button";
 
 import AdminProductStatusBadge from "./AdminProductStatusBadge";
 import type { AdminProductListItem } from "../types/admin-product.types";
+import { formatDefaultMoney } from "@/shared/lib/formatters";
 
 type AdminProductsTableProps = {
   products: AdminProductListItem[];
@@ -13,17 +14,8 @@ type AdminProductsTableProps = {
   onArchiveProduct: (productId: string) => void;
 };
 
-function formatPrice(price: string | number) {
-  const value = typeof price === "number" ? price : Number(price);
-
-  if (!Number.isFinite(value)) return "$0.00";
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(value);
-}
+// formatDefaultMoney already coerces invalid values to 0 (→ €0.00).
+const formatPrice = formatDefaultMoney;
 
 export default function AdminProductsTable({
   products,

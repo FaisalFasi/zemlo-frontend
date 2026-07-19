@@ -12,7 +12,17 @@ export const metadata: Metadata = createPageMetadata({
   noIndex: true,
 });
 
-export default function CheckoutFailurePage() {
+type CheckoutFailurePageProps = {
+  searchParams: Promise<{
+    orderId?: string;
+  }>;
+};
+
+export default async function CheckoutFailurePage({
+  searchParams,
+}: CheckoutFailurePageProps) {
+  const params = await searchParams;
+
   return (
     <main className="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-4 text-center">
       <div className="space-y-5 rounded-3xl border border-border bg-card p-8 shadow-sm">
@@ -28,6 +38,15 @@ export default function CheckoutFailurePage() {
           Please return to checkout and try again. If the issue continues,
           contact support before placing another order.
         </p>
+
+        {params.orderId ? (
+          <p className="text-sm text-muted-foreground">
+            Reference:{" "}
+            <span className="font-medium text-foreground">
+              {params.orderId}
+            </span>
+          </p>
+        ) : null}
 
         <div className="flex flex-wrap justify-center gap-3">
           <Button asChild className="rounded-full">

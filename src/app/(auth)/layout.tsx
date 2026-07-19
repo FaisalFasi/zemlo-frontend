@@ -1,29 +1,24 @@
-import Image from "next/image";
 import Link from "next/link";
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div>
-      <Header />
-      <div>{children}</div>
-    </div>
-  );
-};
-export default AuthLayout;
-
-const Header = () => {
-  return (
-    <div className="relative">
-      <div className="absolute top-15 inset-x-0 mx-auto md:mx-0 md:top-10 md:left-10 z-50 w-35 h-14">
-        <Link href={"/"}>
-          <Image
-            src={"/images/logo/logo.png"}
-            alt={"logo"}
-            width={100}
-            height={100}
-          />
+    <main className="flex min-h-screen flex-col bg-background text-foreground">
+      <div className="container-page py-6">
+        <Link href="/" className="inline-flex items-center gap-2 no-underline">
+          <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+            Z
+          </span>
+          <span className="font-display text-lg font-medium uppercase tracking-[0.22em] text-foreground">
+            Zemlo
+          </span>
         </Link>
       </div>
-    </div>
+
+      <div className="flex flex-1 items-center justify-center px-4 pb-16">
+        {children}
+      </div>
+    </main>
   );
 };
+
+export default AuthLayout;

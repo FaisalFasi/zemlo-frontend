@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/shared/ui/button";
 import type { Cart } from "@/features/cart/types/cart.types";
+import { formatDefaultMoney } from "@/shared/lib/formatters";
 
 type CheckoutCartSummaryProps = {
   cart: Cart | undefined;
@@ -9,11 +10,7 @@ type CheckoutCartSummaryProps = {
 };
 
 function formatPrice(price: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(price);
+  return formatDefaultMoney(price);
 }
 
 export default function CheckoutCartSummary({

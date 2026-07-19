@@ -1,6 +1,8 @@
 import { Button } from "@/shared/ui/button";
 import Link from "next/link";
 
+import { formatDefaultMoney } from "@/shared/lib/formatters";
+
 type CartSummaryProps = {
   subtotal: number;
   totalQuantity: number;
@@ -9,11 +11,7 @@ type CartSummaryProps = {
 };
 
 function formatPrice(price: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(price);
+  return formatDefaultMoney(price);
 }
 
 export default function CartSummary({
@@ -52,7 +50,7 @@ export default function CartSummary({
       </Button>
 
       <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
-        Checkout page and Stripe Elements will be connected in the next step.
+        Shipping and taxes are calculated at checkout.
       </p>
 
       <Button

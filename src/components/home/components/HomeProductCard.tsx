@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
 
+import { formatMoney } from "@/shared/lib/formatters";
 import type { HomeProduct } from "../data/home-page-data";
 
 type HomeProductCardProps = {
@@ -9,11 +10,7 @@ type HomeProductCardProps = {
 };
 
 function formatPrice(price: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(price);
+  return formatMoney({ amount: price, maximumFractionDigits: 0 });
 }
 
 export default function HomeProductCard({ product }: HomeProductCardProps) {

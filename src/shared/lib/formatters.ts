@@ -45,3 +45,18 @@ export function formatDefaultMoney(amount: number | string | null | undefined) {
     marketCode: defaultMarket.code,
   });
 }
+
+// Formats an ISO date string (e.g. "2026-07-12T18:03:00.000Z") in the
+// default market's locale — "12. Juli 2026" for de-DE. Returns "" for
+// missing/invalid input so callers never render "Invalid Date".
+export function formatDefaultDate(isoDate: string | null | undefined) {
+  if (!isoDate) return "";
+
+  const date = new Date(isoDate);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat(defaultMarket.locale, {
+    dateStyle: "medium",
+  }).format(date);
+}

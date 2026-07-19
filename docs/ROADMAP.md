@@ -26,41 +26,41 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 ## Phase 2 — Customer Authentication 👤
 *Biggest missing product feature. Generated API hooks already exist — wire them.*
 
-- [ ] 🔧 **Login page** — rebuild `/login` with react-hook-form + Zod + `shared/ui` components, wired to generated `authControllerLogin`
-- [ ] 🔧 **Signup page** — same treatment for `/signup`; fix `routes.auth.register` mismatch (`/register` vs `/signup`)
-- [ ] 🔧 **Forgot password + OTP** — wire `/forgot-password` and `/otp` flows to backend (confirm backend endpoints exist; if not, defer with a note)
-- [ ] 🆕 **Customer session** — httpOnly cookie (same pattern as Phase 1), `useCurrentUser()` hook, navbar login/account state
-- [ ] 🆕 **Guest→user cart merge** — on login, merge `x-guest-id` cart into the user's cart (check backend support)
-- [ ] 🆕 **Logout** — calls backend, clears session, resets query cache
-- [ ] 🧹 Delete legacy `CInput`/`CButton`/custom OTP kit once auth pages no longer use them
+- [x] 🔧 **Login page** — done 2026-07-14: rebuilt with RHF + Zod + `shared/ui`, wired via `/api/auth/login` route handler (cookie set server-side; generated types reused, token never reaches client JS)
+- [x] 🔧 **Signup page** — done: `/signup` with full backend-matching validation (password strength, name lengths); `routes.auth.register` now points to `/signup`
+- [ ] 🔧 **Forgot password + OTP** — **DEFERRED: backend has no endpoints** (`/auth` module only has register/login/me/logout). Stub pages deleted; re-add when backend ships password-reset (needs email sending, see Phase 9)
+- [x] 🆕 **Customer session** — done: `zemlo_customer_session` httpOnly cookie, `/api/auth/*` route handlers share `session-auth-routes.ts` with admin; `useCurrentCustomerQuery()` hook; navbar/sidebar show account state; `/account` page with sign-out; middleware guards `/account` and skips auth pages when signed in
+- [x] 🆕 **Guest→user cart merge** — done client-side (backend has no merge endpoint — cart owner resolution prefers userId): guest cart snapshotted before login, items replayed into user cart, guest id cleared. Verified via proxy: authenticated `/cart` resolves to user cart
+- [x] 🆕 **Logout** — done: revokes backend session, clears cookie, resets user + cart query cache
+- [x] 🧹 Deleted legacy `CInput`/`CButton`/custom OTP kit + dead `HorizontalCarousel`/`brandSlider`/`card`/`container`/`mainCarousel`/`HeroCarousel` (zero consumers); admin api helpers now use shared `shared/lib/http.ts`
 
-**Done when:** a customer can register, log in, keep their cart, and log out — full round trip against the real backend.
+**Done when:** a customer can register, log in, keep their cart, and log out — full round trip against the real backend. ✅ Verified 2026-07-14 (register → me → authenticated cart → logout → re-login, all against hosted backend)
 
 ---
 
 ## Phase 3 — Money Correctness & Checkout Polish 💶
 *A store that shows the wrong currency or a wrong "success" page is broken.*
 
-- [ ] 🔧 **Single currency formatter** — one `formatMoney` driven by `defaultMarket.currency` (EUR); delete hardcoded-USD copies in `CartLineItem`, `CartSummary`, `CheckoutCartSummary`, `ShopProductCard`; delete duplicate `shared/config/formatters.ts` vs `shared/lib/formatters.ts`
-- [ ] 🔧 **Success page verifies payment** — handle `redirect_status=failed`/`requires_payment_method` on `/checkout/success`; verify order/payment state via API instead of trusting URL params
-- [ ] 🔧 **Make `/checkout/failure` reachable** (or remove it) — route hard failures there from `StripePaymentForm`
-- [ ] 🆕 **Shipping method selection** — confirm with backend whether shipping options exist; add selection UI or explicit "free shipping" logic
-- [ ] 🔧 **Cart optimistic updates** — `onMutate` + rollback in `use-cart.ts` for snappy qty changes
-- [ ] 🧹 Remove stale "coming next" copy (`CartSummary.tsx:54-56`, `ProductInfoPanel.tsx:236-247`, `admin/page.tsx:11-14`)
+- [x] 🔧 **Single currency formatter** — done 2026-07-14: all 6 hardcoded-USD copies (CartLineItem, CartSummary, CheckoutCartSummary, ShopProductCard, HomeProductCard, AdminProductsTable) now delegate to `shared/lib/formatters.ts` driven by `defaultMarket` (EUR, de-DE format "49,99 €"); duplicate `shared/config/formatters.ts` deleted
+- [x] 🔧 **Success page verifies payment** — done: new `CheckoutResultPanel` retrieves the PaymentIntent from Stripe via `payment_intent_client_secret` (official Stripe pattern — URL params are never trusted); states: verifying → succeeded / processing / unknown; definitive failures redirect to `/checkout/failure`
+- [x] 🔧 **`/checkout/failure` reachable** — done: failed/canceled PaymentIntent states route there from the result panel; page shows order reference for support
+- [ ] 🆕 **Shipping method selection** — **DEFERRED: backend has no shipping methods** — it computes a flat default cost + free-shipping-over threshold from platform settings (`checkout.service.ts`). Selectable methods = backend feature first; revisit with backend work
+- [x] 🔧 **Cart optimistic updates** — done: `onMutate` snapshot + instant cache update + `onError` rollback for update/remove/clear (add-to-cart stays server-first — building a cart line needs product data the client may not have)
+- [x] 🧹 Stale "coming next" copy replaced with accurate text (cart summary, admin dashboard, product panel)
 
-**Done when:** currency is EUR everywhere; a declined test card never lands on a success screen.
+**Done when:** currency is EUR everywhere; a declined test card never lands on a success screen. ✅ Verified 2026-07-14: shop renders "50 €" (de-DE), success page without params shows neutral "Order received", with client secret starts "Verifying", failure page reachable with reference
 
 ---
 
 ## Phase 4 — Orders 📦
 *The other half of a store: what happens after payment.*
 
-- [ ] 🆕 **Customer order history** — `/account/orders` list page (needs Phase 2 auth)
-- [ ] 🆕 **Order detail** — `/account/orders/[id]` with items, totals, status, shipping address
-- [ ] 🔧 **Real order confirmation** — success page shows actual order summary (items, total, delivery estimate), not just an ID
-- [ ] 🆕 **Admin orders list** — table with status, customer, total, date; status update actions
-- [ ] 🆕 **Admin order detail** — full order view for fulfilment
-- [ ] 🆕 **Admin dashboard metrics** — replace placeholder card with real numbers (orders today, revenue, low stock)
+- [x] 🆕 **Customer order history** — done 2026-07-14: `/account/orders` with loading/error/empty/list states, status + payment badges, linked from AccountPanel
+- [x] 🆕 **Order detail** — done: `/account/orders/[orderNumber]` — items from order snapshot, totals breakdown (subtotal/shipping/tax/discount), shipping address, tracking link; feature code in `src/features/orders/`
+- [ ] 🔧 **Real order confirmation** — success page verifies payment (Phase 3) but still shows only the order id; full summary (items/totals) is a later polish
+- [x] 🆕 **Admin orders list** — done 2026-07-14: `/admin/orders` table (customer, status/payment badges, total, date) via cookie-authenticated proxy routes
+- [x] 🆕 **Admin order detail** — done: `/admin/orders/[orderId]` — customer/guest contact, items + totals, address, status history (audit trail), status update form (+note) and shipping/tracking form
+- [x] 🆕 **Admin dashboard metrics** — done: total orders / needs-action / paid revenue, computed client-side from the orders list. NOTE: backend has no stats endpoint yet — add one when order volume grows (client-side counting won't scale past a few hundred orders)
 
 **Done when:** customer sees their orders; the store owner (your friend) can see and fulfil every order from `/admin`.
 
