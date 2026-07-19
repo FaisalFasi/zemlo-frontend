@@ -17,7 +17,7 @@ import type { CreateAdminProductFormValues } from "../schemas/create-admin-produ
 import {
   adminProductDetailToFormInput,
   productFormValuesToUpdateInput,
-} from "../lib/admin-produc-form-mappers";
+} from "../lib/admin-product-form-mappers";
 
 type AdminProductEditFormProps = {
   productId: string;

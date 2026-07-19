@@ -11,7 +11,7 @@ import {
   createAdminProductDefaultValues,
   type CreateAdminProductFormValues,
 } from "../schemas/create-admin-product.schema";
-import { productFormValuesToCreateInput } from "../lib/admin-produc-form-mappers";
+import { productFormValuesToCreateInput } from "../lib/admin-product-form-mappers";
 
 type AdminProductCreateFormProps = {
   categories: CatalogCategory[];

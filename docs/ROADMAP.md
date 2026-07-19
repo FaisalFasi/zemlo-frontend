@@ -84,10 +84,10 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 ## Phase 6 — Admin Completeness 🛠️
 *Your friend must be able to run the store alone, without a developer.*
 
-- [ ] 🔧 **Product variants in admin** — remove hardcoded `hasVariants: false` (`admin-produc-form-mappers.ts:51`); variant create/edit UI (storefront already displays variants)
-- [ ] 🆕 **Image upload** — Cloudinary (or S3) upload in the product form instead of URL-paste
-- [ ] 🔧 **Fix ARCHIVED status round-trip** — edit form currently downgrades ARCHIVED → DRAFT; allow restore
-- [ ] 🔧 Fix duplicate "Add product" nav item (`AdminShell.tsx:104-110` + `119-125`) and rename `admin-produc-form-mappers.ts` → `admin-product-form-mappers.ts`
+- [x] 🔧 **Product variants in admin** — done 2026-07-19: `hasVariants` hardcode REMOVED from payloads (was resetting variants on every product edit! backend owns the flag), full variants manager on the edit page (list/add/edit/delete via `/api/admin/products/[id]/variants*` proxy routes, `AdminVariantsManager` + api/hooks)
+- [ ] 🆕 **Image upload** — Cloudinary/S3 — goes into the backend batch (no upload endpoint exists); URL-paste remains until then
+- [x] 🔧 **ARCHIVED status round-trip** — done: mapper keeps real status, form select offers Active/Draft/Archived (restore now possible)
+- [x] 🔧 Duplicate "Add product" nav fixed in Phase 4; `admin-produc-form-mappers.ts` renamed → `admin-product-form-mappers.ts` (2026-07-19)
 - [ ] 🆕 **Enforce granular RBAC in UI** — permission map exists (`admin-permissions.ts`) but only `admin:access` is checked; gate actions (create/edit/archive) per role
 - [ ] 🆕 **Category & brand management** — CRUD screens (APIs generated, no UI)
 

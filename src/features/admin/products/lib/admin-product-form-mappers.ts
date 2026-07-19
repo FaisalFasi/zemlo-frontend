@@ -48,7 +48,9 @@ export function productFormValuesToCreateInput(
     stock: values.stock,
     trackInventory: values.trackInventory,
     allowBackorder: values.allowBackorder,
-    hasVariants: false,
+    // EXPLANATION: hasVariants yahan se hata diya — backend isay khud
+    // manage karta hai (variant add/delete par recalculate). Yahan se
+    // false bhejna variants wale products ko tor deta tha.
     status: values.status,
     isFeatured: values.isFeatured,
     weight: values.weight,
@@ -93,7 +95,9 @@ export function adminProductDetailToFormInput(
     compareAtPrice: toNumber(product.compareAtPrice),
     costPrice: toNumber(product.costPrice),
     stock: product.stock,
-    status: product.status === "ARCHIVED" ? "DRAFT" : product.status,
+    // EXPLANATION: pehle ARCHIVED ko chupke se DRAFT bana deta tha —
+    // ab asal status form mein aata hai (select mein ARCHIVED option bhi hai).
+    status: product.status,
     isFeatured: product.isFeatured,
     trackInventory: product.trackInventory,
     allowBackorder: product.allowBackorder,

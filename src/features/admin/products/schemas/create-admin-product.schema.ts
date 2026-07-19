@@ -82,7 +82,7 @@ export const createAdminProductSchema = z
         .min(0, "Stock cannot be negative."),
     ),
 
-    status: z.enum(["ACTIVE", "DRAFT"]),
+    status: z.enum(["ACTIVE", "DRAFT", "ARCHIVED"]),
 
     isFeatured: z.boolean(),
 

@@ -354,6 +354,7 @@ export default function AdminProductForm({
             >
               <option value="ACTIVE">Active</option>
               <option value="DRAFT">Draft</option>
+              <option value="ARCHIVED">Archived</option>
             </select>
           </FormField>
 
