@@ -112,9 +112,10 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 ## Phase 8 — Quality Engineering 🧪
 *What makes it "sustainable" — safe to change without breaking.*
 
-- [ ] 🆕 **Vitest + React Testing Library** — start with pure logic: `catalog-product-mappers`, `shop-filters`, `checkout.schema`, cart hooks (with `msw`)
+- [x] 🆕 **Vitest unit tests** — started 2026-07-19: 31 tests across 5 files (formatters/EUR, safe-redirect security, shop filters/sort, auth password schemas, order-status fallback). Component tests (RTL/jsdom) + cart hooks with msw: still to add
 - [ ] 🆕 **Playwright E2E** — the money path: shop → product → cart → checkout with Stripe test card; run against preview deploys
-- [ ] 🆕 **GitHub Actions CI** — `npm ci` → lint → `tsc --noEmit` → test → build on every PR; block merge on red
+- [x] 🆕 **GitHub Actions CI** — done: `.github/workflows/ci.yml` — npm ci → lint → typecheck → 31 tests → build on every push/PR
+- [x] 🔒 **Security audit** — done 2026-07-19: swiper critical (prototype pollution) fixed, Next.js 15.5.9→15.5.20 (DoS/request-smuggling patches); 2 moderate remain in Next's bundled postcss (build-time transitive, no sane fix — resolves with next Next release)
 - [ ] 🧹 **Dedupe API layers** — one server fetch helper, one error class (`ApiClientError` vs `ApiError`), one proxy style (H6 in AUDIT.md)
 - [ ] 🧹 **Delete legacy `src/components/`** — migrate remaining home sections into `features`/`widgets` per ARCHITECTURE.md, remove `LogoLoop.tsx` `as any` mess or isolate it
 - [ ] 🔧 **Tighten tsconfig** — add `noUncheckedIndexedAccess`, `noUnusedLocals`; drop `allowJs`

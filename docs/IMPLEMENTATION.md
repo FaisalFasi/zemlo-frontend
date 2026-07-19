@@ -106,6 +106,13 @@ On login/register: snapshot guest cart → sign in → replay items into user ca
 
 ---
 
+## Testing & CI (Phase 8)
+
+- **Unit tests:** Vitest (`npm test` / `npm run test:watch`), config in `vitest.config.ts` (node env, `@/` alias). 31 tests across 5 files: money/date formatters (EUR de-DE lock), `safe-redirect` (open-redirect security), shop filter/sort logic, auth password schemas (mirror backend rules), order-status fallback.
+- **Convention:** test files live NEXT TO the code they test (`foo.ts` → `foo.test.ts`) — start with pure logic; add jsdom + React Testing Library only when component tests arrive.
+- **CI:** `.github/workflows/ci.yml` — every push/PR runs `npm ci` → lint → typecheck → test → build. Red = don't merge.
+- **Security state (2026-07-19):** swiper critical fixed, Next bumped 15.5.9→15.5.20 (DoS patches). 2 moderate remain in Next's bundled postcss (build-time transitive — accept until next Next release; NEVER `npm audit fix --force`, it downgrades Next to v9).
+
 ## Conventions (follow these when adding code)
 
 1. **Layers:** `app/` = thin routes only → `features/<name>/{api,hooks,queries,components,lib,schemas}` → `entities` → `shared`. Components never import Orval-generated code directly — always via a feature `api/` wrapper.
@@ -136,3 +143,4 @@ On login/register: snapshot guest cart → sign in → replay items into user ca
 - **Phase 3** (2026-07-14): single EUR formatter, Stripe-verified success page, reachable failure page, optimistic cart
 - **Phase 4** (2026-07-14): customer order history + detail; admin orders table + fulfilment view (status/shipping updates, history) + dashboard stats; admin nav Orders link (duplicate "Add product" removed)
 - **Phase 5A** (2026-07-19): category pages with per-category SEO, shared shop-data loader, `/products`→`/shop` redirect, navbar search 404 fix, local placeholder image; **5B (server-side pagination/search) blocked on backend** — spec in BACKEND-TODO.md
+- **Phase 8 part 1** (2026-07-19): Vitest + 31 unit tests, GitHub Actions CI (lint/typecheck/test/build on every push/PR), security fixes (swiper critical, Next 15.5.20). Remaining: Playwright E2E, component tests, dedupe sprint
