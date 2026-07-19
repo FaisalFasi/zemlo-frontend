@@ -23,7 +23,7 @@ export default function ProductImageGallery({
         : [
             {
               id: "fallback",
-              url: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop",
+              url: "/images/product-placeholder.png",
               alt: productName,
             },
           ],

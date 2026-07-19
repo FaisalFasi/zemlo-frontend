@@ -49,7 +49,9 @@ const Navbar = () => {
               size="icon"
               className="hidden rounded-full text-foreground hover:bg-muted hover:text-foreground sm:inline-flex"
             >
-              <Link href="/search" aria-label="Search products">
+              {/* EXPLANATION: /search page exist nahi karta tha (404) —
+                  search box /shop par hai, wahin bhejte hain. */}
+              <Link href="/shop" aria-label="Search products">
                 <Search className="size-5" />
               </Link>
             </Button>
@@ -120,7 +122,7 @@ const Navbar = () => {
               size="icon"
               className="rounded-full text-foreground hover:bg-muted hover:text-foreground"
             >
-              <Link href="/search" aria-label="Search products">
+              <Link href="/shop" aria-label="Search products">
                 <Search className="size-5" />
               </Link>
             </Button>

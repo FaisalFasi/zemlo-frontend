@@ -20,7 +20,7 @@ function getCartItemImage(item: CartItem) {
   return (
     item.variant?.image ??
     item.product.images[0]?.url ??
-    "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop"
+    "/images/product-placeholder.png"
   );
 }
 

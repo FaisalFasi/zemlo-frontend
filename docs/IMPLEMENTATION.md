@@ -61,6 +61,14 @@ On login/register: snapshot guest cart → sign in → replay items into user ca
 - State: TanStack Query only — key `["cart","current"]`, hooks in `features/cart/hooks/use-cart.ts`.
 - **Optimistic updates** (Phase 3): update/remove/clear apply to the cache instantly, roll back on error. Add-to-cart stays server-first (needs product data).
 
+## Catalog & Category Pages (Phase 5A)
+
+- Shop data loading lives in ONE place: `features/shop/lib/get-shop-data.ts` (products + categories + demo-catalog fallback) — used by `/shop` AND `/categories/[slug]`.
+- Category pages: `/categories/[slug]` — per-category SEO metadata (`generateMetadata`), `notFound()` for bad slugs, ISR 5 min; renders `ShopPage` with `heading`/`description` props.
+- `/products` redirects to `/shop`. Navbar search icon goes to `/shop` (a `/search` page never existed).
+- Image fallback: `public/images/product-placeholder.png` (local, generated) — never a third-party URL. Fallback constants: `entities/product/model/product-utils.ts`.
+- **Scale limits (known):** filtering/sort/pagination are still client-side because the backend `GET /products` takes no query params. The ready-made backend spec lives in [BACKEND-TODO.md](BACKEND-TODO.md) — after it ships: `npm run api:generate`, adapt `catalog-api.ts` + shop + sitemap, add pagination UI.
+
 ## Money (Phase 3)
 
 - ONE formatter: `shared/lib/formatters.ts` → `formatDefaultMoney()` / `formatMoney()` / `formatDefaultDate()`.
@@ -127,3 +135,4 @@ On login/register: snapshot guest cart → sign in → replay items into user ca
 - **Phase 2** (2026-07-14): customer auth (login/signup/account), shared session helpers, proxy auth, guest-cart merge, legacy UI kit deleted
 - **Phase 3** (2026-07-14): single EUR formatter, Stripe-verified success page, reachable failure page, optimistic cart
 - **Phase 4** (2026-07-14): customer order history + detail; admin orders table + fulfilment view (status/shipping updates, history) + dashboard stats; admin nav Orders link (duplicate "Add product" removed)
+- **Phase 5A** (2026-07-19): category pages with per-category SEO, shared shop-data loader, `/products`→`/shop` redirect, navbar search 404 fix, local placeholder image; **5B (server-side pagination/search) blocked on backend** — spec in BACKEND-TODO.md

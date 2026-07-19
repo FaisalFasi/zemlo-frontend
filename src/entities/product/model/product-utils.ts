@@ -1,7 +1,9 @@
+// EXPLANATION: fallback ab apne server ki local image hai (public/images/),
+// Unsplash jaisi third-party par bharosa nahi — wo photo hata de ya service
+// down ho to store tooti images dikhata.
 export const productFallbackImages = Object.freeze({
-  card: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1000&auto=format&fit=crop",
-  detail:
-    "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop",
+  card: "/images/product-placeholder.png",
+  detail: "/images/product-placeholder.png",
 } as const);
 
 export function toOptionalNumber(value: string | number | null | undefined) {

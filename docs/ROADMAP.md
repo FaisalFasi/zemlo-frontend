@@ -69,13 +69,13 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 ## Phase 5 — Catalog at Scale 🗂️
 *Current shop breaks down past a few dozen products.*
 
-- [ ] 🔧 **Server-side pagination** on `/shop` — API query params + paginated UI (check generated `catalogControllerFindProducts` params)
-- [ ] 🔧 **Server-side filtering/search/sort** — move out of `shop-filters.ts` in-memory logic; fix "newest" sort (currently compares IDs, not dates)
-- [ ] 🆕 **Category pages** — implement `/categories/[slug]` (route config already points there)
-- [ ] 🔧 **Decide `/products` route** — currently a bare `<div>Products</div>` stub; redirect to `/shop` or delete
-- [ ] 🆕 **Search UX** — dedicated search input in navbar with results (can reuse shop grid)
-- [ ] 🔧 **Local placeholder images** — replace hardcoded Unsplash fallbacks with a `/public` asset
-- [ ] 🔧 Ensure `DEMO_CATALOG_ENABLED` is documented and OFF in production
+- [ ] 🔧 **Server-side pagination** on `/shop` — **BLOCKED ON BACKEND**: `GET /products` accepts no params at all (verified 2026-07-19). Ready-made NestJS spec/code in [BACKEND-TODO.md](BACKEND-TODO.md); after backend ships, regenerate client + adapt `catalog-api.ts`/shop/sitemap + pagination UI
+- [ ] 🔧 **Server-side filtering/search/sort** — same blocker as above (also: public list DTO has no `createdAt`, so "newest" sort can't even be fixed client-side)
+- [x] 🆕 **Category pages** — done 2026-07-19: `/categories/[slug]` with per-category SEO metadata, `notFound()` on bad slugs, ISR; reuses shared `get-shop-data.ts` loader + `ShopPage` (new optional heading/description props)
+- [x] 🔧 **`/products` route** — done: redirects to `/shop` (was a bare stub)
+- [ ] 🆕 **Search UX** — partial: navbar search icon pointed to `/shop` (was linking to a non-existent `/search` → 404!); dedicated search page with live results deferred until backend search param exists
+- [x] 🔧 **Local placeholder images** — done: `public/images/product-placeholder.png` (generated, 6 KB) replaces all 3 hardcoded Unsplash fallbacks (product cards/detail, cart line items, gallery)
+- [x] 🔧 `DEMO_CATALOG_ENABLED` — documented in `.env.example` (default false); demo data only activates when catalog is empty AND flag is on
 
 **Done when:** 1,000 products would render fast, paginated, and filterable — and demo data can't leak into production.
 
