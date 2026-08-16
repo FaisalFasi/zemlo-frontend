@@ -49,3 +49,15 @@ export function archiveAdminProduct(productId: string) {
     },
   );
 }
+
+export type UploadedImage = { url: string; publicId: string };
+
+export function uploadAdminProductImage(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return adminApiRequest<UploadedImage>("/api/admin/uploads/image", {
+    method: "POST",
+    body: formData,
+  });
+}

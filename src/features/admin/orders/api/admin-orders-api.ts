@@ -14,12 +14,17 @@ import { adminApiRequest } from "@/features/admin/lib/admin-api-request";
 import type {
   AdminOrderDetail,
   AdminOrderSummary,
+  AdminStats,
   UpdateAdminOrderShippingInput,
   UpdateAdminOrderStatusInput,
 } from "../types/admin-order.types";
 
 export async function getAdminOrders() {
   return adminApiRequest<AdminOrderSummary[]>("/api/admin/orders");
+}
+
+export async function getAdminStats() {
+  return adminApiRequest<AdminStats>("/api/admin/stats");
 }
 
 export async function getAdminOrderById(orderId: string) {

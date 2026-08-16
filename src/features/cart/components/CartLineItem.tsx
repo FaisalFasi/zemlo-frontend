@@ -2,7 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
+import { productFallbackImages } from "@/entities/product/model/product-utils";
 import { formatDefaultMoney } from "@/shared/lib/formatters";
+import { getSafeImageUrl } from "@/shared/lib/safe-image-url";
 import type { CartItem } from "../types/cart.types";
 
 type CartLineItemProps = {
@@ -16,11 +18,15 @@ function formatPrice(price: number) {
   return formatDefaultMoney(price);
 }
 
+// EXPLANATION: cart ka "best image" chunna product-listing wale chain se
+// alag hai (pehle selected VARIANT ki image, phir product ki default) —
+// isliye ye apna chhota function hai, lekin fallback constant aur safety-
+// check (getSafeImageUrl) wahi shared cheezein hain jo baqi app use karta
+// hai — ek jagah, sab jagah consistent.
 function getCartItemImage(item: CartItem) {
-  return (
-    item.variant?.image ??
-    item.product.images[0]?.url ??
-    "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop"
+  return getSafeImageUrl(
+    item.variant?.image ?? item.product.images[0]?.url,
+    productFallbackImages.card,
   );
 }
 

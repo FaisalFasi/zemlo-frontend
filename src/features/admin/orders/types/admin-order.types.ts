@@ -10,6 +10,7 @@
  * ═════════════════════════════════════════════════════════════════
  */
 import type {
+  AdminStatsResponseDto,
   OrderDetailResponseDto,
   OrderSummaryResponseDto,
   UpdateAdminOrderShippingDto,
@@ -21,3 +22,5 @@ export type AdminOrderDetail = OrderDetailResponseDto;
 
 export type UpdateAdminOrderStatusInput = UpdateAdminOrderStatusDto;
 export type UpdateAdminOrderShippingInput = UpdateAdminOrderShippingDto;
+
+export type AdminStats = AdminStatsResponseDto;

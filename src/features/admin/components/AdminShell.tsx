@@ -1,23 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Box,
   LayoutDashboard,
   LogOut,
   PackagePlus,
   ShoppingCart,
+  Tags,
 } from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
+import { logoutAdmin } from "@/features/admin/auth/api/admin-auth-api";
 import {
-  getCurrentAdminUser,
-  logoutAdmin,
-} from "@/features/admin/auth/api/admin-auth-api";
-import { canAccessAdmin } from "@/features/admin/auth/lib/admin-permissions";
-import type { AdminUser } from "@/features/admin/auth/types/admin-auth.types";
+  adminAuthQueryKeys,
+  canAccessAdmin,
+  useAdminPermission,
+  useCurrentAdminQuery,
+} from "@/features/admin/auth/hooks/use-admin-auth";
+import AdminMobileNav from "./AdminMobileNav";
+import AdminNavLinks, { type AdminNavItem } from "./AdminNavLinks";
 
 type AdminShellProps = {
   children: React.ReactNode;
@@ -25,37 +30,45 @@ type AdminShellProps = {
 
 export default function AdminShell({ children }: AdminShellProps) {
   const router = useRouter();
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [isChecking, setIsChecking] = useState(true);
+  const queryClient = useQueryClient();
+  const adminQuery = useCurrentAdminQuery();
+  const canCreateProduct = useAdminPermission("products.create");
+
+  const user = adminQuery.data ?? null;
+
+  // A resolved fetch with no (admin) user is a CONFIRMED unauthorized state
+  // — bounce to login. A query that's still loading, or one that errored
+  // (a transient network/backend hiccup — see getCurrentAdminUser's 401
+  // check), is NOT the same thing: treating it as "unauthorized" would tear
+  // the whole admin panel out from under an in-progress action every time
+  // the network hiccups, and could even loop (see the effect below).
+  const isInitialLoad = adminQuery.isLoading;
+  const isConfirmedUnauthorized = adminQuery.isSuccess && !canAccessAdmin(user);
+  const isUnverifiable = adminQuery.isError && !canAccessAdmin(user);
 
   useEffect(() => {
-    async function checkUser() {
-      const currentUser = await getCurrentAdminUser();
+    if (isInitialLoad || !isConfirmedUnauthorized) return;
 
-      if (!canAccessAdmin(currentUser)) {
-        // Clear the session for authenticated-but-not-admin users so
-        // middleware doesn't bounce them back here in a loop.
-        if (currentUser) {
-          await logoutAdmin();
-        }
-
-        router.replace("/admin/login");
-        return;
-      }
-
-      setUser(currentUser);
-      setIsChecking(false);
+    async function bounce() {
+      // Always clear the cookie (even for a plain "not logged in" 401,
+      // where there's no `user`) — otherwise a stale cookie survives,
+      // middleware sees it on the login page, and redirects straight back
+      // to /admin, looping forever.
+      await logoutAdmin();
+      queryClient.removeQueries({ queryKey: adminAuthQueryKeys.all });
+      router.replace("/admin/login");
     }
 
-    void checkUser();
-  }, [router]);
+    void bounce();
+  }, [isInitialLoad, isConfirmedUnauthorized, queryClient, router]);
 
   async function handleLogout() {
     await logoutAdmin();
+    queryClient.removeQueries({ queryKey: adminAuthQueryKeys.all });
     router.replace("/admin/login");
   }
 
-  if (isChecking) {
+  if (isInitialLoad || isConfirmedUnauthorized) {
     return (
       <main className="bg-background text-foreground">
         <section className="container-page py-10">
@@ -67,16 +80,56 @@ export default function AdminShell({ children }: AdminShellProps) {
     );
   }
 
+  if (isUnverifiable) {
+    return (
+      <main className="bg-background text-foreground">
+        <section className="container-page py-10">
+          <div className="rounded-[2rem] border border-border bg-card p-10 text-center">
+            <p className="text-muted-foreground">
+              Could not verify your admin session. This is usually a
+              temporary connection issue — your session has not been ended.
+            </p>
+            <Button
+              type="button"
+              className="mt-6 rounded-full"
+              onClick={() => adminQuery.refetch()}
+            >
+              Try again
+            </Button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const navItems: AdminNavItem[] = [
+    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
+    { href: "/admin/products", label: "Products", icon: PackagePlus },
+    { href: "/admin/catalog", label: "Categories & brands", icon: Tags },
+    ...(canCreateProduct
+      ? [{ href: "/admin/products/new", label: "Add product", icon: PackagePlus }]
+      : []),
+    { href: "/shop", label: "View shop", icon: Box, muted: true },
+  ];
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="border-b border-border bg-card">
         <div className="container-page flex min-h-16 flex-wrap items-center justify-between gap-4 py-4">
-          <Link href="/admin" className="flex items-center gap-2 no-underline">
-            <span className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-              Z
-            </span>
-            <span className="font-medium tracking-tight">Zemlo Admin</span>
-          </Link>
+          <div className="flex items-center gap-1">
+            <AdminMobileNav items={navItems} />
+
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 no-underline"
+            >
+              <span className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                Z
+              </span>
+              <span className="font-medium tracking-tight">Zemlo Admin</span>
+            </Link>
+          </div>
 
           <div className="flex items-center gap-3">
             {user ? (
@@ -103,54 +156,11 @@ export default function AdminShell({ children }: AdminShellProps) {
       </div>
 
       <div className="container-page grid gap-8 py-8 lg:grid-cols-[16rem_1fr]">
-        <aside className="h-fit rounded-[2rem] border border-border bg-card p-4 lg:sticky lg:top-8">
-          <nav className="space-y-1">
-            <Link
-              href="/admin"
-              className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-foreground no-underline hover:bg-muted"
-            >
-              <LayoutDashboard className="size-4" />
-              Dashboard
-            </Link>
-
-            {/* EXPLANATION: pehle yahan "Add product" ka link 2 dafa tha
-                (copy-paste bug) — ek hata kar Orders ka link lagaya jo
-                naye /admin/orders pages par le jata hai. */}
-            <Link
-              href="/admin/orders"
-              className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-foreground no-underline hover:bg-muted"
-            >
-              <ShoppingCart className="size-4" />
-              Orders
-            </Link>
-
-            <Link
-              href="/admin/products"
-              className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-foreground no-underline hover:bg-muted"
-            >
-              <PackagePlus className="size-4" />
-              Products
-            </Link>
-
-            <Link
-              href="/admin/products/new"
-              className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-foreground no-underline hover:bg-muted"
-            >
-              <PackagePlus className="size-4" />
-              Add product
-            </Link>
-
-            <Link
-              href="/shop"
-              className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-muted-foreground no-underline hover:bg-muted hover:text-foreground"
-            >
-              <Box className="size-4" />
-              View shop
-            </Link>
-          </nav>
+        <aside className="hidden h-fit rounded-[2rem] border border-border bg-card p-4 lg:sticky lg:top-8 lg:block">
+          <AdminNavLinks items={navItems} />
         </aside>
 
-        <div>{children}</div>
+        <div className="min-w-0">{children}</div>
       </div>
     </main>
   );

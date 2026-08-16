@@ -8,11 +8,14 @@ import {
   useAdminProductsQuery,
   useArchiveAdminProductMutation,
 } from "./hooks/use-admin-products";
+import { useAdminPermission } from "@/features/admin/auth/hooks/use-admin-auth";
+import AdminEntityLoadError from "@/features/admin/components/AdminEntityLoadError";
 import { Button } from "@/shared/ui/button";
 
 export default function AdminProductsPage() {
   const productsQuery = useAdminProductsQuery();
   const archiveProductMutation = useArchiveAdminProductMutation();
+  const canCreate = useAdminPermission("products.create");
 
   const products = productsQuery.data ?? [];
   const error =
@@ -29,7 +32,14 @@ export default function AdminProductsPage() {
 
     if (!confirmed) return;
 
-    await archiveProductMutation.mutateAsync(productId);
+    try {
+      await archiveProductMutation.mutateAsync(productId);
+    } catch {
+      // Swallow — the error is already tracked on `archiveProductMutation`
+      // and rendered below. Without this catch, an archive failure is an
+      // unhandled promise rejection (Next.js dev overlay treats that as a
+      // full-page crash, even though the UI itself is fine).
+    }
   }
 
   return (
@@ -57,12 +67,14 @@ export default function AdminProductsPage() {
             Refresh
           </Button>
 
-          <Button asChild className="rounded-full">
-            <Link href="/admin/products/new">
-              <PackagePlus className="size-4" />
-              Add product
-            </Link>
-          </Button>
+          {canCreate ? (
+            <Button asChild className="rounded-full">
+              <Link href="/admin/products/new">
+                <PackagePlus className="size-4" />
+                Add product
+              </Link>
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -75,6 +87,13 @@ export default function AdminProductsPage() {
       {productsQuery.isLoading ? (
         <div className="rounded-[2rem] border border-border bg-card p-10 text-center text-muted-foreground">
           Loading products...
+        </div>
+      ) : productsQuery.isError ? (
+        <div className="rounded-[2rem] border border-border bg-card p-10 text-center">
+          <AdminEntityLoadError
+            message="Could not load products."
+            onRetry={() => productsQuery.refetch()}
+          />
         </div>
       ) : (
         <AdminProductsTable

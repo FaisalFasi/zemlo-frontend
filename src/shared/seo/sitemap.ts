@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { getCatalogProducts } from "@/features/catalog/api/catalog-api";
+import { getAllCatalogProducts } from "@/features/catalog/api/catalog-api";
 import { appConfig } from "@/shared/config/app";
 import { routes } from "@/shared/config/routes";
 
@@ -19,7 +19,7 @@ export async function createSitemap(): Promise<MetadataRoute.Sitemap> {
   let productRoutes: MetadataRoute.Sitemap = [];
 
   try {
-    const products = await getCatalogProducts();
+    const products = await getAllCatalogProducts();
 
     productRoutes = products.map((product) => ({
       url: createUrl(routes.productDetail(product.slug)),

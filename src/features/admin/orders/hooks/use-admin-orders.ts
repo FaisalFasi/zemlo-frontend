@@ -19,6 +19,7 @@ import { queryDurations } from "@/shared/config";
 import {
   getAdminOrderById,
   getAdminOrders,
+  getAdminStats,
   updateAdminOrderShipping,
   updateAdminOrderStatus,
 } from "../api/admin-orders-api";
@@ -35,10 +36,27 @@ export const adminOrderQueryKeys = {
     [...adminOrderQueryKeys.all, "detail", orderId] as const,
 };
 
+export const adminStatsQueryKeys = {
+  all: ["admin", "stats"] as const,
+};
+
 export function useAdminOrdersQuery() {
   return useQuery({
     queryKey: adminOrderQueryKeys.list(),
     queryFn: getAdminOrders,
+    staleTime: queryDurations.short,
+    gcTime: queryDurations.medium,
+  });
+}
+
+// `enabled` lets the dashboard skip the call entirely for roles without
+// analytics.view (a STAFF account, say) instead of firing a request that
+// will just 403.
+export function useAdminStatsQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: adminStatsQueryKeys.all,
+    queryFn: getAdminStats,
+    enabled,
     staleTime: queryDurations.short,
     gcTime: queryDurations.medium,
   });

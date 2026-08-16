@@ -47,10 +47,10 @@ export const productFieldHelp = {
     example: "49.99",
   },
   compareAtPrice: {
-    title: "Compare at price",
+    title: "Discount",
     description:
-      "The old or original price shown crossed out. Use it to show a sale or discount.",
-    example: "Original price 69.99, selling price 49.99",
+      "Turn this on to sell at a percentage off. The shop shows the original price crossed out next to the discounted Price above, plus a \"Save X%\" badge.",
+    example: "Price 49.99, 20% off → shows \"was 62.49, now 49.99\"",
   },
   costPrice: {
     title: "Cost price",
@@ -86,10 +86,10 @@ export const productFieldHelp = {
       "Allows customers to order even when stock is 0. Use carefully, only if you can fulfill later.",
   },
   imageUrl: {
-    title: "Image URL",
+    title: "Image",
     description:
-      "The product image link. For now we use URL input. Later this can be replaced with Cloudinary upload.",
-    example: "https://example.com/headphones.jpg",
+      "Click Upload to pick a file (JPEG/PNG/WEBP/GIF, 5MB max) — it uploads immediately and fills this field. You can also paste a URL directly from a supported host.",
+    example: "https://res.cloudinary.com/.../headphones.jpg",
   },
   imageAlt: {
     title: "Image alt text",

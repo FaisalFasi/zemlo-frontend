@@ -8,7 +8,12 @@ type FormatMoneyInput = {
   maximumFractionDigits?: number;
 };
 
-function toNumber(value: number | string | null | undefined) {
+// Exported so anything that needs to do MATH on a money value (not just
+// display it) — e.g. summing order totals for a dashboard stat — coerces
+// the same way `formatMoney` does. A backend that serializes Decimal
+// fields as strings would otherwise silently turn a raw `+`/`reduce` into
+// string concatenation instead of a numeric sum.
+export function toNumber(value: number | string | null | undefined) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
   }

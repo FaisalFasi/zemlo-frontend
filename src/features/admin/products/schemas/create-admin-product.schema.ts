@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { ALLOWED_IMAGE_HOSTS } from "@/shared/config/image-hosts";
+import { isAllowedImageUrl } from "@/shared/lib/safe-image-url";
+
 const optionalString = (min: number, max: number, label: string) =>
   z.preprocess(
     (value) => (value === "" ? undefined : value),
@@ -29,7 +32,16 @@ const optionalNumber = (label: string) =>
 
 const requiredNumber = (label: string) =>
   z.preprocess(
-    (value) => Number(value),
+    (value) => {
+      // `Number("")` and `Number(null)` both resolve to 0, not NaN — that
+      // JS quirk let a genuinely empty Price field pass this schema as a
+      // "valid" €0.00 with no error at all. Force those cases through the
+      // NaN branch instead so `z.number()` rejects them as invalid.
+      if (typeof value === "string" && value.trim() === "") return NaN;
+      if (value === null || value === undefined) return NaN;
+
+      return Number(value);
+    },
     z
       .number({
         error: `${label} must be a valid number.`,
@@ -82,7 +94,7 @@ export const createAdminProductSchema = z
         .min(0, "Stock cannot be negative."),
     ),
 
-    status: z.enum(["ACTIVE", "DRAFT"]),
+    status: z.enum(["ACTIVE", "DRAFT", "ARCHIVED"]),
 
     isFeatured: z.boolean(),
 
@@ -95,7 +107,10 @@ export const createAdminProductSchema = z
       .trim()
       .min(5, "Image URL is required.")
       .max(1000, "Image URL is too long.")
-      .url("Please enter a valid image URL."),
+      .url("Please enter a valid image URL.")
+      .refine(isAllowedImageUrl, {
+        message: `This image host isn't supported yet — use ${ALLOWED_IMAGE_HOSTS.join(" or ")}. Other hosts will silently show a placeholder instead of crashing, but won't display the real image.`,
+      }),
 
     imageAlt: optionalString(2, 200, "Image alt text"),
 

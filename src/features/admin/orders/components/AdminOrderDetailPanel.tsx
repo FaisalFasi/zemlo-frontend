@@ -18,6 +18,7 @@ import { ArrowLeft } from "lucide-react";
 import OrderStatusBadge from "@/features/orders/components/OrderStatusBadge";
 import { formatDefaultDate, formatDefaultMoney } from "@/shared/lib/formatters";
 import { Button } from "@/shared/ui/button";
+import AdminSectionErrorBoundary from "@/features/admin/components/AdminSectionErrorBoundary";
 
 import { useAdminOrderQuery } from "../hooks/use-admin-orders";
 import type { AdminOrderDetail } from "../types/admin-order.types";
@@ -230,8 +231,12 @@ export default function AdminOrderDetailPanel({
         </dl>
       </div>
 
-      {/* Update forms */}
-      <AdminOrderUpdateForms order={order} />
+      {/* Update forms — wrapped so a rendering hiccup here (e.g. right
+          after its own mutation succeeds) shows a small inline retry
+          instead of taking down the whole order page. */}
+      <AdminSectionErrorBoundary sectionLabel="The update forms">
+        <AdminOrderUpdateForms order={order} />
+      </AdminSectionErrorBoundary>
 
       {/* Status history — audit trail */}
       {order.statusHistory.length > 0 ? (

@@ -12,6 +12,11 @@ type ShopPageProps = {
   categories: ShopCategoryFilter[];
   params: ResolvedShopSearchParams;
   isDemoCatalog: boolean;
+  // EXPLANATION: optional heading/description — category pages yehi
+  // component reuse karte hain lekin SEO ke liye apni h1 chahiye
+  // (e.g. category ka naam). Na dein to purana default text.
+  heading?: string;
+  description?: string;
 };
 
 export default function ShopPage({
@@ -19,6 +24,8 @@ export default function ShopPage({
   categories,
   params,
   isDemoCatalog,
+  heading = "Explore products across categories.",
+  description = "Browse products from Zemlo and trusted brands. Filters are URL-based so search, category, and sort states stay shareable.",
 }: ShopPageProps) {
   const visibleProducts = filterAndSortShopProducts(products, params);
   const hasFilters = Boolean(params.q || params.category);
@@ -30,13 +37,10 @@ export default function ShopPage({
           <div>
             <p className="text-eyebrow text-muted-foreground">Zemlo shop</p>
 
-            <h1 className="mt-3 text-section-title">
-              Explore products across categories.
-            </h1>
+            <h1 className="mt-3 text-section-title">{heading}</h1>
 
             <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-              Browse products from Zemlo and trusted brands. Filters are
-              URL-based so search, category, and sort states stay shareable.
+              {description}
             </p>
           </div>
 

@@ -1,7 +1,7 @@
 import {
+  getAllCatalogProducts,
   getCatalogBrands,
   getCatalogCategories,
-  getCatalogProducts,
 } from "@/features/catalog/api/catalog-api";
 
 import BrandShowcaseSection from "./sections/BrandShowcaseSection";
@@ -21,7 +21,7 @@ function shouldUseDemoCatalog() {
 async function getSafeHomePageData() {
   const [productsResult, categoriesResult, brandsResult] =
     await Promise.allSettled([
-      getCatalogProducts(),
+      getAllCatalogProducts(),
       getCatalogCategories(),
       getCatalogBrands(),
     ]);

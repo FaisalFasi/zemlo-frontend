@@ -11,7 +11,8 @@ import {
   createAdminProductDefaultValues,
   type CreateAdminProductFormValues,
 } from "../schemas/create-admin-product.schema";
-import { productFormValuesToCreateInput } from "../lib/admin-produc-form-mappers";
+import { productFormValuesToCreateInput } from "../lib/admin-product-form-mappers";
+import { useAdminPermission } from "@/features/admin/auth/hooks/use-admin-auth";
 
 type AdminProductCreateFormProps = {
   categories: CatalogCategory[];
@@ -23,6 +24,15 @@ export default function AdminProductCreateForm({
   brands,
 }: AdminProductCreateFormProps) {
   const createProductMutation = useCreateAdminProductMutation();
+  const canCreate = useAdminPermission("products.create");
+
+  if (!canCreate) {
+    return (
+      <div className="rounded-[2rem] border border-border bg-card p-8 text-center text-muted-foreground">
+        Your role does not have permission to create products.
+      </div>
+    );
+  }
 
   async function handleSubmit(values: CreateAdminProductFormValues) {
     const product = await createProductMutation.mutateAsync(
@@ -43,7 +53,7 @@ export default function AdminProductCreateForm({
       brands={brands}
       defaultValues={createAdminProductDefaultValues}
       title="Create product"
-      description="Add a real product to the catalog. Use image URLs for now; Cloudinary upload can be added later."
+      description="Add a real product to the catalog. Upload an image or paste a URL from a supported host."
       submitLabel="Create product"
       submittingLabel="Creating..."
       cancelHref="/admin/products"

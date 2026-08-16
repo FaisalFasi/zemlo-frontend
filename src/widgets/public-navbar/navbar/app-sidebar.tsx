@@ -114,7 +114,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
           <div className="grid grid-cols-3 gap-2">
             <Button asChild variant="secondary" className="h-12 rounded-2xl">
               <Link
-                href="/search"
+                href="/shop"
                 onClick={onNavigate}
                 aria-label="Search products"
               >

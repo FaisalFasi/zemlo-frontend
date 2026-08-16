@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zemlo — E-Commerce Storefront (Frontend)
 
-## Getting Started
+A production-grade e-commerce storefront + admin panel, built with **Next.js 15 (App Router)** and backed by a separate NestJS API (`zemlo-backend`). Being built as a real gift store for a friend — the goal is genuine production quality, not a demo.
 
-First, run the development server:
+> **New to this repo (human or AI agent)? Read [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) first** — it explains what's built, how auth/cart/checkout/orders work, and where every piece lives. Then check [docs/ROADMAP.md](docs/ROADMAP.md) for what's done ✅ and what's next, starting with its **"Next Session — Start Here"** section at the top.
+
+## Docs map
+
+| File | What it's for |
+|---|---|
+| [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) | **Start here.** Living architecture reference — how auth, cart, checkout, orders, and image handling actually work today, plus a key-files cheat-sheet and coding conventions. |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | The master checklist — phases, what's done, what's left, in priority order. Has a "Next Session — Start Here" section pinned at the top. |
+| [docs/AUDIT.md](docs/AUDIT.md) | The original day-1 codebase audit (2026-07-13). Historical context for *why* a fix was made — check ROADMAP for current status, this file isn't kept in sync. |
+| [docs/BACKEND-TODO.md](docs/BACKEND-TODO.md) | Action items for the `zemlo-backend` repo (pagination, cron scheduling, RBAC security gaps, upload endpoint) with ready-to-paste NestJS code. |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Original FSD layering rules (pre-existing doc). |
+| `Zemlo Style Guide & Design System.md` | Visual design system. |
+
+## Tech stack
+
+Next.js 15 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS v4 + shadcn/ui · TanStack Query v5 · Orval (typed API client from the backend's OpenAPI spec) · React Hook Form + Zod · Stripe Payment Element · Vitest.
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local   # fill in values — see table below
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Requires a running `zemlo-backend` instance (locally or the hosted one — set `API_BASE_URL` in `.env.local`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build |
+| `npm run start` | Serve the production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Run the unit test suite (Vitest) |
+| `npm run test:watch` | Vitest in watch mode |
+| `npm run api:generate` | Regenerate the typed API client from the backend's OpenAPI spec (Orval) |
 
-## Learn More
+CI (`.github/workflows/ci.yml`) runs lint → typecheck → test → build on every push/PR — check that it's green before merging.
 
-To learn more about Next.js, take a look at the following resources:
+## Environment variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [.env.example](.env.example) for the full, documented list (backend URL, Stripe key, market/locale defaults, demo-catalog toggle).

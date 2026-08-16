@@ -37,8 +37,19 @@ export async function getCurrentAdminUser() {
     },
   });
 
-  if (!response.ok) {
+  // 401 is the ONLY response that means "definitely not signed in" — return
+  // null so callers can treat it as a clean logged-out state. Any other
+  // non-2xx (a transient 5xx, a proxy hiccup) must THROW instead, so
+  // TanStack Query marks the query as an error rather than "successfully"
+  // resolving to null — a thrown error leaves the previous cached user
+  // (and therefore admin panel access) untouched; resolving to null would
+  // overwrite it and look exactly like a real logout.
+  if (response.status === 401) {
     return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`Could not verify admin session (${response.status}).`);
   }
 
   const result = (await response.json()) as AdminMeResponse;

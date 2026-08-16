@@ -13,13 +13,23 @@ export async function adminApiRequest<TResponse>(
   path: string,
   options: AdminApiRequestOptions = {},
 ): Promise<TResponse> {
+  // A FormData body (image upload) must NOT be JSON-stringified or given a
+  // Content-Type header — the browser sets its own multipart boundary.
+  const isFormData = options.body instanceof FormData;
+
   const response = await fetch(path, {
     method: options.method ?? "GET",
     headers: {
       Accept: "application/json",
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(options.body && !isFormData
+        ? { "Content-Type": "application/json" }
+        : {}),
     },
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: isFormData
+      ? (options.body as FormData)
+      : options.body
+        ? JSON.stringify(options.body)
+        : undefined,
   });
 
   if (response.status === 401) {

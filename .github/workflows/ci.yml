@@ -1,0 +1,47 @@
+# ═══════════════ EXPLANATION (is change ki wajah) ═══════════════
+# YE KYA HAI: GitHub Actions CI — har push/PR par GitHub khud lint,
+# typecheck, tests (31), aur production build chalata hai.
+# REASON: Ghalti GitHub pahunchte hi pakri jaye, merge se pehle —
+# insaan bhool sakta hai, CI kabhi nahi. PR par green ✅ / red ❌.
+# RISK: Zero — sirf GitHub ke servers par chalta hai.
+# ═════════════════════════════════════════════════════════════════
+name: CI
+
+on:
+  push:
+    branches: [main, zemlo-v1]
+  pull_request:
+    branches: [main]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # npm ci = package-lock.json se EXACT wohi versions (npm install
+      # se zyada strict — CI ka standard)
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      # Build ke liye backend ki zaroorat nahi — pages fetch-fail par
+      # apne fallbacks use karte hain (empty catalog / demo off)
+      - name: Production build
+        run: npm run build

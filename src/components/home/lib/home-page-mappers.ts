@@ -13,6 +13,11 @@ import type {
   CatalogCategory,
   CatalogProductListItem,
 } from "@/features/catalog/types/catalog.types";
+import {
+  productFallbackImages,
+  resolveBestProductImage,
+} from "@/entities/product/model/product-utils";
+import { getSafeImageUrl } from "@/shared/lib/safe-image-url";
 
 import {
   featuredBrands as fallbackBrands,
@@ -58,17 +63,13 @@ function toNumber(value: string | number | null | undefined) {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
+// EXPLANATION: "best image chuno" wala chain ab entities/product mein ek
+// hi jagah hai (resolveBestProductImage) — yahan alag copy nahi rakhi.
+// Fallback bhi ab wohi local placeholder hai jo shop/cart use karte hain
+// (pehle yahan apna alag hardcoded Unsplash fallback tha — do jagah do
+// alag fallback images ek inconsistency thi).
 function getProductImage(product: CatalogProductListItem) {
-  const defaultImage = product.images.find((image) => image.isDefault);
-  const firstImage = product.images[0];
-  const variantImage = product.variants.find((variant) => variant.image)?.image;
-
-  return (
-    defaultImage?.url ??
-    firstImage?.url ??
-    variantImage ??
-    "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1000&auto=format&fit=crop"
-  );
+  return resolveBestProductImage(product, productFallbackImages.card);
 }
 
 function getDiscountBadge(price?: number, compareAtPrice?: number) {
@@ -130,9 +131,7 @@ function toHomeCategory(category: CatalogCategory): HomeCategory {
       category.description ??
       `Explore ${category.name.toLowerCase()} products and everyday essentials.`,
     href: `/shop?category=${category.slug}`,
-    image:
-      category.image ??
-      "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop",
+    image: getSafeImageUrl(category.image, productFallbackImages.card),
     icon: getCategoryIcon(`${category.slug} ${category.name}`),
   };
 }

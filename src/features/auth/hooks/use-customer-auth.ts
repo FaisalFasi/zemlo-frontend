@@ -10,12 +10,11 @@ import {
   loginCustomer,
   logoutCustomer,
   registerCustomer,
+  requestPasswordReset,
+  resetPassword,
   type CustomerUser,
 } from "../api/customer-auth-api";
-import {
-  mergeGuestCartItems,
-  snapshotGuestCart,
-} from "../lib/merge-guest-cart";
+import { mergeGuestCartIntoUser } from "../lib/merge-guest-cart";
 import type {
   LoginFormValues,
   RegisterFormValues,
@@ -43,12 +42,11 @@ function useSignInFlow<TInput>(
 
   return useMutation({
     mutationFn: async (input: TInput) => {
-      // Snapshot the guest cart before the session exists — afterwards the
-      // backend resolves every cart request to the user's cart.
-      const guestCart = await snapshotGuestCart();
       const result = await signIn(input);
 
-      await mergeGuestCartItems(guestCart);
+      // Must run AFTER sign-in — the merge endpoint requires the session
+      // that login/register just created.
+      await mergeGuestCartIntoUser();
 
       return result;
     },
@@ -71,6 +69,24 @@ export function useRegisterMutation() {
   return useSignInFlow((input: Omit<RegisterFormValues, "confirmPassword">) =>
     registerCustomer(input),
   );
+}
+
+export function useForgotPasswordMutation() {
+  return useMutation({
+    mutationFn: (email: string) => requestPasswordReset(email),
+  });
+}
+
+export function useResetPasswordMutation() {
+  return useMutation({
+    mutationFn: ({
+      token,
+      newPassword,
+    }: {
+      token: string;
+      newPassword: string;
+    }) => resetPassword(token, newPassword),
+  });
 }
 
 export function useLogoutMutation() {

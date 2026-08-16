@@ -1,20 +1,10 @@
 import type { Metadata } from "next";
 
-import { serverConfig } from "@/shared/config/server";
 import { routes } from "@/shared/config/routes";
 import { createPageMetadata } from "@/shared/lib/seo";
 
-import {
-  getCatalogCategories,
-  getCatalogProducts,
-} from "@/features/catalog/api/catalog-api";
-import { demoShopProducts } from "@/features/shop/data/demo-shop-products";
+import { getSafeShopData } from "@/features/shop/lib/get-shop-data";
 import { resolveShopSearchParams } from "@/features/shop/lib/shop-filters";
-import {
-  createShopCategoriesFromProducts,
-  mapCatalogCategoriesToShopCategories,
-  mapCatalogProductToShopProduct,
-} from "@/features/shop/lib/shop-product-mappers";
 import ShopPage from "@/features/shop/ShopPage";
 import type { ShopSearchParams } from "@/features/shop/types/shop.types";
 
@@ -30,48 +20,6 @@ export const metadata: Metadata = createPageMetadata({
 type ShopRoutePageProps = {
   searchParams: Promise<ShopSearchParams>;
 };
-
-function shouldUseDemoCatalog() {
-  return serverConfig.demoCatalogEnabled;
-}
-
-async function getSafeShopData() {
-  try {
-    const [productsResult, categoriesResult] = await Promise.all([
-      getCatalogProducts(),
-      getCatalogCategories(),
-    ]);
-
-    const realProducts = productsResult.map(mapCatalogProductToShopProduct);
-    const useDemoCatalog = realProducts.length === 0 && shouldUseDemoCatalog();
-    const products = useDemoCatalog ? demoShopProducts : realProducts;
-
-    const categories =
-      realProducts.length > 0
-        ? mapCatalogCategoriesToShopCategories(categoriesResult, products)
-        : createShopCategoriesFromProducts(products);
-
-    return {
-      products,
-      categories,
-      isDemoCatalog: useDemoCatalog,
-    };
-  } catch {
-    if (!shouldUseDemoCatalog()) {
-      return {
-        products: [],
-        categories: [],
-        isDemoCatalog: false,
-      };
-    }
-
-    return {
-      products: demoShopProducts,
-      categories: createShopCategoriesFromProducts(demoShopProducts),
-      isDemoCatalog: true,
-    };
-  }
-}
 
 export default async function ShopRoutePage({
   searchParams,

@@ -12,24 +12,18 @@ import type {
   ProductSpec,
   ProductVariant,
 } from "./product.types";
+import { getSafeImageUrl } from "@/shared/lib/safe-image-url";
+
 import {
   getDiscountBadge,
   productFallbackImages,
+  resolveBestProductImage,
   toNumber,
   toOptionalNumber,
 } from "./product-utils";
 
 function getProductCardImage(product: PublicProductListItemResponseDto) {
-  const defaultImage = product.images.find((image) => image.isDefault);
-  const firstImage = product.images[0];
-  const variantImage = product.variants.find((variant) => variant.image)?.image;
-
-  return (
-    defaultImage?.url ??
-    firstImage?.url ??
-    variantImage ??
-    productFallbackImages.card
-  );
+  return resolveBestProductImage(product, productFallbackImages.card);
 }
 
 function mapDetailImages(
@@ -37,7 +31,7 @@ function mapDetailImages(
 ): ProductImage[] {
   const images = product.images.map((image) => ({
     id: image.id,
-    url: image.url,
+    url: getSafeImageUrl(image.url, productFallbackImages.detail),
     alt: image.altText ?? product.name,
   }));
 
@@ -49,7 +43,7 @@ function mapDetailImages(
     .filter((variant) => Boolean(variant.image))
     .map((variant) => ({
       id: variant.id,
-      url: variant.image as string,
+      url: getSafeImageUrl(variant.image, productFallbackImages.detail),
       alt: variant.name,
     }));
 
