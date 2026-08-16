@@ -9,15 +9,13 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 
 ---
 
-## 📍 Next Session — Start Here (last updated 2026-07-20)
+## 📍 Next Session — Start Here (last updated 2026-08-16)
 
-**1. Verify + commit pending work first.** As of 2026-07-20 the `zemlo-v1`
-branch has UNCOMMITTED changes for: the image-host crash fix (`safe-image-url.ts`,
-`resolveBestProductImage()`, error boundaries for `(admin)`/root — see
-"Image safety" in [IMPLEMENTATION.md](IMPLEMENTATION.md)) and category/brand
-admin management (`features/admin/catalog/**`, `/admin/catalog` page). Run
-`git status`, `npm run lint && npm run typecheck && npm test && npm run build`,
-then commit + push before starting new work.
+**1. Pending work is committed.** `312977a` (2026-08-16) landed the image-host
+crash fix and category/brand admin management (`features/admin/catalog/**`,
+`/admin/catalog` page, nav link) that was previously sitting uncommitted.
+Verified clean tree, `npm run lint && npm run typecheck && npm test && npm run build`
+all green (36 tests) on 2026-08-16 — nothing pending.
 
 **2. Backend decision, ready to act on:** see [BACKEND-TODO.md](BACKEND-TODO.md)
 §0 — the expired-inventory-release script (`npm run inventory:release-expired`)
@@ -28,9 +26,10 @@ already written in BACKEND-TODO.md §0, just needs to be applied in the
 concern — stock is decremented at checkout-start (atomic, race-safe), so the
 frontend already shows correct availability.
 
-**3. Suggested next phase:** finish Phase 6 (category/brand RBAC UI gating —
-see Phase 6 checklist below) or move to Phase 7 (legal pages) — user's call,
-ask them.
+**3. Suggested next phase:** category/brand admin CRUD is now done. What's left
+in Phase 6 is RBAC UI gating (permission map exists but only `admin:access` is
+checked) and image upload (blocked on backend). Otherwise move to Phase 7
+(legal pages) — user's call, ask them.
 
 **Docs map (avoid re-reading everything — pick the right one):**
 - **This file (ROADMAP.md)** — the checklist: what's done ✅, what's left, in what order.
@@ -121,7 +120,7 @@ ask them.
 - [x] 🔧 **ARCHIVED status round-trip** — done: mapper keeps real status, form select offers Active/Draft/Archived (restore now possible)
 - [x] 🔧 Duplicate "Add product" nav fixed in Phase 4; `admin-produc-form-mappers.ts` renamed → `admin-product-form-mappers.ts` (2026-07-19)
 - [ ] 🆕 **Enforce granular RBAC in UI** — permission map exists (`admin-permissions.ts`) but only `admin:access` is checked; gate actions (create/edit/archive) per role
-- [ ] 🆕 **Category & brand management** — CRUD screens (APIs generated, no UI)
+- [x] 🆕 **Category & brand management** — done 2026-08-16: `/admin/catalog` page, `AdminCategoriesManager` + `AdminBrandsManager` (full CRUD with forms/validation), proxy routes `/api/admin/categories*` + `/api/admin/brands*`, feature code in `features/admin/catalog/`
 
 **Done when:** the store owner can manage products (with variants + images), categories, and brands entirely from the admin panel.
 

@@ -14,7 +14,7 @@ RISK: Zero — sirf documentation.
 
 > One page to remember how everything works. Updated after every phase.
 > Detail docs: [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) · [ROADMAP.md](ROADMAP.md) · [AUDIT.md](AUDIT.md)
-> Last updated: 2026-07-14 (Phase 4 — customer orders)
+> Last updated: 2026-08-16 (Phase 6 — category/brand admin management)
 
 ---
 
@@ -67,6 +67,14 @@ On login/register: snapshot guest cart → sign in → replay items into user ca
 - **`entities/product/model/product-utils.ts`** — `resolveBestProductImage()` is the ONE "pick the best image from a product's images/variants" chain, used by both `entities/product` (shop, product detail) and `components/home` mappers (previously two copies of the same logic with two different fallback images — now one).
 - Applied at every image entry point: product card, product detail gallery, cart line item, home page cards/categories.
 - **Error boundaries:** `(admin)/error.tsx` (didn't exist before — an admin crash had nowhere to land but the raw Next.js error overlay), root `not-found.tsx`, root `global-error.tsx` (last-resort net if the root layout itself throws).
+
+## Category & Brand Admin Management (Phase 6, 2026-08-16)
+
+- `/admin/catalog` page renders `AdminCategoriesManager` + `AdminBrandsManager` (`src/features/admin/catalog/`) — full CRUD (create/edit/delete) with RHF forms + validation, list/error/empty/loading states.
+- Proxy routes `/api/admin/categories*` and `/api/admin/brands*` (GET/POST/PATCH/DELETE) attach the admin token via `proxyToBackend`, same pattern as products/orders.
+- `hooks/use-admin-catalog.ts` wraps TanStack Query mutations; `api/admin-catalog-api.ts` wraps generated Orval calls; types in `types/admin-catalog.types.ts`.
+- Nav: `AdminShell` sidebar has a "Categories & brands" link.
+- Still open: RBAC gating (only `admin:access` is checked, not per-action permissions).
 
 ## Catalog & Category Pages (Phase 5A)
 
@@ -151,4 +159,5 @@ On login/register: snapshot guest cart → sign in → replay items into user ca
 - **Phase 4** (2026-07-14): customer order history + detail; admin orders table + fulfilment view (status/shipping updates, history) + dashboard stats; admin nav Orders link (duplicate "Add product" removed)
 - **Phase 5A** (2026-07-19): category pages with per-category SEO, shared shop-data loader, `/products`→`/shop` redirect, navbar search 404 fix, local placeholder image; **5B (server-side pagination/search) blocked on backend** — spec in BACKEND-TODO.md
 - **Phase 8 part 1** (2026-07-19): Vitest + 31 unit tests, GitHub Actions CI (lint/typecheck/test/build on every push/PR), security fixes (swiper critical, Next 15.5.20). Remaining: Playwright E2E, component tests, dedupe sprint
-- **Phase 6 part 1** (2026-07-19): admin **variants manager** on the product edit page (`AdminVariantsManager` + `/api/admin/products/[id]/variants*` proxies + api/hooks in `features/admin/products/`); fixed `hasVariants: false` hardcode (backend owns the flag — it recalculates on variant changes, so never send it); ARCHIVED status round-trip + restore; mapper file typo renamed. Remaining: category/brand management screens, RBAC UI gating, image upload (backend batch)
+- **Phase 6 part 1** (2026-07-19): admin **variants manager** on the product edit page (`AdminVariantsManager` + `/api/admin/products/[id]/variants*` proxies + api/hooks in `features/admin/products/`); fixed `hasVariants: false` hardcode (backend owns the flag — it recalculates on variant changes, so never send it); ARCHIVED status round-trip + restore; mapper file typo renamed.
+- **Phase 6 part 2** (2026-08-16): image-host crash fix (`safe-image-url.ts`, `resolveBestProductImage()`, error boundaries for `(admin)`/root/global — see "Image safety" above) + **category/brand admin management** (`/admin/catalog`, `features/admin/catalog/**`, see section above). Remaining: RBAC UI gating, image upload (backend batch)
