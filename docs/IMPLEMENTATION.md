@@ -61,6 +61,13 @@ On login/register: snapshot guest cart → sign in → replay items into user ca
 - State: TanStack Query only — key `["cart","current"]`, hooks in `features/cart/hooks/use-cart.ts`.
 - **Optimistic updates** (Phase 3): update/remove/clear apply to the cache instantly, roll back on error. Add-to-cart stays server-first (needs product data).
 
+## Image safety (2026-07-20 hardening)
+
+- **`shared/lib/safe-image-url.ts`** — `getSafeImageUrl(url, fallback)` is the ONE place that checks a backend-sourced image URL against `shared/config/image-hosts.ts` (also used by `next.config.ts`, so there's a single allowlist, not two). Returns the fallback instead of letting `next/image` crash on an unlisted host.
+- **`entities/product/model/product-utils.ts`** — `resolveBestProductImage()` is the ONE "pick the best image from a product's images/variants" chain, used by both `entities/product` (shop, product detail) and `components/home` mappers (previously two copies of the same logic with two different fallback images — now one).
+- Applied at every image entry point: product card, product detail gallery, cart line item, home page cards/categories.
+- **Error boundaries:** `(admin)/error.tsx` (didn't exist before — an admin crash had nowhere to land but the raw Next.js error overlay), root `not-found.tsx`, root `global-error.tsx` (last-resort net if the root layout itself throws).
+
 ## Catalog & Category Pages (Phase 5A)
 
 - Shop data loading lives in ONE place: `features/shop/lib/get-shop-data.ts` (products + categories + demo-catalog fallback) — used by `/shop` AND `/categories/[slug]`.

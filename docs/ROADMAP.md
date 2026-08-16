@@ -2,10 +2,42 @@
 
 > Goal: take Zemlo from ~50% learning project to a **sustainable, production-grade store** that can be handed over to a real owner with zero known issues.
 > Work through phases **in order** — each phase builds on the previous one. Tick boxes as we complete them.
-> Detailed reasoning for each item: [AUDIT.md](AUDIT.md) · Feature status: [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
+> Detailed reasoning for each item: [AUDIT.md](AUDIT.md) · Architecture + what's built: [IMPLEMENTATION.md](IMPLEMENTATION.md)
 > Created: 2026-07-13 · Baseline: `main` @ 366bc5b
 
 Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wrong/incomplete) · 🧹 = cleanup
+
+---
+
+## 📍 Next Session — Start Here (last updated 2026-07-20)
+
+**1. Verify + commit pending work first.** As of 2026-07-20 the `zemlo-v1`
+branch has UNCOMMITTED changes for: the image-host crash fix (`safe-image-url.ts`,
+`resolveBestProductImage()`, error boundaries for `(admin)`/root — see
+"Image safety" in [IMPLEMENTATION.md](IMPLEMENTATION.md)) and category/brand
+admin management (`features/admin/catalog/**`, `/admin/catalog` page). Run
+`git status`, `npm run lint && npm run typecheck && npm test && npm run build`,
+then commit + push before starting new work.
+
+**2. Backend decision, ready to act on:** see [BACKEND-TODO.md](BACKEND-TODO.md)
+§0 — the expired-inventory-release script (`npm run inventory:release-expired`)
+is never called automatically (no cron found). Recommendation: wire it into
+`@nestjs/schedule` (`@Cron`, every 5 min) inside the running app — code is
+already written in BACKEND-TODO.md §0, just needs to be applied in the
+`zemlo-backend` repo and deployed. No frontend change needed for the "sold out"
+concern — stock is decremented at checkout-start (atomic, race-safe), so the
+frontend already shows correct availability.
+
+**3. Suggested next phase:** finish Phase 6 (category/brand RBAC UI gating —
+see Phase 6 checklist below) or move to Phase 7 (legal pages) — user's call,
+ask them.
+
+**Docs map (avoid re-reading everything — pick the right one):**
+- **This file (ROADMAP.md)** — the checklist: what's done ✅, what's left, in what order.
+- **[IMPLEMENTATION.md](IMPLEMENTATION.md)** — living architecture reference: how auth/cart/checkout/orders/images work today, key file paths, conventions. Read this to understand "how is X built" without re-deriving it.
+- **[AUDIT.md](AUDIT.md)** — the original day-1 audit (2026-07-13). Historical; many items are now fixed (check ROADMAP for current status) but it's still useful for the original reasoning behind a fix.
+- **[BACKEND-TODO.md](BACKEND-TODO.md)** — backend-repo action items (pagination, cron, upload endpoint) with ready-to-paste NestJS code.
+- **[PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)** — ⚠️ retired/stale (superseded by this file + IMPLEMENTATION.md), kept only so old links don't break.
 
 ---
 
@@ -120,7 +152,8 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 - [ ] 🧹 **Delete legacy `src/components/`** — migrate remaining home sections into `features`/`widgets` per ARCHITECTURE.md, remove `LogoLoop.tsx` `as any` mess or isolate it
 - [ ] 🔧 **Tighten tsconfig** — add `noUncheckedIndexedAccess`, `noUnusedLocals`; drop `allowJs`
 - [ ] 🔧 **Update ARCHITECTURE.md** — finish the doc, remove Zustand claim (not installed), match reality
-- [ ] 🆕 Root `not-found.tsx` + `global-error.tsx`; loading/error boundaries for `(admin)`; `loading.tsx` for `/shop` and `/products/[slug]`
+- [x] 🆕 Root `not-found.tsx` + `global-error.tsx`; `(admin)` error boundary — done 2026-07-20 (triggered by a real crash, see below). `loading.tsx` for `/shop` and `/products/[slug]` still open
+- [x] 🔒 **Image-host crash fix** — done 2026-07-20: an admin-entered product image from an unlisted host (`placehold.co`) crashed `<Image>` and took down the ENTIRE shop/home/cart page for every visitor (not just that product) — the exact blast-radius risk this document warns about. Root cause: Phase 1 tightened `next.config.ts` image hosts to an allowlist (correct security fix) but nothing validated URLs against it before render. Fixed with `shared/lib/safe-image-url.ts` (falls back to the local placeholder instead of crashing) applied at every image-mapping site; consolidated a literal-duplicate "pick best product image" chain that existed in BOTH `entities/product` and `components/home` mappers into one shared `resolveBestProductImage()`. 5 new tests lock this in (36 total).
 
 **Done when:** CI is green on every PR and the money path has an automated test.
 

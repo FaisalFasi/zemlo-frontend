@@ -9,6 +9,7 @@ import {
   LogOut,
   PackagePlus,
   ShoppingCart,
+  Tags,
 } from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
@@ -130,6 +131,14 @@ export default function AdminShell({ children }: AdminShellProps) {
             >
               <PackagePlus className="size-4" />
               Products
+            </Link>
+
+            <Link
+              href="/admin/catalog"
+              className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-foreground no-underline hover:bg-muted"
+            >
+              <Tags className="size-4" />
+              Categories & brands
             </Link>
 
             <Link

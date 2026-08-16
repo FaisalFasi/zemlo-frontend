@@ -1,11 +1,9 @@
 <!--
 ═══════════════ EXPLANATION (is change ki wajah) ═══════════════
-YE KYA HAI: zemlo-backend ke liye ready-made code/spec — catalog API
-mein pagination/search/filter params. Frontend ka Phase 5B is par
-depend karta hai.
-REASON: Abhi GET /products SAB products bhejta hai (no params) — shop
-100+ products par slow hoga. Ye backend feature hai; is repo se nahi
-ho sakta, is liye spec yahan document ho rahi hai.
+YE KYA HAI: Inventory-release scheduling ka naya item add kiya —
+2026-07-20 ko backend code padh kar mila ek asal gap.
+REASON: User ne poocha "reserved inventory release service better
+kaise manage karein" — research se pata chala ye script hai, cron nahi.
 RISK: Zero — documentation only.
 ═════════════════════════════════════════════════════════════════
 -->
@@ -15,6 +13,90 @@ RISK: Zero — documentation only.
 > Apply these in the `zemlo-backend` repo. After deploying, run
 > `npm run api:generate` in the frontend so the typed client picks up
 > the new params, then finish frontend Phase 5B (see ROADMAP.md).
+
+---
+
+## 0. Automate expired-inventory release (found 2026-07-20 — do this one first, it's small and safety-critical)
+
+**Investigated while answering: "reserved inventory release ko better manage kaise karein — cart se release karne ke bajaye checkout par sold-out dikhayein?"**
+
+**What we found (good news — the reservation design itself is solid):**
+- `checkout-inventory.service.ts` decrements stock with an **atomic conditional update**
+  (`updateMany({ where: { stock: { gte: quantity } }, data: { decrement } })`) at the
+  moment checkout starts — this is race-safe; two concurrent checkouts for the last
+  unit cannot both succeed.
+- Reservation TTL: `checkout.inventoryReservationMinutes` (default **20 min**) for
+  card payments, **48h** for bank transfer.
+- `order-inventory-lifecycle.service.ts`'s `releaseExpiredReservations()` finds
+  expired `RESERVED`+`PENDING` orders and restores stock.
+- **The frontend does NOT need a "sold out at checkout" feature** — since stock is
+  decremented the moment checkout starts (not at payment success), `product.stock`
+  already reflects live availability everywhere the frontend already reads it
+  (shop grid, product detail out-of-stock state). This already works today.
+
+**The actual gap:** `releaseExpiredReservations()` is only exposed as a manual
+script — `npm run inventory:release-expired` (see `scripts/release-expired-inventory-reservations.ts`).
+**Nothing in the codebase calls it automatically** (no `@Cron`, `@Interval`,
+`BullModule`, or `node-cron` found anywhere). If nobody runs this script
+periodically, stock from abandoned/never-completed checkouts stays locked
+forever — real inventory silently "disappears" from sale over time.
+
+**Fix — wire it to `@nestjs/schedule` inside the running app (simplest, zero
+extra infrastructure, right-sized for a single Render instance):**
+
+```bash
+npm install @nestjs/schedule
+```
+
+```ts
+// src/app.module.ts
+import { ScheduleModule } from '@nestjs/schedule';
+
+@Module({
+  imports: [
+    ScheduleModule.forRoot(),
+    // ...existing imports
+  ],
+})
+export class AppModule {}
+```
+
+```ts
+// src/modules/orders/services/inventory-release.cron.ts (new file)
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { OrderInventoryLifecycleService } from './order-inventory-lifecycle.service';
+
+@Injectable()
+export class InventoryReleaseCron {
+  private readonly logger = new Logger(InventoryReleaseCron.name);
+
+  constructor(
+    private readonly inventoryLifecycle: OrderInventoryLifecycleService,
+  ) {}
+
+  // Every 5 minutes is plenty against a 20-minute reservation window.
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async releaseExpired() {
+    const result = await this.inventoryLifecycle.releaseExpiredReservations();
+
+    if (result.releasedCount > 0) {
+      this.logger.log(
+        `Released ${result.releasedCount}/${result.checkedCount} expired reservations`,
+      );
+    }
+  }
+}
+```
+
+Register `InventoryReleaseCron` as a provider in the orders module. Keep the
+manual npm script too (useful for a one-off manual run / debugging).
+
+**Only revisit this if you ever run more than one backend instance** — in-process
+`@Cron` fires per-instance, so N instances would attempt the same release
+N times (harmless here since `releaseReservedInventory` only acts on rows still
+`RESERVED`, so duplicate runs are no-ops — but worth a DB-level advisory lock or
+a dedicated worker if you scale out later).
 
 ---
 
@@ -186,3 +268,7 @@ index on `category.slug` if not already present.
 - **Cart merge endpoint (optional)** — `POST /cart/merge` (guest cart →
   user cart server-side). Frontend currently replays items one-by-one
   after login; a single endpoint would be atomic and faster.
+- **Image upload** — Cloudinary/S3 endpoint. Admin product/variant image
+  fields are currently raw URL text inputs (frontend added a host-allowlist
+  safety check so a bad URL degrades to a placeholder instead of crashing,
+  but a real upload flow is still the right long-term fix).
