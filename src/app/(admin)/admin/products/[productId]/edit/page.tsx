@@ -1,4 +1,5 @@
 import AdminShell from "@/features/admin/components/AdminShell";
+import AdminSectionErrorBoundary from "@/features/admin/components/AdminSectionErrorBoundary";
 import {
   getCatalogBrands,
   getCatalogCategories,
@@ -33,15 +34,19 @@ export default async function AdminEditProductRoutePage({
 
   return (
     <AdminShell>
-      <AdminProductEditForm
-        productId={productId}
-        categories={formData.categories}
-        brands={formData.brands}
-      />
+      <AdminSectionErrorBoundary sectionLabel="The product form">
+        <AdminProductEditForm
+          productId={productId}
+          categories={formData.categories}
+          brands={formData.brands}
+        />
+      </AdminSectionErrorBoundary>
 
       {/* EXPLANATION: variants sirf edit page par — create par productId
           abhi hota hi nahi (pehle save, phir variants). */}
-      <AdminVariantsManager productId={productId} />
+      <AdminSectionErrorBoundary sectionLabel="The variants section">
+        <AdminVariantsManager productId={productId} />
+      </AdminSectionErrorBoundary>
     </AdminShell>
   );
 }

@@ -1,19 +1,27 @@
 /**
  * ═══════════════ EXPLANATION (is change ki wajah) ═══════════════
  * YE KYA HAI: Brands ka poora admin CRUD screen — categories manager
- * jaisa hi structure, bas fields alag (website ka extra field).
+ * jaisa hi structure (shared components/hooks se), bas fields alag
+ * (website ka extra field).
  * REASON: Categories jaisi wajah — brands bhi ab tak sirf backend/DB
  * se bante thay.
- * RISK: Zero — naya component; delete se pehle confirm + product-count
- * warning.
+ * RISK: Zero — delete se pehle confirm + product-count warning.
  * ═════════════════════════════════════════════════════════════════
  */
 "use client";
 
-import { useState } from "react";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
+import AdminEntityListSkeleton from "@/features/admin/components/AdminEntityListSkeleton";
+import AdminEntityLoadError from "@/features/admin/components/AdminEntityLoadError";
+import AdminFormActions from "@/features/admin/components/AdminFormActions";
+import { useAdminEntityForm } from "@/features/admin/lib/use-admin-entity-form";
+import {
+  adminInputClassName,
+  adminTextareaClassName,
+} from "@/features/admin/lib/admin-form-styles";
+import { useAdminPermission } from "@/features/admin/auth/hooks/use-admin-auth";
 
 import {
   useAdminBrandsQuery,
@@ -21,10 +29,8 @@ import {
   useDeleteBrandMutation,
   useUpdateBrandMutation,
 } from "../hooks/use-admin-catalog";
+import { buildCatalogDeleteConfirmMessage } from "../lib/catalog-confirm";
 import type { AdminBrand } from "../types/admin-catalog.types";
-
-const inputClassName =
-  "h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-foreground";
 
 type BrandFormValues = {
   name: string;
@@ -57,30 +63,29 @@ export default function AdminBrandsManager() {
   const createMutation = useCreateBrandMutation();
   const updateMutation = useUpdateBrandMutation();
   const deleteMutation = useDeleteBrandMutation();
+  const canCreate = useAdminPermission("brands.create");
+  const canUpdate = useAdminPermission("brands.update");
+  const canDelete = useAdminPermission("brands.delete");
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<BrandFormValues>(emptyForm);
-  const [formError, setFormError] = useState("");
+  const {
+    editingId,
+    isNew,
+    isOpen,
+    form,
+    setForm,
+    formError,
+    setFormError,
+    openAddForm,
+    openEditForm,
+    closeForm,
+  } = useAdminEntityForm<BrandFormValues>(emptyForm);
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
-
-  function openAddForm() {
-    setEditingId("new");
-    setForm(emptyForm);
-    setFormError("");
-  }
-
-  function openEditForm(brand: AdminBrand) {
-    setEditingId(brand.id);
-    setForm(brandToForm(brand));
-    setFormError("");
-  }
-
-  function closeForm() {
-    setEditingId(null);
-    setForm(emptyForm);
-    setFormError("");
-  }
+  // While ANY mutation for this manager is in flight, don't let the shared
+  // add/edit form get repointed at a different row — the in-flight save's
+  // eventual onSuccess/onError (closeForm/setFormError) would otherwise
+  // land on whatever the form has been switched to by then.
+  const isBusy = isSaving || deleteMutation.isPending;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,17 +98,23 @@ export default function AdminBrandsManager() {
 
     const payload = {
       name: form.name.trim(),
+      // Blank slug means "auto-generate from name" on both create and
+      // edit, so this one stays `undefined` (omit the key) on purpose.
       slug: form.slug.trim() || undefined,
-      description: form.description.trim() || undefined,
-      website: form.website.trim() || undefined,
+      // Description/website have no such auto-behavior — send the trimmed
+      // value AS-IS (even "") so an admin can actually clear them.
+      // Converting "" to `undefined` would drop the key from the PATCH
+      // body entirely, silently keeping the old value on edit.
+      description: form.description.trim(),
+      website: form.website.trim(),
       isActive: form.isActive,
     };
 
     try {
-      if (editingId === "new") {
+      if (isNew) {
         await createMutation.mutateAsync(payload);
       } else if (editingId) {
-        await updateMutation.mutateAsync({ brandId: editingId, input: payload });
+        await updateMutation.mutateAsync({ id: editingId, input: payload });
       }
 
       closeForm();
@@ -115,14 +126,12 @@ export default function AdminBrandsManager() {
   }
 
   function handleDelete(brand: AdminBrand) {
-    const productCount = brand.products.length;
-    const productWarning =
-      productCount > 0
-        ? ` ${productCount} product${productCount === 1 ? "" : "s"} currently use this brand.`
-        : "";
-
     const confirmed = window.confirm(
-      `Delete brand "${brand.name}"?${productWarning} This cannot be undone.`,
+      buildCatalogDeleteConfirmMessage(
+        "brand",
+        brand.name,
+        brand.products?.length ?? 0,
+      ),
     );
 
     if (confirmed) {
@@ -131,6 +140,12 @@ export default function AdminBrandsManager() {
   }
 
   const brands = brandsQuery.data ?? [];
+  const deleteErrorMessage =
+    deleteMutation.error instanceof Error
+      ? deleteMutation.error.message
+      : deleteMutation.isError
+        ? "Could not delete brand."
+        : "";
 
   return (
     <section className="rounded-[2rem] border border-border bg-card p-6">
@@ -142,40 +157,34 @@ export default function AdminBrandsManager() {
           </p>
         </div>
 
-        {editingId === null ? (
-          <Button type="button" onClick={openAddForm} className="rounded-full">
+        {!isOpen && canCreate ? (
+          <Button
+            type="button"
+            onClick={openAddForm}
+            disabled={isBusy}
+            className="rounded-full"
+          >
             <Plus className="size-4" />
             Add brand
           </Button>
         ) : null}
       </div>
 
-      {brandsQuery.isLoading ? (
-        <div className="mt-5 space-y-2">
-          {Array.from({ length: 3 }, (_, index) => (
-            <div
-              key={index}
-              className="h-12 animate-pulse rounded-xl border border-border bg-muted"
-            />
-          ))}
-        </div>
-      ) : null}
+      {brandsQuery.isLoading ? <AdminEntityListSkeleton /> : null}
 
       {brandsQuery.isError ? (
-        <p className="mt-5 text-sm text-muted-foreground">
-          Could not load brands.{" "}
-          <button
-            type="button"
-            onClick={() => brandsQuery.refetch()}
-            className="font-medium text-foreground underline underline-offset-4"
-          >
-            Try again
-          </button>
-        </p>
+        <AdminEntityLoadError
+          message="Could not load brands."
+          onRetry={() => brandsQuery.refetch()}
+        />
+      ) : null}
+
+      {deleteErrorMessage ? (
+        <p className="mt-3 text-sm text-danger">{deleteErrorMessage}</p>
       ) : null}
 
       {!brandsQuery.isLoading && !brandsQuery.isError ? (
-        brands.length === 0 && editingId === null ? (
+        brands.length === 0 && !isOpen ? (
           <p className="mt-5 text-sm text-muted-foreground">No brands yet.</p>
         ) : (
           <ul className="mt-5 divide-y divide-border">
@@ -194,48 +203,57 @@ export default function AdminBrandsManager() {
                     ) : null}
                   </p>
                   <p className="mt-0.5 text-sm text-muted-foreground">
-                    /{brand.slug} · {brand.products.length}{" "}
-                    {brand.products.length === 1 ? "product" : "products"}
+                    /{brand.slug} · {brand.products?.length ?? 0}{" "}
+                    {(brand.products?.length ?? 0) === 1
+                      ? "product"
+                      : "products"}
                   </p>
                 </div>
 
-                <div className="flex shrink-0 gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEditForm(brand)}
-                    className="rounded-full"
-                  >
-                    <Pencil className="size-3.5" />
-                    Edit
-                  </Button>
+                {canUpdate || canDelete ? (
+                  <div className="flex shrink-0 gap-2">
+                    {canUpdate ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditForm(brand.id, brandToForm(brand))}
+                        disabled={isBusy}
+                        className="rounded-full"
+                      >
+                        <Pencil className="size-3.5" />
+                        Edit
+                      </Button>
+                    ) : null}
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(brand)}
-                    disabled={deleteMutation.isPending}
-                    className="rounded-full text-danger"
-                  >
-                    <Trash2 className="size-3.5" />
-                    Delete
-                  </Button>
-                </div>
+                    {canDelete ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(brand)}
+                        disabled={isBusy}
+                        className="rounded-full text-danger"
+                      >
+                        <Trash2 className="size-3.5" />
+                        Delete
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
         )
       ) : null}
 
-      {editingId !== null ? (
+      {isOpen ? (
         <form
           onSubmit={handleSubmit}
           className="mt-5 rounded-2xl border border-border bg-background p-4"
         >
           <p className="text-sm font-medium text-foreground">
-            {editingId === "new" ? "New brand" : "Edit brand"}
+            {isNew ? "New brand" : "Edit brand"}
           </p>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -246,7 +264,7 @@ export default function AdminBrandsManager() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="e.g. Lumo"
-                className={`mt-1 ${inputClassName}`}
+                className={`mt-1 ${adminInputClassName}`}
               />
             </label>
 
@@ -259,7 +277,7 @@ export default function AdminBrandsManager() {
                 value={form.slug}
                 onChange={(e) => setForm({ ...form, slug: e.target.value })}
                 placeholder="lumo"
-                className={`mt-1 ${inputClassName}`}
+                className={`mt-1 ${adminInputClassName}`}
               />
             </label>
 
@@ -270,7 +288,7 @@ export default function AdminBrandsManager() {
                 value={form.website}
                 onChange={(e) => setForm({ ...form, website: e.target.value })}
                 placeholder="https://..."
-                className={`mt-1 ${inputClassName}`}
+                className={`mt-1 ${adminInputClassName}`}
               />
             </label>
 
@@ -282,7 +300,7 @@ export default function AdminBrandsManager() {
                   setForm({ ...form, description: e.target.value })
                 }
                 rows={2}
-                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+                className={adminTextareaClassName}
               />
             </label>
 
@@ -305,29 +323,12 @@ export default function AdminBrandsManager() {
             <p className="mt-3 text-sm text-danger">{formError}</p>
           ) : null}
 
-          <div className="mt-4 flex gap-2">
-            <Button type="submit" disabled={isSaving} className="rounded-full">
-              {isSaving ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Saving...
-                </>
-              ) : editingId === "new" ? (
-                "Add brand"
-              ) : (
-                "Save changes"
-              )}
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={closeForm}
-              className="rounded-full"
-            >
-              Cancel
-            </Button>
-          </div>
+          <AdminFormActions
+            isSaving={isSaving}
+            savingLabel="Saving..."
+            idleLabel={isNew ? "Add brand" : "Save changes"}
+            onCancel={closeForm}
+          />
         </form>
       ) : null}
     </section>

@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  authControllerForgotPassword,
+  authControllerResetPassword,
+} from "@/shared/api/generated/auth/auth";
 import type { AuthUserResponseDto } from "@/shared/api/generated/schemas";
 import { getErrorMessage, readResponseBody } from "@/shared/lib/http";
 
@@ -61,6 +65,20 @@ export async function registerCustomer(input: RegisterInput) {
 
 export async function logoutCustomer() {
   await postAuth("/api/auth/logout", undefined, "Could not sign out.");
+}
+
+// Public endpoints — no session cookie involved, so these call the
+// generated client directly (axios already routes browser calls through
+// the backend proxy — see shared/api/axios-instance.ts).
+export async function requestPasswordReset(email: string) {
+  // Always resolves the same way regardless of whether the account
+  // exists — the backend deliberately returns the same generic message
+  // either way (don't build UI that reveals account existence).
+  return authControllerForgotPassword({ email });
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  return authControllerResetPassword({ token, newPassword });
 }
 
 export async function getCurrentCustomer(): Promise<CustomerUser | null> {

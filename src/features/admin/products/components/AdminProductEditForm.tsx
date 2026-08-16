@@ -18,6 +18,7 @@ import {
   adminProductDetailToFormInput,
   productFormValuesToUpdateInput,
 } from "../lib/admin-product-form-mappers";
+import { useAdminPermission } from "@/features/admin/auth/hooks/use-admin-auth";
 
 type AdminProductEditFormProps = {
   productId: string;
@@ -32,6 +33,7 @@ export default function AdminProductEditForm({
 }: AdminProductEditFormProps) {
   const productQuery = useAdminProductDetailQuery(productId);
   const updateProductMutation = useUpdateAdminProductMutation(productId);
+  const canUpdate = useAdminPermission("products.update");
 
   const defaultValues = useMemo(() => {
     if (!productQuery.data) return null;
@@ -39,9 +41,17 @@ export default function AdminProductEditForm({
     return adminProductDetailToFormInput(productQuery.data);
   }, [productQuery.data]);
 
+  if (!canUpdate) {
+    return (
+      <div className="rounded-[2rem] border border-border bg-card p-8 text-center text-muted-foreground">
+        Your role does not have permission to edit products.
+      </div>
+    );
+  }
+
   async function handleSubmit(values: CreateAdminProductFormValues) {
     const product = await updateProductMutation.mutateAsync(
-      productFormValuesToUpdateInput(values),
+      productFormValuesToUpdateInput(values, productQuery.data),
     );
 
     return {

@@ -9,33 +9,63 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 
 ---
 
-## 📍 Next Session — Start Here (last updated 2026-08-16)
+## 📍 Next Session — Start Here (last updated 2026-08-17)
 
-**1. Pending work is committed.** `312977a` (2026-08-16) landed the image-host
-crash fix and category/brand admin management (`features/admin/catalog/**`,
-`/admin/catalog` page, nav link) that was previously sitting uncommitted.
-Verified clean tree, `npm run lint && npm run typecheck && npm test && npm run build`
-all green (36 tests) on 2026-08-16 — nothing pending.
+**1. Everything below is UNCOMMITTED on purpose — user is testing locally
+first.** Two full sessions' worth of work sits in the working tree: RBAC on
+real backend permissions, admin-manager dedup, a large admin bug-fix pass,
+responsive admin nav, and a full backend-integration wave (pagination,
+cart-merge, admin-stats, forgot/reset-password, image upload) — see
+IMPLEMENTATION.md, dated 2026-08-16/17 sections. `npm run lint && npm run
+typecheck && npm test && npm run build` all green (40 tests) as of
+2026-08-17. **Do not re-derive or redo any of this** — read
+IMPLEMENTATION.md first. Ask the user before committing/pushing.
 
-**2. Backend decision, ready to act on:** see [BACKEND-TODO.md](BACKEND-TODO.md)
-§0 — the expired-inventory-release script (`npm run inventory:release-expired`)
-is never called automatically (no cron found). Recommendation: wire it into
-`@nestjs/schedule` (`@Cron`, every 5 min) inside the running app — code is
-already written in BACKEND-TODO.md §0, just needs to be applied in the
-`zemlo-backend` repo and deployed. No frontend change needed for the "sold out"
-concern — stock is decremented at checkout-start (atomic, race-safe), so the
-frontend already shows correct availability.
+**2. Backend is now fully live and integrated.** Confirmed directly against
+`/api-json` (47 paths). Every item from `zemlo-backend`'s own
+`docs/FRONTEND_INTEGRATION_NOTES.md` (copied into this repo, same path) is
+shipped AND wired into the frontend — see "Backend Integration Wave" in
+IMPLEMENTATION.md for exactly what changed in which files. **One thing
+NOT built yet despite the API being ready:** a real paginated `/shop` UI
+(page-number controls, server-side search/category/brand/sort) — the shop
+grid still fetches the whole catalog and filters client-side via
+`getAllCatalogProducts()`. That's the natural next Phase 5B task.
 
-**3. Suggested next phase:** category/brand admin CRUD is now done. What's left
-in Phase 6 is RBAC UI gating (permission map exists but only `admin:access` is
-checked) and image upload (blocked on backend). Otherwise move to Phase 7
-(legal pages) — user's call, ask them.
+**3. Phase 6 is done.** Category/brand admin CRUD, variants manager, RBAC
+UI gating (real backend permissions), and real image upload are all built.
+Nothing outstanding in Phase 6.
+
+**4. Standing rule: no more duplicate admin managers.** See "Admin CRUD
+Manager Pattern" in IMPLEMENTATION.md — reuse `useAdminEntityForm`,
+`AdminEntityListSkeleton`/`AdminEntityLoadError`/`AdminFormActions`,
+`admin-form-styles.ts`, and the catalog-hooks factory for any future admin
+list+form screen instead of writing a new one from scratch.
+
+**5. A real crash got fixed — the root cause was in `use-admin-auth.ts`,
+not a browser extension.** The shared admin-auth query used to collapse a
+transient 5xx/network error into "logged out," which could unmount the
+whole admin panel mid-action. See "Admin Dashboard Bug-Fix Pass" in
+IMPLEMENTATION.md. Also: every admin-mutating section (order forms, catalog
+managers, product/variant forms) is now wrapped in
+`AdminSectionErrorBoundary` — a rendering hiccup degrades that one section,
+not the whole page.
+
+**6. Suggested next big move:** either the Phase 5B paginated-shop UI
+(item 2 above) or Phase 7 (legal pages) — ask the user which.
+
+**7. Backend items still open, tracked in [BACKEND-TODO.md](BACKEND-TODO.md):**
+§0 (automate expired-inventory release, small/safety-critical), §0b-ii/iii
+(2 remaining RBAC gaps: no field-level stock-vs-full-product permission
+split, unused staff/customer permissions), §0c (two small schema fields —
+`Brand.isOwnBrand`, `Product.badgeText` — for admin badge/discount UX the
+user asked about; the discount % control itself is already built using
+existing fields, no backend change needed for that part).
 
 **Docs map (avoid re-reading everything — pick the right one):**
 - **This file (ROADMAP.md)** — the checklist: what's done ✅, what's left, in what order.
 - **[IMPLEMENTATION.md](IMPLEMENTATION.md)** — living architecture reference: how auth/cart/checkout/orders/images work today, key file paths, conventions. Read this to understand "how is X built" without re-deriving it.
 - **[AUDIT.md](AUDIT.md)** — the original day-1 audit (2026-07-13). Historical; many items are now fixed (check ROADMAP for current status) but it's still useful for the original reasoning behind a fix.
-- **[BACKEND-TODO.md](BACKEND-TODO.md)** — backend-repo action items (pagination, cron, upload endpoint) with ready-to-paste NestJS code.
+- **[BACKEND-TODO.md](BACKEND-TODO.md)** — backend-repo action items (pagination, cron, RBAC gaps, upload endpoint) with ready-to-paste NestJS code.
 - **[PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)** — ⚠️ retired/stale (superseded by this file + IMPLEMENTATION.md), kept only so old links don't break.
 
 ---
@@ -59,9 +89,9 @@ checked) and image upload (blocked on backend). Otherwise move to Phase 7
 
 - [x] 🔧 **Login page** — done 2026-07-14: rebuilt with RHF + Zod + `shared/ui`, wired via `/api/auth/login` route handler (cookie set server-side; generated types reused, token never reaches client JS)
 - [x] 🔧 **Signup page** — done: `/signup` with full backend-matching validation (password strength, name lengths); `routes.auth.register` now points to `/signup`
-- [ ] 🔧 **Forgot password + OTP** — **DEFERRED: backend has no endpoints** (`/auth` module only has register/login/me/logout). Stub pages deleted; re-add when backend ships password-reset (needs email sending, see Phase 9)
+- [x] 🔧 **Forgot password + OTP** — done 2026-08-17: backend shipped `/auth/forgot-password` + `/auth/reset-password`. `/forgot-password` + `/reset-password` pages built (`ForgotPasswordForm`/`ResetPasswordForm`), linked from login. No OTP — link-based reset only (matches what the backend ships).
 - [x] 🆕 **Customer session** — done: `zemlo_customer_session` httpOnly cookie, `/api/auth/*` route handlers share `session-auth-routes.ts` with admin; `useCurrentCustomerQuery()` hook; navbar/sidebar show account state; `/account` page with sign-out; middleware guards `/account` and skips auth pages when signed in
-- [x] 🆕 **Guest→user cart merge** — done client-side (backend has no merge endpoint — cart owner resolution prefers userId): guest cart snapshotted before login, items replayed into user cart, guest id cleared. Verified via proxy: authenticated `/cart` resolves to user cart
+- [x] 🆕 **Guest→user cart merge** — done 2026-08-17 with the real `POST /cart/merge` endpoint (single server-side call, keyed off `x-guest-id`) — replaces the earlier client-side "snapshot + replay items one-by-one" workaround
 - [x] 🆕 **Logout** — done: revokes backend session, clears cookie, resets user + cart query cache
 - [x] 🧹 Deleted legacy `CInput`/`CButton`/custom OTP kit + dead `HorizontalCarousel`/`brandSlider`/`card`/`container`/`mainCarousel`/`HeroCarousel` (zero consumers); admin api helpers now use shared `shared/lib/http.ts`
 
@@ -91,7 +121,7 @@ checked) and image upload (blocked on backend). Otherwise move to Phase 7
 - [ ] 🔧 **Real order confirmation** — success page verifies payment (Phase 3) but still shows only the order id; full summary (items/totals) is a later polish
 - [x] 🆕 **Admin orders list** — done 2026-07-14: `/admin/orders` table (customer, status/payment badges, total, date) via cookie-authenticated proxy routes
 - [x] 🆕 **Admin order detail** — done: `/admin/orders/[orderId]` — customer/guest contact, items + totals, address, status history (audit trail), status update form (+note) and shipping/tracking form
-- [x] 🆕 **Admin dashboard metrics** — done: total orders / needs-action / paid revenue, computed client-side from the orders list. NOTE: backend has no stats endpoint yet — add one when order volume grows (client-side counting won't scale past a few hundred orders)
+- [x] 🆕 **Admin dashboard metrics** — done 2026-08-17 with the real `GET /admin/stats` endpoint (orders today / revenue today / low-stock count, gated on `analytics.view`) — replaces the earlier client-side "count the whole orders list" version
 
 **Done when:** customer sees their orders; the store owner (your friend) can see and fulfil every order from `/admin`.
 
@@ -100,8 +130,8 @@ checked) and image upload (blocked on backend). Otherwise move to Phase 7
 ## Phase 5 — Catalog at Scale 🗂️
 *Current shop breaks down past a few dozen products.*
 
-- [ ] 🔧 **Server-side pagination** on `/shop` — **BLOCKED ON BACKEND**: `GET /products` accepts no params at all (verified 2026-07-19). Ready-made NestJS spec/code in [BACKEND-TODO.md](BACKEND-TODO.md); after backend ships, regenerate client + adapt `catalog-api.ts`/shop/sitemap + pagination UI
-- [ ] 🔧 **Server-side filtering/search/sort** — same blocker as above (also: public list DTO has no `createdAt`, so "newest" sort can't even be fixed client-side)
+- [x] 🔧 **`catalog-api.ts` adapted for pagination** — done 2026-08-17: backend shipped `GET /products` as `{items, total, page, limit, pageCount}` with `page/limit/search/category/brand/sort` params (verified live). `getCatalogProductsPage()` (raw paginated shape) + `getAllCatalogProducts()` (loops all pages, used by shop/home/sitemap) both added — see IMPLEMENTATION.md "Backend Integration Wave". **Not done yet:** an actual paginated `/shop` UI — page-number controls + wiring `ShopFilters` to the server params instead of client-side filtering. The API is ready; the UI still fetches everything and filters in the browser.
+- [ ] 🔧 **Server-side filtering/search/sort UI** — API supports it now (`search`/`category`/`brand`/`sort` params, confirmed live); `ShopFilters`/`ShopProductGrid` still do client-side filtering over the full fetched catalog. Wiring this up is the next real Phase 5B task — not blocked anymore, just not built.
 - [x] 🆕 **Category pages** — done 2026-07-19: `/categories/[slug]` with per-category SEO metadata, `notFound()` on bad slugs, ISR; reuses shared `get-shop-data.ts` loader + `ShopPage` (new optional heading/description props)
 - [x] 🔧 **`/products` route** — done: redirects to `/shop` (was a bare stub)
 - [ ] 🆕 **Search UX** — partial: navbar search icon pointed to `/shop` (was linking to a non-existent `/search` → 404!); dedicated search page with live results deferred until backend search param exists
@@ -116,10 +146,10 @@ checked) and image upload (blocked on backend). Otherwise move to Phase 7
 *Your friend must be able to run the store alone, without a developer.*
 
 - [x] 🔧 **Product variants in admin** — done 2026-07-19: `hasVariants` hardcode REMOVED from payloads (was resetting variants on every product edit! backend owns the flag), full variants manager on the edit page (list/add/edit/delete via `/api/admin/products/[id]/variants*` proxy routes, `AdminVariantsManager` + api/hooks)
-- [ ] 🆕 **Image upload** — Cloudinary/S3 — goes into the backend batch (no upload endpoint exists); URL-paste remains until then
+- [x] 🆕 **Image upload** — done 2026-08-17: real `POST /admin/uploads/image` (Cloudinary) live, `AdminProductForm.tsx` has an Upload button next to the Image URL field. URL-paste still works as a fallback for an already-hosted image.
 - [x] 🔧 **ARCHIVED status round-trip** — done: mapper keeps real status, form select offers Active/Draft/Archived (restore now possible)
 - [x] 🔧 Duplicate "Add product" nav fixed in Phase 4; `admin-produc-form-mappers.ts` renamed → `admin-product-form-mappers.ts` (2026-07-19)
-- [ ] 🆕 **Enforce granular RBAC in UI** — permission map exists (`admin-permissions.ts`) but only `admin:access` is checked; gate actions (create/edit/archive) per role
+- [x] 🆕 **Enforce granular RBAC in UI** — done 2026-08-16: `useAdminPermission()` (`features/admin/auth/hooks/use-admin-auth.ts`) gates every mutating action (product create/edit/archive, variants, categories/brands, order updates) per role; new `categories:manage`/`brands:manage` permission keys
 - [x] 🆕 **Category & brand management** — done 2026-08-16: `/admin/catalog` page, `AdminCategoriesManager` + `AdminBrandsManager` (full CRUD with forms/validation), proxy routes `/api/admin/categories*` + `/api/admin/brands*`, feature code in `features/admin/catalog/`
 
 **Done when:** the store owner can manage products (with variants + images), categories, and brands entirely from the admin panel.
@@ -147,7 +177,8 @@ checked) and image upload (blocked on backend). Otherwise move to Phase 7
 - [ ] 🆕 **Playwright E2E** — the money path: shop → product → cart → checkout with Stripe test card; run against preview deploys
 - [x] 🆕 **GitHub Actions CI** — done: `.github/workflows/ci.yml` — npm ci → lint → typecheck → 31 tests → build on every push/PR
 - [x] 🔒 **Security audit** — done 2026-07-19: swiper critical (prototype pollution) fixed, Next.js 15.5.9→15.5.20 (DoS/request-smuggling patches); 2 moderate remain in Next's bundled postcss (build-time transitive, no sane fix — resolves with next Next release)
-- [ ] 🧹 **Dedupe API layers** — one server fetch helper, one error class (`ApiClientError` vs `ApiError`), one proxy style (H6 in AUDIT.md)
+- [x] 🧹 **Dedupe admin CRUD managers** — done 2026-08-16: categories/brands/variants managers were near-duplicate; extracted shared form-state hook + list/error/save-cancel components + input styles + a catalog-hooks factory. **Standard for future admin list+form screens** — see "Admin CRUD Manager Pattern" in IMPLEMENTATION.md, don't rewrite from scratch
+- [ ] 🧹 **Dedupe API layers** — one server fetch helper, one error class (`ApiClientError` vs `ApiError`), one proxy style (H6 in AUDIT.md). Checked 2026-08-16: each error class has exactly one consumer today (`ApiClientError` in the Orval axios mutator, `ApiError` in the raw-fetch `lib/api/api-client.ts`) — genuinely different transports, so unifying needs a deliberate pass, not a quick rename
 - [ ] 🧹 **Delete legacy `src/components/`** — migrate remaining home sections into `features`/`widgets` per ARCHITECTURE.md, remove `LogoLoop.tsx` `as any` mess or isolate it
 - [ ] 🔧 **Tighten tsconfig** — add `noUncheckedIndexedAccess`, `noUnusedLocals`; drop `allowJs`
 - [ ] 🔧 **Update ARCHITECTURE.md** — finish the doc, remove Zustand claim (not installed), match reality

@@ -23,17 +23,10 @@ export default async function AdminCreateProductRoutePage() {
 
   return (
     <AdminShell>
-      <div className="mb-8">
-        <p className="text-eyebrow text-muted-foreground">Products</p>
-
-        <h1 className="mt-3 text-section-title">Create product</h1>
-
-        <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-          Add a real product to the catalog. Use image URLs for now; Cloudinary
-          upload can be added later.
-        </p>
-      </div>
-
+      {/* AdminProductForm (rendered inside AdminProductCreateForm) already
+          renders its own "Products / Create product" heading + description
+          from props — this page used to duplicate the same heading above
+          it. */}
       <AdminProductCreateForm
         categories={formData.categories}
         brands={formData.brands}

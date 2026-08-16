@@ -9,6 +9,7 @@
  * ═════════════════════════════════════════════════════════════════
  */
 import AdminShell from "@/features/admin/components/AdminShell";
+import AdminSectionErrorBoundary from "@/features/admin/components/AdminSectionErrorBoundary";
 import AdminBrandsManager from "@/features/admin/catalog/components/AdminBrandsManager";
 import AdminCategoriesManager from "@/features/admin/catalog/components/AdminCategoriesManager";
 
@@ -25,8 +26,13 @@ export default function AdminCatalogPage() {
       </div>
 
       <div className="space-y-6">
-        <AdminCategoriesManager />
-        <AdminBrandsManager />
+        <AdminSectionErrorBoundary sectionLabel="Categories">
+          <AdminCategoriesManager />
+        </AdminSectionErrorBoundary>
+
+        <AdminSectionErrorBoundary sectionLabel="Brands">
+          <AdminBrandsManager />
+        </AdminSectionErrorBoundary>
       </div>
     </AdminShell>
   );

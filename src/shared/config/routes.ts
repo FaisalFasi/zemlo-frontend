@@ -23,6 +23,8 @@ export const routes = Object.freeze({
   auth: {
     login: "/login",
     register: "/signup",
+    forgotPassword: "/forgot-password",
+    resetPassword: "/reset-password",
   },
 
   account: "/account",

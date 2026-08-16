@@ -21,6 +21,17 @@ type AdminOrderDetailPageProps = {
   }>;
 };
 
+function safeDecodeUriComponent(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    // A malformed % sequence in a hand-edited/bookmarked URL throws a
+    // URIError — fall back to the raw segment rather than crashing the
+    // page for what should just resolve to "order not found".
+    return value;
+  }
+}
+
 export default async function AdminOrderDetailPage({
   params,
 }: AdminOrderDetailPageProps) {
@@ -28,7 +39,7 @@ export default async function AdminOrderDetailPage({
 
   return (
     <AdminShell>
-      <AdminOrderDetailPanel orderId={decodeURIComponent(orderId)} />
+      <AdminOrderDetailPanel orderId={safeDecodeUriComponent(orderId)} />
     </AdminShell>
   );
 }

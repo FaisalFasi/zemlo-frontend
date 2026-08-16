@@ -13,7 +13,7 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import {
@@ -23,6 +23,7 @@ import {
 } from "@/shared/api/generated/schemas";
 import { Button } from "@/shared/ui/button";
 
+import { useAdminPermission } from "@/features/admin/auth/hooks/use-admin-auth";
 import {
   useUpdateOrderShippingMutation,
   useUpdateOrderStatusMutation,
@@ -41,6 +42,16 @@ type AdminOrderUpdateFormsProps = {
 export default function AdminOrderUpdateForms({
   order,
 }: AdminOrderUpdateFormsProps) {
+  const canUpdate = useAdminPermission("orders.update");
+
+  if (!canUpdate) {
+    return (
+      <div className="rounded-[2rem] border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+        Your role does not have permission to update this order.
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <StatusForm order={order} />
@@ -60,6 +71,29 @@ function StatusForm({ order }: { order: AdminOrderDetail }) {
     order.fulfillmentStatus,
   );
   const [note, setNote] = useState("");
+
+  // Local state only initializes from `order` on mount — without this, a
+  // successful save (which refetches the order) never updates what the
+  // dropdowns display, so the form can silently drift from the persisted
+  // state (and a second, unrelated save could revert the first change).
+  useEffect(() => {
+    setStatus(order.status);
+    setPaymentStatus(order.paymentStatus);
+    setFulfillmentStatus(order.fulfillmentStatus);
+  }, [order.status, order.paymentStatus, order.fulfillmentStatus]);
+
+  function handleFieldChange<T>(setter: (value: T) => void) {
+    return (value: T) => {
+      // A stale "Status updated."/error banner from a previous save must
+      // not linger once the admin starts making a new selection — it reads
+      // as if the NEW (unsaved) choice already went through.
+      if (statusMutation.isSuccess || statusMutation.isError) {
+        statusMutation.reset();
+      }
+
+      setter(value);
+    };
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -88,7 +122,9 @@ function StatusForm({ order }: { order: AdminOrderDetail }) {
           <span className="text-muted-foreground">Order status</span>
           <select
             value={status}
-            onChange={(event) => setStatus(event.target.value)}
+            onChange={(event) =>
+              handleFieldChange(setStatus)(event.target.value)
+            }
             className={`mt-1 ${selectClassName}`}
           >
             {Object.values(UpdateAdminOrderStatusDtoStatus).map((value) => (
@@ -103,7 +139,9 @@ function StatusForm({ order }: { order: AdminOrderDetail }) {
           <span className="text-muted-foreground">Payment status</span>
           <select
             value={paymentStatus}
-            onChange={(event) => setPaymentStatus(event.target.value)}
+            onChange={(event) =>
+              handleFieldChange(setPaymentStatus)(event.target.value)
+            }
             className={`mt-1 ${selectClassName}`}
           >
             {Object.values(UpdateAdminOrderStatusDtoPaymentStatus).map(
@@ -120,7 +158,9 @@ function StatusForm({ order }: { order: AdminOrderDetail }) {
           <span className="text-muted-foreground">Fulfillment</span>
           <select
             value={fulfillmentStatus}
-            onChange={(event) => setFulfillmentStatus(event.target.value)}
+            onChange={(event) =>
+              handleFieldChange(setFulfillmentStatus)(event.target.value)
+            }
             className={`mt-1 ${selectClassName}`}
           >
             {Object.values(UpdateAdminOrderStatusDtoFulfillmentStatus).map(
@@ -186,17 +226,34 @@ function ShippingForm({ order }: { order: AdminOrderDetail }) {
   );
   const [trackingUrl, setTrackingUrl] = useState(order.trackingUrl ?? "");
 
+  // Resync after a successful save refetches the order — see the matching
+  // comment in StatusForm.
+  useEffect(() => {
+    setShippingCarrier(order.shippingCarrier ?? "");
+    setTrackingNumber(order.trackingNumber ?? "");
+    setTrackingUrl(order.trackingUrl ?? "");
+  }, [order.shippingCarrier, order.trackingNumber, order.trackingUrl]);
+
+  function handleFieldChange<T>(setter: (value: T) => void) {
+    return (value: T) => {
+      if (shippingMutation.isSuccess || shippingMutation.isError) {
+        shippingMutation.reset();
+      }
+
+      setter(value);
+    };
+  }
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    // Send trimmed values AS-IS (including "") rather than omitting the
+    // key when blank — omitting means "leave unchanged" in a PATCH, so
+    // clearing a field here used to silently keep the old value.
     shippingMutation.mutate({
-      ...(shippingCarrier.trim()
-        ? { shippingCarrier: shippingCarrier.trim() }
-        : {}),
-      ...(trackingNumber.trim()
-        ? { trackingNumber: trackingNumber.trim() }
-        : {}),
-      ...(trackingUrl.trim() ? { trackingUrl: trackingUrl.trim() } : {}),
+      shippingCarrier: shippingCarrier.trim(),
+      trackingNumber: trackingNumber.trim(),
+      trackingUrl: trackingUrl.trim(),
     });
   }
 
@@ -215,7 +272,9 @@ function ShippingForm({ order }: { order: AdminOrderDetail }) {
           <input
             type="text"
             value={shippingCarrier}
-            onChange={(event) => setShippingCarrier(event.target.value)}
+            onChange={(event) =>
+              handleFieldChange(setShippingCarrier)(event.target.value)
+            }
             placeholder="e.g. DHL"
             className={`mt-1 ${inputClassName}`}
           />
@@ -226,7 +285,9 @@ function ShippingForm({ order }: { order: AdminOrderDetail }) {
           <input
             type="text"
             value={trackingNumber}
-            onChange={(event) => setTrackingNumber(event.target.value)}
+            onChange={(event) =>
+              handleFieldChange(setTrackingNumber)(event.target.value)
+            }
             className={`mt-1 ${inputClassName}`}
           />
         </label>
@@ -236,7 +297,9 @@ function ShippingForm({ order }: { order: AdminOrderDetail }) {
           <input
             type="url"
             value={trackingUrl}
-            onChange={(event) => setTrackingUrl(event.target.value)}
+            onChange={(event) =>
+              handleFieldChange(setTrackingUrl)(event.target.value)
+            }
             placeholder="https://..."
             className={`mt-1 ${inputClassName}`}
           />

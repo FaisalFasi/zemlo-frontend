@@ -73,8 +73,29 @@ export function productFormValuesToCreateInput(
 
 export function productFormValuesToUpdateInput(
   values: CreateAdminProductFormValues,
+  product?: AdminProductDetail,
 ): UpdateAdminProductInput {
-  return productFormValuesToCreateInput(values);
+  const input = productFormValuesToCreateInput(values);
+
+  // The form only ever edits ONE image (no multi-image UI yet). Without
+  // this, every save — even a one-word description fix — would replace
+  // the product's full `images` array with just that one image, silently
+  // deleting any additional gallery photos (seeded/imported products can
+  // have more than one). Keep every other existing image as-is; only the
+  // default slot reflects what the form's Image URL field now says.
+  const otherImages = (product?.images ?? [])
+    .filter((image) => !image.isDefault)
+    .map((image) => ({
+      url: image.url,
+      altText: image.altText ?? undefined,
+      position: image.position,
+      isDefault: false,
+    }));
+
+  return {
+    ...input,
+    images: [...(input.images ?? []), ...otherImages],
+  };
 }
 
 export function adminProductDetailToFormInput(

@@ -11,7 +11,7 @@ A production-grade e-commerce storefront + admin panel, built with **Next.js 15 
 | [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) | **Start here.** Living architecture reference — how auth, cart, checkout, orders, and image handling actually work today, plus a key-files cheat-sheet and coding conventions. |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | The master checklist — phases, what's done, what's left, in priority order. Has a "Next Session — Start Here" section pinned at the top. |
 | [docs/AUDIT.md](docs/AUDIT.md) | The original day-1 codebase audit (2026-07-13). Historical context for *why* a fix was made — check ROADMAP for current status, this file isn't kept in sync. |
-| [docs/BACKEND-TODO.md](docs/BACKEND-TODO.md) | Action items for the `zemlo-backend` repo (pagination, cron scheduling, upload endpoint) with ready-to-paste NestJS code. |
+| [docs/BACKEND-TODO.md](docs/BACKEND-TODO.md) | Action items for the `zemlo-backend` repo (pagination, cron scheduling, RBAC security gaps, upload endpoint) with ready-to-paste NestJS code. |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Original FSD layering rules (pre-existing doc). |
 | `Zemlo Style Guide & Design System.md` | Visual design system. |
 

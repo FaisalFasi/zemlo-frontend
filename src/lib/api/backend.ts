@@ -34,6 +34,15 @@ export function createBackendUrl(path: string) {
 }
 
 export async function readBackendResponse(response: Response) {
+  // 204/205/304 are defined as having no body — the Fetch/Response spec
+  // forbids constructing a Response with a body for these statuses, so this
+  // must short-circuit before any `.text()`/`.json()` read (which resolves
+  // to "" for an empty body, not null, and "" is a truthy-enough string
+  // downstream to trip that spec check in `proxyToBackend`).
+  if (response.status === 204 || response.status === 205 || response.status === 304) {
+    return null;
+  }
+
   const contentType = response.headers.get("content-type");
 
   if (contentType?.includes("application/json")) {

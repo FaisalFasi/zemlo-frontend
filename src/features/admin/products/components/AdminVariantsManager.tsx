@@ -5,17 +5,25 @@
  * CreateProductVariantDto maangta hai (name*, sku*, price*, stock).
  * REASON: Ab tak admin variants bana hi nahi sakta tha — storefront
  * unhe dikhata tha lekin banane ka UI nahi tha (Phase 6 flagship).
- * hasVariants backend khud set karega (variant add → true).
- * RISK: Zero — naya component; delete se pehle confirm.
+ * hasVariants backend khud set karega (variant add → true). Loading/
+ * error/form-state/save-cancel pieces shared components se aate hain
+ * (`features/admin/components`, `features/admin/lib`) — same pattern
+ * jo AdminCategoriesManager/AdminBrandsManager use karte hain.
+ * RISK: Zero — delete se pehle confirm.
  * ═════════════════════════════════════════════════════════════════
  */
 "use client";
 
-import { useState } from "react";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import { formatDefaultMoney } from "@/shared/lib/formatters";
 import { Button } from "@/shared/ui/button";
+import AdminEntityListSkeleton from "@/features/admin/components/AdminEntityListSkeleton";
+import AdminEntityLoadError from "@/features/admin/components/AdminEntityLoadError";
+import AdminFormActions from "@/features/admin/components/AdminFormActions";
+import { useAdminEntityForm } from "@/features/admin/lib/use-admin-entity-form";
+import { adminInputClassName } from "@/features/admin/lib/admin-form-styles";
+import { useAdminPermission } from "@/features/admin/auth/hooks/use-admin-auth";
 
 import {
   useAdminVariantsQuery,
@@ -24,9 +32,6 @@ import {
   useUpdateVariantMutation,
 } from "../hooks/use-admin-variants";
 import type { AdminVariant } from "../types/admin-variant.types";
-
-const inputClassName =
-  "h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-foreground";
 
 type VariantFormValues = {
   name: string;
@@ -57,37 +62,32 @@ export default function AdminVariantsManager({
   const createMutation = useCreateVariantMutation(productId);
   const updateMutation = useUpdateVariantMutation(productId);
   const deleteMutation = useDeleteVariantMutation(productId);
+  const canManage = useAdminPermission("products.update");
 
-  // null = form band; "new" = add mode; variant id = edit mode
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<VariantFormValues>(emptyForm);
-  const [formError, setFormError] = useState("");
+  const {
+    editingId,
+    isNew,
+    isOpen,
+    form,
+    setForm,
+    formError,
+    setFormError,
+    openAddForm,
+    openEditForm,
+    closeForm,
+  } = useAdminEntityForm<VariantFormValues>(emptyForm);
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
-
-  function openAddForm() {
-    setEditingId("new");
-    setForm(emptyForm);
-    setFormError("");
-  }
-
-  function openEditForm(variant: AdminVariant) {
-    setEditingId(variant.id);
-    setForm(variantToForm(variant));
-    setFormError("");
-  }
-
-  function closeForm() {
-    setEditingId(null);
-    setForm(emptyForm);
-    setFormError("");
-  }
+  // While ANY mutation for this manager is in flight, don't let the shared
+  // add/edit form get repointed at a different row — the in-flight save's
+  // eventual onSuccess/onError (closeForm/setFormError) would otherwise
+  // land on whatever the form has been switched to by then.
+  const isBusy = isSaving || deleteMutation.isPending;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
 
-    const price = Number(form.price);
     const stock = form.stock.trim() === "" ? 0 : Number(form.stock);
 
     if (!form.name.trim() || !form.sku.trim()) {
@@ -95,30 +95,45 @@ export default function AdminVariantsManager({
       return;
     }
 
-    if (!Number.isFinite(price) || price <= 0) {
-      setFormError("Enter a valid price greater than 0.");
+    if (!Number.isFinite(stock) || !Number.isInteger(stock) || stock < 0) {
+      setFormError("Stock must be a whole number, 0 or more.");
       return;
     }
 
-    if (!Number.isFinite(stock) || stock < 0) {
-      setFormError("Stock must be 0 or more.");
-      return;
-    }
+    // On create the backend requires an explicit price. On edit, leaving
+    // this field blank means "keep inheriting the base product's price" —
+    // a variant can genuinely have no price override (`variant.price ===
+    // null`), so blank must NOT be forced into an invalid "0" or an
+    // artificial minimum; it just omits `price` from the payload entirely.
+    let price: number | undefined;
 
-    const payload = {
-      name: form.name.trim(),
-      sku: form.sku.trim(),
-      price,
-      stock,
-    };
+    if (isNew || form.price.trim() !== "") {
+      price = Number(form.price);
+
+      if (!Number.isFinite(price) || price <= 0) {
+        setFormError("Enter a valid price greater than 0.");
+        return;
+      }
+    }
 
     try {
-      if (editingId === "new") {
-        await createMutation.mutateAsync(payload);
+      if (isNew) {
+        // The `isNew` branch above guarantees `price` is a valid number.
+        await createMutation.mutateAsync({
+          name: form.name.trim(),
+          sku: form.sku.trim(),
+          stock,
+          price: price as number,
+        });
       } else if (editingId) {
         await updateMutation.mutateAsync({
           variantId: editingId,
-          input: payload,
+          input: {
+            name: form.name.trim(),
+            sku: form.sku.trim(),
+            stock,
+            ...(price !== undefined ? { price } : {}),
+          },
         });
       }
 
@@ -141,6 +156,12 @@ export default function AdminVariantsManager({
   }
 
   const variants = variantsQuery.data ?? [];
+  const deleteErrorMessage =
+    deleteMutation.error instanceof Error
+      ? deleteMutation.error.message
+      : deleteMutation.isError
+        ? "Could not delete variant."
+        : "";
 
   return (
     <section className="mt-8 rounded-[2rem] border border-border bg-card p-6">
@@ -153,10 +174,11 @@ export default function AdminVariantsManager({
           </p>
         </div>
 
-        {editingId === null ? (
+        {!isOpen && canManage ? (
           <Button
             type="button"
             onClick={openAddForm}
+            disabled={isBusy}
             className="rounded-full"
           >
             <Plus className="size-4" />
@@ -165,32 +187,21 @@ export default function AdminVariantsManager({
         ) : null}
       </div>
 
-      {variantsQuery.isLoading ? (
-        <div className="mt-5 space-y-2">
-          {Array.from({ length: 2 }, (_, index) => (
-            <div
-              key={index}
-              className="h-12 animate-pulse rounded-xl border border-border bg-muted"
-            />
-          ))}
-        </div>
-      ) : null}
+      {variantsQuery.isLoading ? <AdminEntityListSkeleton rows={2} /> : null}
 
       {variantsQuery.isError ? (
-        <p className="mt-5 text-sm text-muted-foreground">
-          Could not load variants.{" "}
-          <button
-            type="button"
-            onClick={() => variantsQuery.refetch()}
-            className="font-medium text-foreground underline underline-offset-4"
-          >
-            Try again
-          </button>
-        </p>
+        <AdminEntityLoadError
+          message="Could not load variants."
+          onRetry={() => variantsQuery.refetch()}
+        />
+      ) : null}
+
+      {deleteErrorMessage ? (
+        <p className="mt-3 text-sm text-danger">{deleteErrorMessage}</p>
       ) : null}
 
       {!variantsQuery.isLoading && !variantsQuery.isError ? (
-        variants.length === 0 && editingId === null ? (
+        variants.length === 0 && !isOpen ? (
           <p className="mt-5 text-sm text-muted-foreground">
             No variants yet — this product is sold as a single item.
           </p>
@@ -219,43 +230,48 @@ export default function AdminVariantsManager({
                   </p>
                 </div>
 
-                <div className="flex shrink-0 gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEditForm(variant)}
-                    className="rounded-full"
-                  >
-                    <Pencil className="size-3.5" />
-                    Edit
-                  </Button>
+                {canManage ? (
+                  <div className="flex shrink-0 gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        openEditForm(variant.id, variantToForm(variant))
+                      }
+                      disabled={isBusy}
+                      className="rounded-full"
+                    >
+                      <Pencil className="size-3.5" />
+                      Edit
+                    </Button>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(variant)}
-                    disabled={deleteMutation.isPending}
-                    className="rounded-full text-danger"
-                  >
-                    <Trash2 className="size-3.5" />
-                    Delete
-                  </Button>
-                </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(variant)}
+                      disabled={isBusy}
+                      className="rounded-full text-danger"
+                    >
+                      <Trash2 className="size-3.5" />
+                      Delete
+                    </Button>
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
         )
       ) : null}
 
-      {editingId !== null ? (
+      {isOpen ? (
         <form
           onSubmit={handleSubmit}
           className="mt-5 rounded-2xl border border-border bg-background p-4"
         >
           <p className="text-sm font-medium text-foreground">
-            {editingId === "new" ? "New variant" : "Edit variant"}
+            {isNew ? "New variant" : "Edit variant"}
           </p>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -266,7 +282,7 @@ export default function AdminVariantsManager({
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="e.g. Small / Red"
-                className={`mt-1 ${inputClassName}`}
+                className={`mt-1 ${adminInputClassName}`}
               />
             </label>
 
@@ -277,19 +293,24 @@ export default function AdminVariantsManager({
                 value={form.sku}
                 onChange={(e) => setForm({ ...form, sku: e.target.value })}
                 placeholder="e.g. MUG-RED-S"
-                className={`mt-1 ${inputClassName}`}
+                className={`mt-1 ${adminInputClassName}`}
               />
             </label>
 
             <label className="block text-sm">
-              <span className="text-muted-foreground">Price (EUR) *</span>
+              <span className="text-muted-foreground">
+                {isNew
+                  ? "Price (EUR) *"
+                  : "Price (EUR) — blank inherits the base product price"}
+              </span>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 value={form.price}
                 onChange={(e) => setForm({ ...form, price: e.target.value })}
-                className={`mt-1 ${inputClassName}`}
+                placeholder={isNew ? undefined : "Inherit base price"}
+                className={`mt-1 ${adminInputClassName}`}
               />
             </label>
 
@@ -301,7 +322,7 @@ export default function AdminVariantsManager({
                 value={form.stock}
                 onChange={(e) => setForm({ ...form, stock: e.target.value })}
                 placeholder="0"
-                className={`mt-1 ${inputClassName}`}
+                className={`mt-1 ${adminInputClassName}`}
               />
             </label>
           </div>
@@ -310,29 +331,12 @@ export default function AdminVariantsManager({
             <p className="mt-3 text-sm text-danger">{formError}</p>
           ) : null}
 
-          <div className="mt-4 flex gap-2">
-            <Button type="submit" disabled={isSaving} className="rounded-full">
-              {isSaving ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Saving...
-                </>
-              ) : editingId === "new" ? (
-                "Add variant"
-              ) : (
-                "Save changes"
-              )}
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={closeForm}
-              className="rounded-full"
-            >
-              Cancel
-            </Button>
-          </div>
+          <AdminFormActions
+            isSaving={isSaving}
+            savingLabel="Saving..."
+            idleLabel={isNew ? "Add variant" : "Save changes"}
+            onCancel={closeForm}
+          />
         </form>
       ) : null}
     </section>

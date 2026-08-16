@@ -7,7 +7,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 
 import { loginAdmin, logoutAdmin } from "../api/admin-auth-api";
-import { canAccessAdmin } from "../lib/admin-permissions";
+import { canAccessAdmin } from "../hooks/use-admin-auth";
 
 function getFormValue(formData: FormData, name: string) {
   return String(formData.get(name) ?? "").trim();

@@ -12,8 +12,8 @@
 import "server-only";
 
 import {
+  getAllCatalogProducts,
   getCatalogCategories,
-  getCatalogProducts,
 } from "@/features/catalog/api/catalog-api";
 import { serverConfig } from "@/shared/config/server";
 
@@ -31,7 +31,7 @@ function shouldUseDemoCatalog() {
 export async function getSafeShopData() {
   try {
     const [productsResult, categoriesResult] = await Promise.all([
-      getCatalogProducts(),
+      getAllCatalogProducts(),
       getCatalogCategories(),
     ]);
 

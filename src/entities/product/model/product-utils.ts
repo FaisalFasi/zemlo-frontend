@@ -55,14 +55,33 @@ export function toNumber(value: string | number | null | undefined) {
   return toOptionalNumber(value) ?? 0;
 }
 
-export function getDiscountBadge(price?: number, compareAtPrice?: number) {
+// The ONE place price+compareAtPrice math happens — the admin "Discount %"
+// input and the storefront "Save X%" badge must agree on what a discount
+// means, so both read/write through these two functions rather than each
+// re-deriving the formula.
+export function getDiscountPercent(price?: number, compareAtPrice?: number) {
   if (!price || !compareAtPrice || compareAtPrice <= price) {
     return undefined;
   }
 
-  const discount = Math.round(
-    ((compareAtPrice - price) / compareAtPrice) * 100,
-  );
+  return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
+}
 
-  return `Save ${discount}%`;
+// Inverse of getDiscountPercent: given the current selling price and a
+// target discount %, what "was" price (compareAtPrice) produces it.
+export function getCompareAtPriceForDiscount(
+  price: number,
+  discountPercent: number,
+) {
+  if (!price || discountPercent <= 0 || discountPercent >= 100) {
+    return undefined;
+  }
+
+  return Math.round((price / (1 - discountPercent / 100)) * 100) / 100;
+}
+
+export function getDiscountBadge(price?: number, compareAtPrice?: number) {
+  const discount = getDiscountPercent(price, compareAtPrice);
+
+  return discount === undefined ? undefined : `Save ${discount}%`;
 }

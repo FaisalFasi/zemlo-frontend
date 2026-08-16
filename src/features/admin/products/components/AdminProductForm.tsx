@@ -1,18 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import FormField from "@/shared/forms/FormField";
 import FormStatusMessage from "@/shared/forms/FormStatusMessage";
 import FieldInfo from "@/shared/FieldInfo";
+import { isAllowedImageUrl } from "@/shared/lib/safe-image-url";
+import { formatDefaultMoney } from "@/shared/lib/formatters";
+import { cn } from "@/lib/utils";
 import type {
   CatalogBrand,
   CatalogCategory,
 } from "@/features/catalog/types/catalog.types";
+
+import {
+  getCompareAtPriceForDiscount,
+  getDiscountPercent,
+} from "@/entities/product/model/product-utils";
 
 import { productFieldHelp } from "../data/product-field-help";
 import {
@@ -20,6 +28,7 @@ import {
   type CreateAdminProductFormInput,
   type CreateAdminProductFormValues,
 } from "../schemas/create-admin-product.schema";
+import { useUploadAdminProductImageMutation } from "../hooks/use-admin-products";
 import { Button } from "@/shared/ui/button";
 
 type AdminProductFormSubmitResult = {
@@ -73,12 +82,71 @@ export default function AdminProductForm({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = form;
 
+  const imageUrlValue = watch("imageUrl");
+  const imageHostIsAllowed = isAllowedImageUrl(imageUrlValue);
+  const priceValue = Number(watch("price"));
+
+  const uploadImageMutation = useUploadAdminProductImageMutation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileSelected(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    // Always clear the picker so selecting the SAME file again (e.g. after
+    // fixing something and re-uploading) still fires onChange.
+    event.target.value = "";
+
+    if (!file) return;
+
+    try {
+      const uploaded = await uploadImageMutation.mutateAsync(file);
+
+      setValue("imageUrl", uploaded.url, { shouldValidate: true });
+    } catch {
+      // Error surfaced via uploadImageMutation.error below.
+    }
+  }
+
+  // Admins think in "X% off," not in two absolute prices — this local
+  // checkbox+percent pair is the friendly input; `compareAtPrice` (the
+  // actual schema field the "Save X%" badge reads everywhere else) is
+  // derived from it via setValue below, never typed directly.
+  const [discountEnabled, setDiscountEnabled] = useState(false);
+  const [discountPercent, setDiscountPercent] = useState("");
+
   useEffect(() => {
     reset(stableDefaultValues);
+
+    const existingDiscount = getDiscountPercent(
+      Number(stableDefaultValues.price),
+      Number(stableDefaultValues.compareAtPrice),
+    );
+
+    setDiscountEnabled(existingDiscount !== undefined);
+    setDiscountPercent(existingDiscount !== undefined ? String(existingDiscount) : "");
   }, [reset, stableDefaultValues]);
+
+  useEffect(() => {
+    if (!discountEnabled) {
+      setValue("compareAtPrice", undefined, { shouldValidate: true });
+      return;
+    }
+
+    const percent = Number(discountPercent);
+
+    if (!Number.isFinite(percent) || percent <= 0 || percent >= 100) {
+      return;
+    }
+
+    const compareAtPrice = getCompareAtPriceForDiscount(priceValue, percent);
+
+    setValue("compareAtPrice", compareAtPrice, { shouldValidate: true });
+  }, [discountEnabled, discountPercent, priceValue, setValue]);
 
   async function handleFormSubmit(values: CreateAdminProductFormValues) {
     setServerError("");
@@ -294,19 +362,65 @@ export default function AdminProductForm({
           </FormField>
 
           <FormField
-            htmlFor="compareAtPrice"
-            label="Compare at price"
+            htmlFor="discountPercent"
+            label="Discount"
             info={productFieldHelp.compareAtPrice}
             error={errors.compareAtPrice?.message}
           >
-            <input
-              id="compareAtPrice"
-              type="number"
-              min="0"
-              step="0.01"
-              {...register("compareAtPrice")}
-              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
-            />
+            <div className="flex h-11 items-center gap-3 rounded-full border border-border bg-background px-4">
+              <label className="flex shrink-0 items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="size-4"
+                  checked={discountEnabled}
+                  onChange={(event) => {
+                    setDiscountEnabled(event.target.checked);
+
+                    if (event.target.checked && !discountPercent) {
+                      setDiscountPercent("10");
+                    }
+                  }}
+                />
+                On sale
+              </label>
+
+              {discountEnabled ? (
+                <input
+                  id="discountPercent"
+                  type="number"
+                  min="1"
+                  max="99"
+                  step="1"
+                  value={discountPercent}
+                  onChange={(event) => setDiscountPercent(event.target.value)}
+                  placeholder="e.g. 20"
+                  aria-label="Discount percent"
+                  className="h-8 w-full min-w-0 rounded-full border border-border bg-transparent px-3 text-sm outline-none focus:border-foreground"
+                />
+              ) : null}
+
+              {discountEnabled ? (
+                <span className="shrink-0 text-sm text-muted-foreground">
+                  % off
+                </span>
+              ) : null}
+            </div>
+
+            {discountEnabled &&
+            Number(discountPercent) > 0 &&
+            Number(discountPercent) < 100 &&
+            priceValue > 0 ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Customers will see: was{" "}
+                {formatDefaultMoney(
+                  getCompareAtPriceForDiscount(
+                    priceValue,
+                    Number(discountPercent),
+                  ) ?? priceValue,
+                )}
+                , now {formatDefaultMoney(priceValue)}.
+              </p>
+            ) : null}
           </FormField>
 
           <FormField
@@ -418,17 +532,78 @@ export default function AdminProductForm({
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <FormField
             htmlFor="imageUrl"
-            label="Image URL"
+            label="Image"
             info={productFieldHelp.imageUrl}
             error={errors.imageUrl?.message}
           >
-            <input
-              id="imageUrl"
-              type="url"
-              {...register("imageUrl")}
-              placeholder="https://example.com/product.jpg"
-              className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
-            />
+            <div className="flex gap-2">
+              <input
+                id="imageUrl"
+                type="url"
+                {...register("imageUrl")}
+                placeholder="https://example.com/product.jpg"
+                className="h-11 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-foreground"
+              />
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={(event) => void handleFileSelected(event)}
+                className="hidden"
+              />
+
+              <Button
+                type="button"
+                variant="outline"
+                disabled={uploadImageMutation.isPending}
+                onClick={() => fileInputRef.current?.click()}
+                className="h-11 shrink-0 rounded-full"
+              >
+                {uploadImageMutation.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Upload className="size-4" />
+                )}
+                Upload
+              </Button>
+            </div>
+
+            {uploadImageMutation.isError ? (
+              <p className="mt-2 text-xs text-danger">
+                {uploadImageMutation.error instanceof Error
+                  ? uploadImageMutation.error.message
+                  : "Could not upload image."}
+              </p>
+            ) : null}
+
+            {imageUrlValue ? (
+              <div className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-background p-3">
+                {/* Plain <img>, not next/image: this is an unvalidated
+                    admin-typed URL — next/image would hard-crash on a host
+                    outside next.config.ts's remotePatterns. A native <img>
+                    just shows a broken-image icon on failure instead. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrlValue}
+                  alt=""
+                  className="size-14 shrink-0 rounded-xl border border-border object-cover"
+                />
+
+                <p
+                  className={cn(
+                    "text-xs leading-5",
+                    imageHostIsAllowed
+                      ? "text-muted-foreground"
+                      : "text-danger",
+                  )}
+                >
+                  {imageHostIsAllowed
+                    ? "Preview — this host is supported."
+                    : "This host isn't supported yet, so this won't save. See the error below for allowed hosts."}
+                </p>
+              </div>
+            ) : null}
           </FormField>
 
           <FormField

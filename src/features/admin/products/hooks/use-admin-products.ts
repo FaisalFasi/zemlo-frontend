@@ -6,6 +6,7 @@ import {
   archiveAdminProduct,
   createAdminProduct,
   updateAdminProduct,
+  uploadAdminProductImage,
 } from "../api/admin-products-api";
 import type {
   CreateAdminProductInput,
@@ -53,6 +54,12 @@ export function useUpdateAdminProductMutation(productId: string) {
         queryKey: adminProductQueryKeys.lists(),
       });
     },
+  });
+}
+
+export function useUploadAdminProductImageMutation() {
+  return useMutation({
+    mutationFn: (file: File) => uploadAdminProductImage(file),
   });
 }
 

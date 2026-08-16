@@ -1,42 +1,37 @@
 /**
  * ═══════════════ EXPLANATION (is change ki wajah) ═══════════════
- * YE KYA HAI: Dashboard ke 3 stat cards — total orders, "needs action"
- * (PENDING + CONFIRMED jo process karne hain), aur paid revenue (EUR).
- * REASON: Owner ko login karte hi ek nazar mein store ki halat dikhe.
- * Backend mein stats endpoint NAHI hai, is liye numbers orders list se
- * frontend par count ho rahe hain — chhote store ke liye theek; scale
- * par backend endpoint banega (ROADMAP note).
- * RISK: Zero — read-only; wohi orders-list query reuse hoti hai jo
- * table use karti hai (koi extra backend call nahi).
+ * YE KYA HAI: Dashboard ke stat cards — orders today, revenue today,
+ * low-stock count. Ab real backend endpoint (`GET /admin/stats`) se aate
+ * hain.
+ * REASON: Pehle ye poori orders list fetch kar ke client-side count karte
+ * thay (frontend integration notes ke mutabiq scale nahi karta) — ab
+ * backend khud count karta hai, ek chhoti si request. `analytics.view`
+ * permission chahiye (sirf ADMIN/SUPER_ADMIN) — jin ke paas nahi, unke
+ * liye request hi nahi bhejtay.
+ * RISK: Zero — read-only.
  * ═════════════════════════════════════════════════════════════════
  */
 "use client";
 
+import AdminEntityLoadError from "@/features/admin/components/AdminEntityLoadError";
+import { useAdminPermission } from "@/features/admin/auth/hooks/use-admin-auth";
 import { formatDefaultMoney } from "@/shared/lib/formatters";
 
-import { useAdminOrdersQuery } from "../hooks/use-admin-orders";
-import type { AdminOrderSummary } from "../types/admin-order.types";
-
-function computeStats(orders: AdminOrderSummary[]) {
-  const needsAction = orders.filter(
-    (order) => order.status === "PENDING" || order.status === "CONFIRMED",
-  ).length;
-
-  const paidRevenue = orders
-    .filter((order) => order.paymentStatus === "PAID")
-    .reduce((sum, order) => sum + order.total, 0);
-
-  return {
-    totalOrders: orders.length,
-    needsAction,
-    paidRevenue,
-  };
-}
+import { useAdminStatsQuery } from "../hooks/use-admin-orders";
 
 export default function AdminDashboardStats() {
-  const ordersQuery = useAdminOrdersQuery();
+  const canViewAnalytics = useAdminPermission("analytics.view");
+  const statsQuery = useAdminStatsQuery(canViewAnalytics);
 
-  if (ordersQuery.isLoading) {
+  if (!canViewAnalytics) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Your role does not have permission to view store analytics.
+      </p>
+    );
+  }
+
+  if (statsQuery.isLoading) {
     return (
       <div className="grid gap-4 sm:grid-cols-3">
         {Array.from({ length: 3 }, (_, index) => (
@@ -49,20 +44,28 @@ export default function AdminDashboardStats() {
     );
   }
 
-  if (ordersQuery.isError) {
+  if (statsQuery.isError || !statsQuery.data) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Order stats are unavailable right now.
-      </p>
+      <AdminEntityLoadError
+        message="Order stats are unavailable right now."
+        onRetry={() => statsQuery.refetch()}
+      />
     );
   }
 
-  const stats = computeStats(ordersQuery.data ?? []);
+  const stats = statsQuery.data;
 
   const cards = [
-    { label: "Total orders", value: String(stats.totalOrders) },
-    { label: "Needs action", value: String(stats.needsAction) },
-    { label: "Revenue (paid)", value: formatDefaultMoney(stats.paidRevenue) },
+    { label: "Orders today", value: String(stats.ordersToday) },
+    {
+      label: "Revenue today",
+      value: formatDefaultMoney(stats.revenueToday),
+    },
+    {
+      label: "Low stock",
+      value: String(stats.lowStockCount),
+      hint: `at or below ${stats.lowStockThreshold} units`,
+    },
   ];
 
   return (
@@ -76,6 +79,9 @@ export default function AdminDashboardStats() {
           <p className="mt-2 text-3xl font-medium tracking-tight text-foreground">
             {card.value}
           </p>
+          {card.hint ? (
+            <p className="mt-1 text-xs text-muted-foreground">{card.hint}</p>
+          ) : null}
         </div>
       ))}
     </div>

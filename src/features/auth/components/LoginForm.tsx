@@ -92,6 +92,15 @@ export default function LoginForm() {
             {...form.register("password")}
           />
         </FormField>
+
+        <div className="text-right">
+          <Link
+            href={routes.auth.forgotPassword}
+            className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
       </div>
 
       <Button

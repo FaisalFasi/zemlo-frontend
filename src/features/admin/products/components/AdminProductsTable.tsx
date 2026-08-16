@@ -4,6 +4,12 @@ import Link from "next/link";
 import { Archive, ExternalLink, PackagePlus, Pencil } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 
+import { useAdminPermission } from "@/features/admin/auth/hooks/use-admin-auth";
+import {
+  getDiscountPercent,
+  toNumber,
+  toOptionalNumber,
+} from "@/entities/product/model/product-utils";
 import AdminProductStatusBadge from "./AdminProductStatusBadge";
 import type { AdminProductListItem } from "../types/admin-product.types";
 import { formatDefaultMoney } from "@/shared/lib/formatters";
@@ -22,6 +28,13 @@ export default function AdminProductsTable({
   pendingProductId,
   onArchiveProduct,
 }: AdminProductsTableProps) {
+  const canCreate = useAdminPermission("products.create");
+  const canUpdate = useAdminPermission("products.update");
+  // Archiving a product goes through the backend's DELETE route, which
+  // requires products.delete — the backend calls this "delete", the
+  // product is actually archived (soft), not hard-removed.
+  const canArchive = useAdminPermission("products.delete");
+
   if (products.length === 0) {
     return (
       <div className="rounded-[2rem] border border-dashed border-border bg-card p-10 text-center">
@@ -38,9 +51,11 @@ export default function AdminProductsTable({
           detail, and cart flow.
         </p>
 
-        <Button asChild className="mt-6 rounded-full">
-          <Link href="/admin/products/new">Create product</Link>
-        </Button>
+        {canCreate ? (
+          <Button asChild className="mt-6 rounded-full">
+            <Link href="/admin/products/new">Create product</Link>
+          </Button>
+        ) : null}
       </div>
     );
   }
@@ -82,6 +97,18 @@ export default function AdminProductsTable({
 
                 <td className="px-5 py-4 font-medium text-foreground">
                   {formatPrice(product.price)}
+                  {(() => {
+                    const discountPercent = getDiscountPercent(
+                      toNumber(product.price),
+                      toOptionalNumber(product.compareAtPrice),
+                    );
+
+                    return discountPercent ? (
+                      <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                        -{discountPercent}%
+                      </span>
+                    ) : null;
+                  })()}
                 </td>
 
                 <td className="px-5 py-4 text-muted-foreground">
@@ -94,17 +121,20 @@ export default function AdminProductsTable({
 
                 <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm"
-                      className="rounded-full"
-                    >
-                      <Link href={`/admin/products/${product.id}/edit`}>
-                        <Pencil className="size-4" />
-                        Edit
-                      </Link>
-                    </Button>
+                    {canUpdate ? (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full"
+                      >
+                        <Link href={`/admin/products/${product.id}/edit`}>
+                          <Pencil className="size-4" />
+                          Edit
+                        </Link>
+                      </Button>
+                    ) : null}
+
                     <Button
                       asChild
                       variant="outline"
@@ -117,19 +147,21 @@ export default function AdminProductsTable({
                       </Link>
                     </Button>
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={pendingProductId === product.id}
-                      onClick={() => onArchiveProduct(product.id)}
-                      className="rounded-full"
-                    >
-                      <Archive className="size-4" />
-                      {pendingProductId === product.id
-                        ? "Archiving..."
-                        : "Archive"}
-                    </Button>
+                    {canArchive ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={pendingProductId === product.id}
+                        onClick={() => onArchiveProduct(product.id)}
+                        className="rounded-full"
+                      >
+                        <Archive className="size-4" />
+                        {pendingProductId === product.id
+                          ? "Archiving..."
+                          : "Archive"}
+                      </Button>
+                    ) : null}
                   </div>
                 </td>
               </tr>

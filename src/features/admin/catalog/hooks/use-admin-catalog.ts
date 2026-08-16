@@ -1,10 +1,16 @@
 /**
  * ═══════════════ EXPLANATION (is change ki wajah) ═══════════════
  * YE KYA HAI: Categories + brands ke React hooks — list queries aur
- * create/update/delete mutations.
- * REASON: Har mutation ke baad apni list khud refresh (invalidate) —
- * UI hamesha taza. Wohi pattern jo variants/orders hooks ka hai.
- * RISK: Zero — nayi file.
+ * create/update/delete mutations, ek generic factory se banaye gaye
+ * (dono resources ka shape — list/create/update/delete + invalidate —
+ * bilkul same hai).
+ * REASON: Pehle categories aur brands ke liye alag-alag hooks
+ * copy-paste thay (~100 lines duplicate). Ek factory se dono banao —
+ * naya catalog resource (e.g. tags) add karna ho to bhi wohi factory
+ * reuse hogi.
+ * RISK: Zero — sirf refactor, behavior same (mutation payload shape
+ * `{categoryId, input}` → `{id, input}` ho gaya hai, dono managers
+ * update kar diye hain).
  * ═════════════════════════════════════════════════════════════════
  */
 "use client";
@@ -24,6 +30,8 @@ import {
   updateAdminCategory,
 } from "../api/admin-catalog-api";
 import type {
+  AdminBrand,
+  AdminCategory,
   CreateBrandInput,
   CreateCategoryInput,
   UpdateBrandInput,
@@ -35,108 +43,94 @@ export const adminCatalogQueryKeys = {
   brands: ["admin-catalog", "brands"] as const,
 };
 
-// ── Categories ──────────────────────────────────────────────────────────────
-
-export function useAdminCategoriesQuery() {
-  return useQuery({
-    queryKey: adminCatalogQueryKeys.categories,
-    queryFn: getAdminCategories,
-    staleTime: queryDurations.short,
-    gcTime: queryDurations.medium,
-  });
-}
-
-function useInvalidateCategories() {
-  const queryClient = useQueryClient();
-
-  return () =>
-    void queryClient.invalidateQueries({
-      queryKey: adminCatalogQueryKeys.categories,
+function createAdminCatalogResourceHooks<TEntity, TCreateInput, TUpdateInput>(
+  queryKey: readonly unknown[],
+  api: {
+    list: () => Promise<TEntity[]>;
+    create: (input: TCreateInput) => Promise<TEntity>;
+    update: (id: string, input: TUpdateInput) => Promise<TEntity>;
+    remove: (id: string) => Promise<void>;
+  },
+) {
+  function useResourceQuery() {
+    return useQuery({
+      queryKey,
+      queryFn: api.list,
+      staleTime: queryDurations.short,
+      gcTime: queryDurations.medium,
     });
-}
+  }
 
-export function useCreateCategoryMutation() {
-  const invalidate = useInvalidateCategories();
+  function useInvalidate() {
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (input: CreateCategoryInput) => createAdminCategory(input),
-    onSuccess: invalidate,
-  });
-}
+    return () => void queryClient.invalidateQueries({ queryKey });
+  }
 
-export function useUpdateCategoryMutation() {
-  const invalidate = useInvalidateCategories();
+  function useCreateMutation() {
+    const invalidate = useInvalidate();
 
-  return useMutation({
-    mutationFn: ({
-      categoryId,
-      input,
-    }: {
-      categoryId: string;
-      input: UpdateCategoryInput;
-    }) => updateAdminCategory(categoryId, input),
-    onSuccess: invalidate,
-  });
-}
-
-export function useDeleteCategoryMutation() {
-  const invalidate = useInvalidateCategories();
-
-  return useMutation({
-    mutationFn: (categoryId: string) => deleteAdminCategory(categoryId),
-    onSuccess: invalidate,
-  });
-}
-
-// ── Brands ──────────────────────────────────────────────────────────────────
-
-export function useAdminBrandsQuery() {
-  return useQuery({
-    queryKey: adminCatalogQueryKeys.brands,
-    queryFn: getAdminBrands,
-    staleTime: queryDurations.short,
-    gcTime: queryDurations.medium,
-  });
-}
-
-function useInvalidateBrands() {
-  const queryClient = useQueryClient();
-
-  return () =>
-    void queryClient.invalidateQueries({
-      queryKey: adminCatalogQueryKeys.brands,
+    return useMutation({
+      mutationFn: (input: TCreateInput) => api.create(input),
+      onSuccess: invalidate,
     });
+  }
+
+  function useUpdateMutation() {
+    const invalidate = useInvalidate();
+
+    return useMutation({
+      mutationFn: ({ id, input }: { id: string; input: TUpdateInput }) =>
+        api.update(id, input),
+      onSuccess: invalidate,
+    });
+  }
+
+  function useDeleteMutation() {
+    const invalidate = useInvalidate();
+
+    return useMutation({
+      mutationFn: (id: string) => api.remove(id),
+      onSuccess: invalidate,
+    });
+  }
+
+  return {
+    useResourceQuery,
+    useCreateMutation,
+    useUpdateMutation,
+    useDeleteMutation,
+  };
 }
 
-export function useCreateBrandMutation() {
-  const invalidate = useInvalidateBrands();
+const categoryResource = createAdminCatalogResourceHooks<
+  AdminCategory,
+  CreateCategoryInput,
+  UpdateCategoryInput
+>(adminCatalogQueryKeys.categories, {
+  list: getAdminCategories,
+  create: createAdminCategory,
+  update: updateAdminCategory,
+  remove: deleteAdminCategory,
+});
 
-  return useMutation({
-    mutationFn: (input: CreateBrandInput) => createAdminBrand(input),
-    onSuccess: invalidate,
-  });
-}
+export const useAdminCategoriesQuery = categoryResource.useResourceQuery;
+export const useCreateCategoryMutation = categoryResource.useCreateMutation;
+export const useUpdateCategoryMutation = categoryResource.useUpdateMutation;
+export const useDeleteCategoryMutation = categoryResource.useDeleteMutation;
 
-export function useUpdateBrandMutation() {
-  const invalidate = useInvalidateBrands();
+const brandResource = createAdminCatalogResourceHooks<
+  AdminBrand,
+  CreateBrandInput,
+  UpdateBrandInput
+>(adminCatalogQueryKeys.brands, {
+  list: getAdminBrands,
+  create: createAdminBrand,
+  update: updateAdminBrand,
+  remove: deleteAdminBrand,
+});
 
-  return useMutation({
-    mutationFn: ({
-      brandId,
-      input,
-    }: {
-      brandId: string;
-      input: UpdateBrandInput;
-    }) => updateAdminBrand(brandId, input),
-    onSuccess: invalidate,
-  });
-}
-
-export function useDeleteBrandMutation() {
-  const invalidate = useInvalidateBrands();
-
-  return useMutation({
-    mutationFn: (brandId: string) => deleteAdminBrand(brandId),
-    onSuccess: invalidate,
-  });
-}
+export const useAdminBrandsQuery = brandResource.useResourceQuery;
+export const useCreateBrandMutation = brandResource.useCreateMutation;
+export const useUpdateBrandMutation = brandResource.useUpdateMutation;
+export const useDeleteBrandMutation = brandResource.useDeleteMutation;
