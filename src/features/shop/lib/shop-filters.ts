@@ -16,6 +16,12 @@ function isShopSortOption(value: string): value is ShopSortOption {
   return sortOptions.includes(value as ShopSortOption);
 }
 
+function resolvePage(value: string | string[] | undefined) {
+  const parsed = Number(getSingleParam(value));
+
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+}
+
 export function resolveShopSearchParams(
   searchParams: ShopSearchParams,
 ): ResolvedShopSearchParams {
@@ -25,6 +31,7 @@ export function resolveShopSearchParams(
     q: getSingleParam(searchParams.q).trim(),
     category: getSingleParam(searchParams.category).trim(),
     sort: isShopSortOption(sort) ? sort : "featured",
+    page: resolvePage(searchParams.page),
   };
 }
 
@@ -65,19 +72,25 @@ export function filterAndSortShopProducts(
 export function createShopHref(
   current: ResolvedShopSearchParams,
   updates: Partial<ResolvedShopSearchParams>,
+  basePath = "/shop",
 ) {
   const nextParams = new URLSearchParams();
 
+  // Changing a filter (category, search, sort) restarts pagination — carry
+  // the page number forward ONLY when the caller explicitly sets it (that's
+  // exactly what the pagination links do).
   const next = {
     ...current,
+    page: 1,
     ...updates,
   };
 
   if (next.q) nextParams.set("q", next.q);
   if (next.category) nextParams.set("category", next.category);
   if (next.sort && next.sort !== "featured") nextParams.set("sort", next.sort);
+  if (next.page > 1) nextParams.set("page", String(next.page));
 
   const queryString = nextParams.toString();
 
-  return queryString ? `/shop?${queryString}` : "/shop";
+  return queryString ? `${basePath}?${queryString}` : basePath;
 }

@@ -9,10 +9,12 @@ export type ShopSearchParams = {
   q?: string | string[];
   category?: string | string[];
   sort?: string | string[];
+  page?: string | string[];
 };
 
 export type ResolvedShopSearchParams = {
   q: string;
   category: string;
   sort: ShopSortOption;
+  page: number;
 };

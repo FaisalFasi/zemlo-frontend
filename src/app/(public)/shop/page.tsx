@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { routes } from "@/shared/config/routes";
 import { createPageMetadata } from "@/shared/lib/seo";
 
-import { getSafeShopData } from "@/features/shop/lib/get-shop-data";
+import { getShopPageData } from "@/features/shop/lib/get-shop-data";
 import { resolveShopSearchParams } from "@/features/shop/lib/shop-filters";
 import ShopPage from "@/features/shop/ShopPage";
 import type { ShopSearchParams } from "@/features/shop/types/shop.types";
@@ -26,11 +26,13 @@ export default async function ShopRoutePage({
 }: ShopRoutePageProps) {
   const resolvedSearchParams = await searchParams;
   const params = resolveShopSearchParams(resolvedSearchParams);
-  const shopData = await getSafeShopData();
+  const shopData = await getShopPageData(params);
 
   return (
     <ShopPage
       products={shopData.products}
+      total={shopData.total}
+      pageCount={shopData.pageCount}
       categories={shopData.categories}
       params={params}
       isDemoCatalog={shopData.isDemoCatalog}

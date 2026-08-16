@@ -11,19 +11,25 @@ import type {
 type ShopFiltersProps = {
   categories: ShopCategoryFilter[];
   params: ResolvedShopSearchParams;
-  totalProducts: number;
-  visibleProducts: number;
+  totalMatching: number;
+  shownCount: number;
+  // Category pages reuse this component but should keep search/sort
+  // navigation on their own URL (/categories/slug) rather than jumping to
+  // /shop — category PILLS still always go to /shop?category=... since
+  // clicking a different category is meant to leave this page's context.
+  basePath?: string;
 };
 
 export default function ShopFilters({
   categories,
   params,
-  totalProducts,
-  visibleProducts,
+  totalMatching,
+  shownCount,
+  basePath = "/shop",
 }: ShopFiltersProps) {
   return (
     <div className="space-y-5 rounded-[1.5rem] border border-border bg-card p-4 md:p-5">
-      <form action="/shop" className="flex flex-col gap-3 sm:flex-row">
+      <form action={basePath} className="flex flex-col gap-3 sm:flex-row">
         <input
           name="q"
           type="search"
@@ -79,7 +85,7 @@ export default function ShopFilters({
           ))}
         </div>
 
-        <form action="/shop" className="flex items-center gap-2">
+        <form action={basePath} className="flex items-center gap-2">
           {params.q ? <input type="hidden" name="q" value={params.q} /> : null}
 
           {params.category ? (
@@ -109,7 +115,7 @@ export default function ShopFilters({
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Showing {visibleProducts} of {totalProducts} products
+        Showing {shownCount} of {totalMatching} products
       </p>
     </div>
   );

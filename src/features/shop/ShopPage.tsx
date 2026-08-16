@@ -1,6 +1,6 @@
 import ShopFilters from "./components/ShopFilters";
+import ShopPagination from "./components/ShopPagination";
 import ShopProductGrid from "./components/ShopProductGrid";
-import { filterAndSortShopProducts } from "./lib/shop-filters";
 import type {
   ResolvedShopSearchParams,
   ShopCategoryFilter,
@@ -8,7 +8,12 @@ import type {
 } from "./types/shop.types";
 
 type ShopPageProps = {
+  // Already filtered/sorted/paginated by the backend (or, in demo-catalog
+  // mode, by the same logic applied to the local demo array) — this is
+  // exactly what should render, not a raw list to filter here.
   products: ShopProduct[];
+  total: number;
+  pageCount: number;
   categories: ShopCategoryFilter[];
   params: ResolvedShopSearchParams;
   isDemoCatalog: boolean;
@@ -17,17 +22,23 @@ type ShopPageProps = {
   // (e.g. category ka naam). Na dein to purana default text.
   heading?: string;
   description?: string;
+  // Category pages keep search/sort/pagination on their own URL instead
+  // of jumping to /shop — see ShopFilters/ShopPagination for how this is
+  // used.
+  basePath?: string;
 };
 
 export default function ShopPage({
   products,
+  total,
+  pageCount,
   categories,
   params,
   isDemoCatalog,
   heading = "Explore products across categories.",
   description = "Browse products from Zemlo and trusted brands. Filters are URL-based so search, category, and sort states stay shareable.",
+  basePath = "/shop",
 }: ShopPageProps) {
-  const visibleProducts = filterAndSortShopProducts(products, params);
   const hasFilters = Boolean(params.q || params.category);
 
   return (
@@ -54,13 +65,20 @@ export default function ShopPage({
         <ShopFilters
           categories={categories}
           params={params}
-          totalProducts={products.length}
-          visibleProducts={visibleProducts.length}
+          totalMatching={total}
+          shownCount={products.length}
+          basePath={basePath}
         />
 
         <div className="mt-10">
-          <ShopProductGrid products={visibleProducts} hasFilters={hasFilters} />
+          <ShopProductGrid products={products} hasFilters={hasFilters} />
         </div>
+
+        <ShopPagination
+          params={params}
+          pageCount={pageCount}
+          basePath={basePath}
+        />
       </section>
     </main>
   );
