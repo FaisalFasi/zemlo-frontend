@@ -19,6 +19,7 @@ import "server-only";
 
 import {
   getAllCatalogProducts,
+  getCatalogBrands,
   getCatalogCategories,
   getCatalogProductsPage,
 } from "@/features/catalog/api/catalog-api";
@@ -53,23 +54,30 @@ function buildDemoResult(params: ResolvedShopSearchParams) {
     total: visible.length,
     pageCount: Math.max(1, Math.ceil(visible.length / SHOP_PAGE_SIZE)),
     categories: createShopCategoriesFromProducts(demoShopProducts),
+    // Demo products only carry a brand NAME, not a slug — no reliable way
+    // to drive a slug-based brand filter, so the demo fallback simply
+    // doesn't offer one (see filterAndSortShopProducts).
+    brands: [],
     isDemoCatalog: true,
   };
 }
 
 export async function getShopPageData(params: ResolvedShopSearchParams) {
   try {
-    const [page, categoriesResult, allProducts] = await Promise.all([
-      getCatalogProductsPage({
-        page: params.page,
-        limit: SHOP_PAGE_SIZE,
-        search: params.q || undefined,
-        category: params.category || undefined,
-        sort: params.sort,
-      }),
-      getCatalogCategories(),
-      getAllCatalogProducts(),
-    ]);
+    const [page, categoriesResult, brandsResult, allProducts] =
+      await Promise.all([
+        getCatalogProductsPage({
+          page: params.page,
+          limit: SHOP_PAGE_SIZE,
+          search: params.q || undefined,
+          category: params.category || undefined,
+          brand: params.brand || undefined,
+          sort: params.sort,
+        }),
+        getCatalogCategories(),
+        getCatalogBrands(),
+        getAllCatalogProducts(),
+      ]);
 
     if (allProducts.length === 0 && shouldUseDemoCatalog()) {
       return buildDemoResult(params);
@@ -87,6 +95,7 @@ export async function getShopPageData(params: ResolvedShopSearchParams) {
         categoriesResult,
         productsForCategoryCounts,
       ),
+      brands: brandsResult,
       isDemoCatalog: false,
     };
   } catch {
@@ -96,6 +105,7 @@ export async function getShopPageData(params: ResolvedShopSearchParams) {
         total: 0,
         pageCount: 1,
         categories: [],
+        brands: [],
         isDemoCatalog: false,
       };
     }

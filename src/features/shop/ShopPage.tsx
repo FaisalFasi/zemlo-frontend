@@ -3,6 +3,7 @@ import ShopPagination from "./components/ShopPagination";
 import ShopProductGrid from "./components/ShopProductGrid";
 import type {
   ResolvedShopSearchParams,
+  ShopBrandFilter,
   ShopCategoryFilter,
   ShopProduct,
 } from "./types/shop.types";
@@ -15,6 +16,7 @@ type ShopPageProps = {
   total: number;
   pageCount: number;
   categories: ShopCategoryFilter[];
+  brands: ShopBrandFilter[];
   params: ResolvedShopSearchParams;
   isDemoCatalog: boolean;
   // EXPLANATION: optional heading/description — category pages yehi
@@ -33,13 +35,14 @@ export default function ShopPage({
   total,
   pageCount,
   categories,
+  brands,
   params,
   isDemoCatalog,
   heading = "Explore products across categories.",
   description = "Browse products from Zemlo and trusted brands. Filters are URL-based so search, category, and sort states stay shareable.",
   basePath = "/shop",
 }: ShopPageProps) {
-  const hasFilters = Boolean(params.q || params.category);
+  const hasFilters = Boolean(params.q || params.category || params.brand);
 
   return (
     <main className="bg-background text-foreground">
@@ -64,6 +67,7 @@ export default function ShopPage({
 
         <ShopFilters
           categories={categories}
+          brands={brands}
           params={params}
           totalMatching={total}
           shownCount={products.length}

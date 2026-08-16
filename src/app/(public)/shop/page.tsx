@@ -34,6 +34,7 @@ export default async function ShopRoutePage({
       total={shopData.total}
       pageCount={shopData.pageCount}
       categories={shopData.categories}
+      brands={shopData.brands}
       params={params}
       isDemoCatalog={shopData.isDemoCatalog}
     />

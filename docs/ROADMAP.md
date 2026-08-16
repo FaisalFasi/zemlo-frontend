@@ -57,13 +57,16 @@ Bug-Fix Pass" in IMPLEMENTATION.md. Also: every admin-mutating section is
 now wrapped in `AdminSectionErrorBoundary` — a rendering hiccup degrades
 that one section, not the whole page.
 
-**8. Backend items still open, tracked in [BACKEND-TODO.md](BACKEND-TODO.md):**
-§0 (automate expired-inventory release, small/safety-critical), §0b-ii/iii
-(2 remaining RBAC gaps: no field-level stock-vs-full-product permission
-split, unused staff/customer permissions), §0c (two small schema fields —
-`Brand.isOwnBrand`, `Product.badgeText` — for admin badge/discount UX the
-user asked about; the discount % control itself is already built using
-existing fields, no backend change needed for that part).
+**8. Backend items — polished to ready-to-paste 2026-08-17, verified
+against the actual `zemlo-backend` repo (not guessed).** §0 (inventory
+cron), its guard-backstop note, §1 (pagination), and §2 (stats/password-
+reset/cart-merge/upload) are all ✅ DONE — confirmed live in the repo. Only
+tracked in [BACKEND-TODO.md](BACKEND-TODO.md) still: §0b-ii (stock-only
+permission split, now with exact file paths + code for all 6 steps
+including the DB permission-seed step), §0b-iii (`staff.*`/`customers.*`
+permissions still have no controller — informational, not urgent), §0c
+(two small schema fields — `Brand.isOwnBrand`, `Product.badgeText` — now
+with exact Prisma + DTO snippets matching the real files).
 
 **Docs map (avoid re-reading everything — pick the right one):**
 - **This file (ROADMAP.md)** — the checklist: what's done ✅, what's left, in what order.

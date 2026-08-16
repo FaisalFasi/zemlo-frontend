@@ -64,6 +64,7 @@ const products = [candle, mug, featuredVase];
 const baseParams = {
   q: "",
   category: "",
+  brand: "",
   sort: "featured" as const,
   page: 1,
 };
@@ -123,7 +124,7 @@ describe("resolveShopSearchParams", () => {
   it("trims text params and defaults invalid sort to featured", () => {
     expect(
       resolveShopSearchParams({ q: "  mug ", sort: "not-a-sort" }),
-    ).toEqual({ q: "mug", category: "", sort: "featured", page: 1 });
+    ).toEqual({ q: "mug", category: "", brand: "", sort: "featured", page: 1 });
   });
 
   it("keeps valid sort options", () => {
@@ -142,6 +143,10 @@ describe("resolveShopSearchParams", () => {
   it("parses a valid page number", () => {
     expect(resolveShopSearchParams({ page: "4" }).page).toBe(4);
   });
+
+  it("trims the brand param", () => {
+    expect(resolveShopSearchParams({ brand: " lumo " }).brand).toBe("lumo");
+  });
 });
 
 describe("createShopHref", () => {
@@ -159,6 +164,14 @@ describe("createShopHref", () => {
 
   it("omits page from the URL when it's 1", () => {
     expect(createShopHref(baseParams, { page: 1 })).toBe("/shop");
+  });
+
+  it("includes the brand param and carries it across other updates", () => {
+    const withBrand = { ...baseParams, brand: "lumo" };
+
+    expect(createShopHref(withBrand, { sort: "newest" })).toBe(
+      "/shop?brand=lumo&sort=newest",
+    );
   });
 
   it("uses a custom base path (category pages)", () => {

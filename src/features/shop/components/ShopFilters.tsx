@@ -5,11 +5,13 @@ import { Button } from "@/shared/ui/button";
 import { createShopHref } from "../lib/shop-filters";
 import type {
   ResolvedShopSearchParams,
+  ShopBrandFilter,
   ShopCategoryFilter,
 } from "../types/shop.types";
 
 type ShopFiltersProps = {
   categories: ShopCategoryFilter[];
+  brands: ShopBrandFilter[];
   params: ResolvedShopSearchParams;
   totalMatching: number;
   shownCount: number;
@@ -22,6 +24,7 @@ type ShopFiltersProps = {
 
 export default function ShopFilters({
   categories,
+  brands,
   params,
   totalMatching,
   shownCount,
@@ -40,6 +43,10 @@ export default function ShopFilters({
 
         {params.category ? (
           <input type="hidden" name="category" value={params.category} />
+        ) : null}
+
+        {params.brand ? (
+          <input type="hidden" name="brand" value={params.brand} />
         ) : null}
 
         {params.sort !== "featured" ? (
@@ -85,11 +92,39 @@ export default function ShopFilters({
           ))}
         </div>
 
-        <form action={basePath} className="flex items-center gap-2">
+        <form
+          action={basePath}
+          className="flex flex-wrap items-center gap-2"
+        >
           {params.q ? <input type="hidden" name="q" value={params.q} /> : null}
 
           {params.category ? (
             <input type="hidden" name="category" value={params.category} />
+          ) : null}
+
+          {brands.length > 0 ? (
+            <>
+              <label
+                htmlFor="shop-brand"
+                className="text-sm text-muted-foreground"
+              >
+                Brand
+              </label>
+
+              <select
+                id="shop-brand"
+                name="brand"
+                defaultValue={params.brand}
+                className="h-10 rounded-full border border-border bg-background px-3 text-sm text-foreground outline-none"
+              >
+                <option value="">All brands</option>
+                {brands.map((brand) => (
+                  <option key={brand.slug} value={brand.slug}>
+                    {brand.name}
+                  </option>
+                ))}
+              </select>
+            </>
           ) : null}
 
           <label htmlFor="shop-sort" className="text-sm text-muted-foreground">

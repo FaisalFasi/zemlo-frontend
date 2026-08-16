@@ -30,6 +30,7 @@ export function resolveShopSearchParams(
   return {
     q: getSingleParam(searchParams.q).trim(),
     category: getSingleParam(searchParams.category).trim(),
+    brand: getSingleParam(searchParams.brand).trim(),
     sort: isShopSortOption(sort) ? sort : "featured",
     page: resolvePage(searchParams.page),
   };
@@ -41,6 +42,11 @@ export function filterAndSortShopProducts(
 ) {
   const query = params.q.toLowerCase();
 
+  // Demo-catalog products only carry a brand NAME (`product.brand`), not a
+  // slug — the real catalog's brand filter matches by slug via the
+  // backend. Rather than guess a name<->slug match, brand filtering is
+  // simply not applied in demo mode (an edge-case fallback for an empty
+  // real catalog, not the primary experience).
   const filtered = products.filter((product) => {
     const matchesQuery =
       query.length === 0 ||
@@ -87,6 +93,7 @@ export function createShopHref(
 
   if (next.q) nextParams.set("q", next.q);
   if (next.category) nextParams.set("category", next.category);
+  if (next.brand) nextParams.set("brand", next.brand);
   if (next.sort && next.sort !== "featured") nextParams.set("sort", next.sort);
   if (next.page > 1) nextParams.set("page", String(next.page));
 

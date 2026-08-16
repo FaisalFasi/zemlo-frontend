@@ -92,6 +92,7 @@ export default async function CategoryPage({
       total={shopData.total}
       pageCount={shopData.pageCount}
       categories={shopData.categories}
+      brands={shopData.brands}
       params={shopParams}
       isDemoCatalog={shopData.isDemoCatalog}
       heading={category.name}
