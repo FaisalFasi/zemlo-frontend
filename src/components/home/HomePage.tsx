@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import {
   getAllCatalogProducts,
   getCatalogBrands,
@@ -8,6 +10,7 @@ import BrandShowcaseSection from "./sections/BrandShowcaseSection";
 import CategoryRailsSection from "./sections/CategoryRailsSection";
 import CategoryShortcutSection from "./sections/CategoryShortcutSection";
 import FeaturedDealsSection from "./sections/FeaturedDealsSection";
+import HomeDataSkeleton from "./sections/HomeDataSkeleton";
 import MarketplaceHeroSection from "./sections/MarketplaceHeroSection";
 import PopularProductsSection from "./sections/PopularProductsSection";
 import TrustSection from "./sections/TrustSection";
@@ -35,18 +38,35 @@ async function getSafeHomePageData() {
   });
 }
 
-export default async function HomePage() {
+// Catalog-dependent sections are split into their own async component and
+// wrapped in a page-level <Suspense> — NOT a route-level `loading.tsx`
+// (which would cascade to /products/[slug] and /categories/[slug] and
+// reintroduce the notFound() status-code bug documented in
+// IMPLEMENTATION.md). Hero/trust sections need no data, so they render
+// immediately either way.
+async function HomeDataSections() {
   const homePageData = await getSafeHomePageData();
 
   return (
-    <main className="bg-background text-foreground">
-      <MarketplaceHeroSection />
-      <TrustSection />
+    <>
       <CategoryShortcutSection categories={homePageData.categories} />
       <FeaturedDealsSection products={homePageData.featuredDeals} />
       <PopularProductsSection products={homePageData.popularProducts} />
       <CategoryRailsSection rails={homePageData.categoryRails} />
       <BrandShowcaseSection brands={homePageData.brands} />
+    </>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <main className="bg-background text-foreground">
+      <MarketplaceHeroSection />
+      <TrustSection />
+
+      <Suspense fallback={<HomeDataSkeleton />}>
+        <HomeDataSections />
+      </Suspense>
     </main>
   );
 }

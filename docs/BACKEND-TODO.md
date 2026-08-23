@@ -10,13 +10,31 @@ RISK: Zero — documentation only.
 
 # Backend TODO — features the frontend is waiting on
 
-> Apply these in the `zemlo-backend` repo. After deploying, run
-> `npm run api:generate` in the frontend so the typed client picks up
-> the new params, then finish frontend Phase 5B (see ROADMAP.md).
+> Apply these in the `zemlo-backend` repo. After deploying anything that
+> changes the API surface, run `npm run api:generate` in the frontend so
+> the typed client picks up the new shapes.
+>
+> **Status as of 2026-08-17:** §0, §0's guard-backstop note, §1, and §2 are
+> all ✅ DONE — confirmed live and already wired into the frontend. What's
+> still actually open for the backend repo: **§0b-ii** (stock-only
+> permission split), **§0b-iii** (`staff.*`/`customers.*` permissions have
+> no controller yet — informational, not urgent), and **§0c** (two schema
+> fields — `Brand.isOwnBrand`, `Product.badgeText`).
 
 ---
 
-## 0. Automate expired-inventory release (found 2026-07-20 — do this one first, it's small and safety-critical)
+## 0. ✅ DONE — Automate expired-inventory release (found 2026-07-20, resolved by 2026-08-17)
+
+**Resolved — confirmed live in the actual repo, not just assumed:**
+`InventoryReleaseCron` exists at
+`src/modules/payments/services/inventory-release.cron.ts`, registered as a
+provider in `payments.module.ts`, firing `@Cron(CronExpression.EVERY_5_MINUTES)`
+against `ExpiredReservationReleaseService.release()`. It shipped even more
+robust than the original ask below: config-driven
+`inventory.expiredReservationRelease.enabled` flag and `batchLimit`, plus a
+`skippedCount` in its log line. `ScheduleModule.forRoot()` is registered in
+`app.module.ts`. Nothing further needed here — original spec kept below for
+history only.
 
 **Investigated while answering: "reserved inventory release ko better manage kaise karein — cart se release karne ke bajaye checkout par sold-out dikhayein?"**
 
@@ -170,63 +188,172 @@ stock counts) can therefore also rewrite price/name/category via a direct
 API call — the UI never shows those fields to that role, but the backend
 doesn't stop it either.
 
-**Fix — a dedicated stock-only endpoint, separately permissioned** (mirrors
-how variants already have their own controller instead of overloading the
-product one):
+**Verified against the actual current repo** (not guessed) — here's every
+file that needs a change, in order, matching the exact style already used
+in each file.
+
+**Note on who'd actually get this permission:** today `STAFF`'s role
+defaults are `[PRODUCTS_VIEW, CATEGORIES_VIEW, BRANDS_VIEW,
+ORDERS_VIEW_ALL, CUSTOMERS_VIEW]` — no product-mutating permission at all
+— and `ADMIN` already gets full `PRODUCTS_UPDATE`. So there's no existing
+role that's "inventory-only" today. Either (a) add
+`PRODUCTS_UPDATE_STOCK` to `STAFF`'s array below to make every staff
+account inventory-capable by default, or (b) leave `STAFF`'s defaults
+alone and grant it per-account via a `UserPermission` row for just the
+specific staff member meant to be inventory-only. (b) is the narrower,
+safer choice if only some staff should have it.
+
+**1. New permission constant — `src/common/constants/permissions.ts`**
+(add inside the existing `PRODUCTS` group):
 
 ```ts
-// New permission constant — src/common/constants/permissions.ts
-PRODUCTS_UPDATE_STOCK: 'products.update_stock',
+export const PERMISSIONS = {
+  PRODUCTS_VIEW: 'products.view',
+  PRODUCTS_CREATE: 'products.create',
+  PRODUCTS_UPDATE: 'products.update',
+  PRODUCTS_UPDATE_STOCK: 'products.update_stock', // ← new
+  PRODUCTS_DELETE: 'products.delete',
+  // ...rest unchanged
+} as const;
 ```
 
+**2. Register it as a real `Permission` row — `prisma/seeds/permissions.seed.ts`**
+(a constant alone isn't enough — `PermissionsGuard` ultimately checks a
+user's resolved permissions against DB-backed `RolePermission`/
+`UserPermission` rows, which requires a matching `Permission` row to exist
+first). Add to the `// PRODUCTS` block in `permissionsData`:
+
 ```ts
-// src/modules/admin/admin-products/dto/update-product-stock.dto.ts (new)
+  {
+    name: PERMISSIONS.PRODUCTS_UPDATE_STOCK,
+    displayName: 'Update Product Stock',
+    description: 'Can update product stock counts only, not other fields',
+    category: PermissionCategory.PRODUCTS,
+  },
+```
+
+**3. Grant it to a role — `prisma/seeds/role-permissions.seed.ts`**
+(only if going with option (a) above; skip this step for option (b) and
+grant via `UserPermission` instead):
+
+```ts
+  [UserRole.STAFF]: [
+    PERMISSIONS.PRODUCTS_VIEW,
+    PERMISSIONS.PRODUCTS_UPDATE_STOCK, // ← new
+    PERMISSIONS.CATEGORIES_VIEW,
+    PERMISSIONS.BRANDS_VIEW,
+    PERMISSIONS.ORDERS_VIEW_ALL,
+    PERMISSIONS.CUSTOMERS_VIEW,
+  ],
+```
+
+Then re-run the permission/role-permission seed so the new `Permission` row
+and grant actually exist in the DB (a raw `git push` of seed *code* changes
+nothing by itself).
+
+**4. New DTO — `src/modules/admin/admin-products/dto/update-product-stock.dto.ts`**
+(matching the exact `stock` field style already used in
+`create-admin-product.dto.ts`):
+
+```ts
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsInt, Min } from 'class-validator';
 
 export class UpdateProductStockDto {
   @ApiProperty({ example: 42, minimum: 0 })
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   stock: number;
 }
 ```
 
+Export it from the module's `dto/index.ts` barrel alongside the existing
+`AdminProductResponseDto`/`CreateAdminProductDto`/`UpdateAdminProductDto`.
+
+**5. New route — `src/modules/admin/admin-products/admin-products.controller.ts`**
+(add next to the existing `update()` method; no `@UseGuards(...)` needed —
+the global `JwtAuthGuard`+`PermissionsGuard` already cover this controller,
+same as every route already in this file):
+
 ```ts
-// admin-products.controller.ts — new route, narrower permission
-@Patch(':id/stock')
-@RequirePermissions(PERMISSIONS.PRODUCTS_UPDATE_STOCK)
-updateStock(@Param('id') id: string, @Body() dto: UpdateProductStockDto) {
-  return this.adminProductsService.updateStock(id, dto.stock);
-}
+  @Patch(':id/stock')
+  @RequirePermissions(PERMISSIONS.PRODUCTS_UPDATE_STOCK)
+  @ApiOperation({ summary: 'Admin: update product stock only' })
+  @ApiOkResponse({ type: AdminProductResponseDto })
+  updateStock(@Param('id') id: string, @Body() dto: UpdateProductStockDto) {
+    return this.adminProductsService.updateStock(id, dto.stock);
+  }
 ```
 
-Grant `PRODUCTS_UPDATE_STOCK` (not full `PRODUCTS_UPDATE`) to whatever role
-is meant to be inventory-only, in `role-permissions.seed.ts`. Same pattern
-applies to the variant stock field if variants need the same split.
+**6. New service method — `src/modules/admin/admin-products/admin-products.service.ts`**
+(mirrors the existing `update()` method's not-found/archived guard and
+response shape exactly):
 
-### 0b-iii. `staff.*` / `customers.*` / `analytics.view` permissions are defined but unused
+```ts
+  async updateStock(id: string, stock: number) {
+    const existingProduct = await this.prisma.product.findUnique({
+      where: { id },
+    });
 
-These are all in `permissions.ts` and seeded in `role-permissions.seed.ts`
-(granted to `ADMIN`/`SUPER_ADMIN`), but no controller in the repo checks
-them — `admin.controller.ts` is an empty stub. If the frontend's
-`users:read`/`users:manage` UI ever calls a real endpoint, confirm that
-endpoint exists and is actually permission-gated before treating that
-surface as safe — right now there's nothing to protect because there's
-nothing built.
+    if (!existingProduct || existingProduct.status === ProductStatus.ARCHIVED) {
+      throw new NotFoundException('Product not found');
+    }
 
-### Structural note: no global guard backstop
+    const product = await this.prisma.product.update({
+      where: { id },
+      data: { stock },
+      include: this.getProductInclude(),
+    });
 
-`app.module.ts` registers only `ThrottlerGuard` via `APP_GUARD` (rate
-limiting) — `JwtAuthGuard`/`PermissionsGuard` are opt-in per controller,
-with no framework-level default. Every current controller opts in
-correctly, but a future controller that forgets `@UseGuards(...)` would be
-completely unprotected and nothing would catch it. **Recommend flipping the
-default:** apply `JwtAuthGuard` (or a combined auth+permissions guard)
-globally via `APP_GUARD`, and add a `@Public()` decorator (reflector-based,
-same mechanism `PermissionsGuard` already uses) for the genuinely public
-routes (`health`, `catalog`, `auth` login/register, guest checkout/cart).
-"Secure by default, opt out for public" fails safer than the reverse.
+    return this.toProductResponse(product);
+  }
+```
+
+Same pattern applies to the variant stock field in
+`ProductVariant`/`UpdateProductVariantDto` if variants need the same split
+— not written out here since it wasn't confirmed whether that's actually
+needed yet.
+
+### 0b-iii. Partially resolved — `analytics.view` is now checked, `staff.*`/`customers.*` are still defined but unused
+
+**Re-checked 2026-08-17 against the current repo:** `admin.controller.ts`
+is no longer an empty stub — it now has a real `GET /admin/stats` route
+gated on `@RequirePermissions(PERMISSIONS.ANALYTICS_VIEW)`. That's exactly
+the endpoint the frontend's `AdminDashboardStats.tsx` calls, and it's
+genuinely permission-gated. **`analytics.view` is resolved — no longer a
+gap.**
+
+`staff.*` (`STAFF_VIEW/CREATE/UPDATE/DISABLE/PERMISSIONS`) and `customers.*`
+(`CUSTOMERS_VIEW/UPDATE/DISABLE`) are still in `permissions.ts` and seeded
+in `role-permissions.seed.ts` (granted to `ADMIN`/`SUPER_ADMIN` — see the
+full role map in §0b-ii above), but a repo-wide search for
+`PERMISSIONS.STAFF_` / `PERMISSIONS.CUSTOMERS_` outside `permissions.ts`
+and the seed files turns up **zero controllers checking them** — there's
+no staff-management or customer-management controller in the repo yet. If
+the frontend's `users:read`/`users:manage` UI ever calls a real endpoint,
+confirm that endpoint exists and is actually permission-gated before
+treating that surface as safe — right now there's nothing to protect
+because there's nothing built.
+
+### Structural note: no global guard backstop — ✅ DONE
+
+**Resolved.** Confirmed directly in `src/app.module.ts`: `ThrottlerGuard`,
+`JwtAuthGuard`, and `PermissionsGuard` are all now registered globally via
+three `APP_GUARD` providers, in that order (`JwtAuthGuard` populates
+`request.user` before `PermissionsGuard` reads it). This is exactly the
+"secure by default, opt out for public" flip that was recommended below —
+no controller needs `@UseGuards(...)` anymore, `@RequirePermissions(...)`
+metadata is all that's needed, and a `@Public()` opt-out exists for the
+genuinely public routes. Nothing further needed. Original recommendation
+kept below for history.
+
+`app.module.ts` used to register only `ThrottlerGuard` via `APP_GUARD` (rate
+limiting) — `JwtAuthGuard`/`PermissionsGuard` were opt-in per controller,
+with no framework-level default. A future controller that forgot
+`@UseGuards(...)` would have been completely unprotected and nothing would
+have caught it.
 
 ---
 
@@ -240,19 +367,95 @@ never admin-set. The admin panel now has a friendly "Discount %" control
 built entirely on the existing fields (no backend change needed — done).
 Two follow-on asks from the user DO need new fields:
 
+**Verified against the actual current repo** — exact model/file locations
+and matching decorator style confirmed, not guessed.
+
 **i. "This is our own brand" flag, for a badge on that brand's products.**
-Add `isOwnBrand: boolean` (default `false`) to the `Brand` model, and to
-`CreateAdminBrandDto`/`UpdateAdminBrandDto`/`AdminBrandResponseDto` (and
-the public brand DTOs, since the storefront needs to read it too). Once
-this exists, the frontend adds a checkbox to `AdminBrandsManager.tsx`'s
-form and a badge computed from `product.brand?.isOwnBrand` — no other
-backend work needed, this is a single boolean column.
+
+`Brand` isn't in its own file — it lives inside `prisma/schema/Product.prisma`
+alongside `Product`/`Category`. Add one line:
+
+```prisma
+model Brand {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  slug        String  @unique
+  description String? @db.Text
+  logo        String?
+  website     String?
+  isActive    Boolean @default(true)
+  isOwnBrand  Boolean @default(false) // ← new
+
+  metaTitle       String?
+  metaDescription String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("brands")
+}
+```
+
+Then add the field to these 4 DTOs, matching each file's exact existing
+decorator style:
+
+```ts
+// src/modules/admin/brands/dto/create-admin-brand.dto.ts
+// (add after isActive — UpdateAdminBrandDto auto-inherits it via PartialType)
+  @ApiPropertyOptional({ example: false, default: false })
+  @IsOptional()
+  @IsBoolean()
+  isOwnBrand?: boolean;
+```
+
+```ts
+// src/modules/admin/brands/dto/admin-brand-response.dto.ts
+// (add to AdminBrandResponseDto)
+  @ApiProperty({ type: Boolean })
+  isOwnBrand: boolean;
+```
+
+```ts
+// src/modules/catalog/dto/catalog-brand-response.dto.ts
+// (add to PublicBrandResponseDto — the storefront needs to read this)
+  @ApiProperty({ type: Boolean })
+  isOwnBrand: boolean;
+```
+
+Once this exists, the frontend adds a checkbox to
+`AdminBrandsManager.tsx`'s form and a badge computed from
+`product.brand?.isOwnBrand` — no other backend work needed.
 
 **ii. A free-text custom badge per product** (e.g. "New Arrival", "Summer
 Sale" — literally anything the admin wants to type, not just the
-auto-computed discount/featured badges). Add `badgeText: string | null`
-(nullable, optional) to the `Product` model and to
-`CreateAdminProductDto`/`UpdateAdminProductDto`/the public product DTOs.
+auto-computed discount/featured badges).
+
+```prisma
+// prisma/schema/Product.prisma — add to model Product, near metaTitle/metaDescription
+  badgeText String? // ← new, nullable/optional — free text, e.g. "New Arrival"
+```
+
+```ts
+// src/modules/admin/admin-products/dto/create-admin-product.dto.ts
+// (add near metaTitle/metaDescription — UpdateAdminProductDto auto-inherits via PartialType)
+  @ApiPropertyOptional({ example: 'New Arrival' })
+  @IsOptional()
+  @IsString()
+  @Length(2, 40)
+  badgeText?: string;
+```
+
+```ts
+// src/modules/catalog/dto/catalog-product-response.dto.ts
+// (add to PublicProductListItemResponseDto — the shop grid needs to read this)
+  @ApiProperty({ type: String, nullable: true })
+  badgeText: string | null;
+```
+
 Frontend adds a text input to `AdminProductForm.tsx`'s Media/Basic section
 and gives it priority over the auto-computed badge in
 `catalog-product-mappers.ts` (custom text → discount % → "Featured" →
@@ -268,11 +471,27 @@ add (no extra backend work) — worth doing both in the same pass.
 
 ---
 
-## 1. Catalog: server-side pagination + search + filter + sort
+## 1. ✅ DONE — Catalog: server-side pagination + search + filter + sort
 
-**Problem:** `GET /products` returns every active product with no params
-(`catalog.controller.ts` — no `@Query`). The frontend currently filters
-in memory, which won't scale past ~100 products.
+**Resolved — shipped 2026-08-16, verified live against `/api-json` (47
+paths, up from the pre-deploy 42), and fully consumed on the frontend**
+(`getCatalogProductsPage()` in `catalog-api.ts`, paginated `ShopPage` +
+`ShopPagination`, see IMPLEMENTATION.md "Paginated Shop UI"). The shipped
+version also added a `brand` query param (brand slug) beyond the original
+ask below — the frontend's shop Brand filter consumes it directly.
+
+**One gap still open, tracked for whenever this DTO is touched next:**
+`PublicProductListItemResponseDto` still has no `createdAt` field, so the
+frontend can't compute product recency for a "New Arrival" badge. Cross-
+referenced in §0c below — if `createdAt` gets added here, "New Arrival"
+becomes a pure frontend add with zero further backend work.
+
+Original spec kept below for history/reference — it's what shipped, minus
+the `brand` param noted above.
+
+**Problem (as originally found):** `GET /products` returned every active
+product with no params (`catalog.controller.ts` — no `@Query`). The
+frontend filtered in memory, which wouldn't have scaled past ~100 products.
 
 ### 1a. New DTO — `src/modules/catalog/dto/catalog-query.dto.ts`
 
@@ -425,18 +644,23 @@ index on `category.slug` if not already present.
 
 ---
 
-## 2. Smaller items the frontend flagged
+## 2. ✅ DONE — Smaller items the frontend flagged
 
-- **Admin dashboard stats endpoint** — `GET /admin/stats` (orders today,
-  revenue, low-stock count). Frontend currently counts client-side from
-  the full orders list; won't scale past a few hundred orders.
+**Resolved — all four shipped 2026-08-16 alongside §1, verified live, and
+wired end-to-end on the frontend:**
+
+- **Admin dashboard stats endpoint** — `GET /admin/stats` is live. Frontend
+  reads it via `useAdminStatsQuery()`, gated on the `analytics.view`
+  permission (`AdminDashboardStats.tsx`) — no more client-side counting
+  from the full orders list.
 - **Password reset / OTP endpoints** — `/auth/forgot-password` +
-  `/auth/reset-password` (needs email sending). Frontend auth pages for
-  these were removed until this exists.
-- **Cart merge endpoint (optional)** — `POST /cart/merge` (guest cart →
-  user cart server-side). Frontend currently replays items one-by-one
-  after login; a single endpoint would be atomic and faster.
-- **Image upload** — Cloudinary/S3 endpoint. Admin product/variant image
-  fields are currently raw URL text inputs (frontend added a host-allowlist
-  safety check so a bad URL degrades to a placeholder instead of crashing,
-  but a real upload flow is still the right long-term fix).
+  `/auth/reset-password` are live. Frontend auth pages
+  (`app/(auth)/forgot-password`, `app/(auth)/reset-password`) restored.
+- **Cart merge endpoint** — `POST /cart/merge` is live. Frontend
+  `mergeGuestCartIntoUser()` calls it directly instead of replaying items
+  one-by-one after login.
+- **Image upload** — live via the admin upload route. Frontend added a
+  multipart proxy (`app/api/admin/uploads/image/route.ts`) plus an Upload
+  button next to the Image URL field in `AdminProductForm.tsx`. The
+  host-allowlist safety check (`shared/lib/safe-image-url.ts`) stays in
+  place regardless, as defense against any bad/foreign URL.

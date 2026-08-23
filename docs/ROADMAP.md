@@ -11,55 +11,62 @@ Legend: 🆕 = new feature (doesn't exist) · 🔧 = update/fix (exists but wron
 
 ## 📍 Next Session — Start Here (last updated 2026-08-17)
 
-**1. Everything below is UNCOMMITTED on purpose — user is testing locally
-first.** Two full sessions' worth of work sits in the working tree: RBAC on
-real backend permissions, admin-manager dedup, a large admin bug-fix pass,
-responsive admin nav, and a full backend-integration wave (pagination,
-cart-merge, admin-stats, forgot/reset-password, image upload) — see
-IMPLEMENTATION.md, dated 2026-08-16/17 sections. `npm run lint && npm run
-typecheck && npm test && npm run build` all green (40 tests) as of
-2026-08-17. **Do not re-derive or redo any of this** — read
-IMPLEMENTATION.md first. Ask the user before committing/pushing.
+**1. `bc0386b` is committed+pushed. A SECOND batch of work on top of it is
+UNCOMMITTED right now** (Phase 5B paginated shop UI + a real Next.js bug
+fix — see item 2). `npm run lint && npm run typecheck && npm test && npm
+run build` all green (46 tests) as of this batch. Ask the user before
+committing/pushing this one too.
 
-**2. Backend is now fully live and integrated.** Confirmed directly against
-`/api-json` (47 paths). Every item from `zemlo-backend`'s own
-`docs/FRONTEND_INTEGRATION_NOTES.md` (copied into this repo, same path) is
-shipped AND wired into the frontend — see "Backend Integration Wave" in
-IMPLEMENTATION.md for exactly what changed in which files. **One thing
-NOT built yet despite the API being ready:** a real paginated `/shop` UI
-(page-number controls, server-side search/category/brand/sort) — the shop
-grid still fetches the whole catalog and filters client-side via
-`getAllCatalogProducts()`. That's the natural next Phase 5B task.
+**2. Phase 5B is now fully done.** `/shop` and `/categories/[slug]` do real
+server-side pagination/search/sort (`getCatalogProductsPage()`) — see
+"Paginated Shop UI" in IMPLEMENTATION.md. While testing this, found and
+fixed a genuine pre-existing bug: `notFound()` was returning HTTP 200
+instead of 404 on `/products/[slug]` and `/categories/[slug]` (confirmed
+upstream Next.js bug, vercel/next.js#75543 — a route-group-level
+`loading.tsx` starts streaming a 200 before `notFound()` can resolve). Fixed
+by scoping `loading.tsx` to just `/shop`. **Side effect to pick up later:**
+home (`/`) lost its blanket loading skeleton — give it back via a
+page-level `<Suspense>` inside `HomePage.tsx`, NOT a route-level
+`loading.tsx` (that would reintroduce the bug).
 
-**3. Phase 6 is done.** Category/brand admin CRUD, variants manager, RBAC
+**3. Decision made 2026-08-17: Phase 5B before Phase 7 (legal pages) —
+Phase 7 is next, and it needs the user's real business details** (legal
+name, address, contact, VAT if applicable) before any Impressum/Datenschutz/
+AGB drafting starts — don't fabricate placeholder legal content.
+
+**4. Backend is fully live and integrated (2026-08-17).** Confirmed
+directly against `/api-json` (47 paths). Every item from `zemlo-backend`'s
+own `docs/FRONTEND_INTEGRATION_NOTES.md` (copied into this repo, same path)
+is shipped AND wired into the frontend — see "Backend Integration Wave" in
+IMPLEMENTATION.md.
+
+**5. Phase 6 is done.** Category/brand admin CRUD, variants manager, RBAC
 UI gating (real backend permissions), and real image upload are all built.
-Nothing outstanding in Phase 6.
 
-**4. Standing rule: no more duplicate admin managers.** See "Admin CRUD
+**6. Standing rule: no more duplicate admin managers.** See "Admin CRUD
 Manager Pattern" in IMPLEMENTATION.md — reuse `useAdminEntityForm`,
 `AdminEntityListSkeleton`/`AdminEntityLoadError`/`AdminFormActions`,
 `admin-form-styles.ts`, and the catalog-hooks factory for any future admin
 list+form screen instead of writing a new one from scratch.
 
-**5. A real crash got fixed — the root cause was in `use-admin-auth.ts`,
-not a browser extension.** The shared admin-auth query used to collapse a
-transient 5xx/network error into "logged out," which could unmount the
-whole admin panel mid-action. See "Admin Dashboard Bug-Fix Pass" in
-IMPLEMENTATION.md. Also: every admin-mutating section (order forms, catalog
-managers, product/variant forms) is now wrapped in
-`AdminSectionErrorBoundary` — a rendering hiccup degrades that one section,
-not the whole page.
+**7. A real crash got fixed earlier — the root cause was in
+`use-admin-auth.ts`, not a browser extension.** The shared admin-auth query
+used to collapse a transient 5xx/network error into "logged out," which
+could unmount the whole admin panel mid-action. See "Admin Dashboard
+Bug-Fix Pass" in IMPLEMENTATION.md. Also: every admin-mutating section is
+now wrapped in `AdminSectionErrorBoundary` — a rendering hiccup degrades
+that one section, not the whole page.
 
-**6. Suggested next big move:** either the Phase 5B paginated-shop UI
-(item 2 above) or Phase 7 (legal pages) — ask the user which.
-
-**7. Backend items still open, tracked in [BACKEND-TODO.md](BACKEND-TODO.md):**
-§0 (automate expired-inventory release, small/safety-critical), §0b-ii/iii
-(2 remaining RBAC gaps: no field-level stock-vs-full-product permission
-split, unused staff/customer permissions), §0c (two small schema fields —
-`Brand.isOwnBrand`, `Product.badgeText` — for admin badge/discount UX the
-user asked about; the discount % control itself is already built using
-existing fields, no backend change needed for that part).
+**8. Backend items — polished to ready-to-paste 2026-08-17, verified
+against the actual `zemlo-backend` repo (not guessed).** §0 (inventory
+cron), its guard-backstop note, §1 (pagination), and §2 (stats/password-
+reset/cart-merge/upload) are all ✅ DONE — confirmed live in the repo. Only
+tracked in [BACKEND-TODO.md](BACKEND-TODO.md) still: §0b-ii (stock-only
+permission split, now with exact file paths + code for all 6 steps
+including the DB permission-seed step), §0b-iii (`staff.*`/`customers.*`
+permissions still have no controller — informational, not urgent), §0c
+(two small schema fields — `Brand.isOwnBrand`, `Product.badgeText` — now
+with exact Prisma + DTO snippets matching the real files).
 
 **Docs map (avoid re-reading everything — pick the right one):**
 - **This file (ROADMAP.md)** — the checklist: what's done ✅, what's left, in what order.
@@ -131,7 +138,7 @@ existing fields, no backend change needed for that part).
 *Current shop breaks down past a few dozen products.*
 
 - [x] 🔧 **`catalog-api.ts` adapted for pagination** — done 2026-08-17: backend shipped `GET /products` as `{items, total, page, limit, pageCount}` with `page/limit/search/category/brand/sort` params (verified live). `getCatalogProductsPage()` (raw paginated shape) + `getAllCatalogProducts()` (loops all pages, used by shop/home/sitemap) both added — see IMPLEMENTATION.md "Backend Integration Wave". **Not done yet:** an actual paginated `/shop` UI — page-number controls + wiring `ShopFilters` to the server params instead of client-side filtering. The API is ready; the UI still fetches everything and filters in the browser.
-- [ ] 🔧 **Server-side filtering/search/sort UI** — API supports it now (`search`/`category`/`brand`/`sort` params, confirmed live); `ShopFilters`/`ShopProductGrid` still do client-side filtering over the full fetched catalog. Wiring this up is the next real Phase 5B task — not blocked anymore, just not built.
+- [x] 🔧 **Server-side filtering/search/sort/pagination UI** — done 2026-08-17: `/shop` and `/categories/[slug]` use `getCatalogProductsPage()` (search/category/sort/page all sent to the backend) with Previous/Next pagination controls. See IMPLEMENTATION.md "Paginated Shop UI". **Not done:** a brand filter in the UI (API supports `?brand=`, nothing calls it) and numbered page links beyond Previous/Next — revisit if the catalog grows past ~5-10 pages.
 - [x] 🆕 **Category pages** — done 2026-07-19: `/categories/[slug]` with per-category SEO metadata, `notFound()` on bad slugs, ISR; reuses shared `get-shop-data.ts` loader + `ShopPage` (new optional heading/description props)
 - [x] 🔧 **`/products` route** — done: redirects to `/shop` (was a bare stub)
 - [ ] 🆕 **Search UX** — partial: navbar search icon pointed to `/shop` (was linking to a non-existent `/search` → 404!); dedicated search page with live results deferred until backend search param exists
@@ -182,7 +189,8 @@ existing fields, no backend change needed for that part).
 - [ ] 🧹 **Delete legacy `src/components/`** — migrate remaining home sections into `features`/`widgets` per ARCHITECTURE.md, remove `LogoLoop.tsx` `as any` mess or isolate it
 - [ ] 🔧 **Tighten tsconfig** — add `noUncheckedIndexedAccess`, `noUnusedLocals`; drop `allowJs`
 - [ ] 🔧 **Update ARCHITECTURE.md** — finish the doc, remove Zustand claim (not installed), match reality
-- [x] 🆕 Root `not-found.tsx` + `global-error.tsx`; `(admin)` error boundary — done 2026-07-20 (triggered by a real crash, see below). `loading.tsx` for `/shop` and `/products/[slug]` still open
+- [x] 🆕 Root `not-found.tsx` + `global-error.tsx`; `(admin)` error boundary — done 2026-07-20 (triggered by a real crash, see below). `loading.tsx` for `/shop` — done 2026-08-17 (moved from a `(public)`-group-level file — see the notFound bug item just below for why it couldn't stay group-level). `/products/[slug]` and `/categories/[slug]` deliberately have NO `loading.tsx` (see below) — home (`/`) lost its blanket skeleton as a side effect, tracked as open below.
+- [x] 🔒 **Fixed a real, pre-existing bug: `notFound()` returned HTTP 200, not 404** — done 2026-08-17, found while testing the paginated shop UI. Confirmed upstream Next.js bug (vercel/next.js#75543/#77235/#82041): a `loading.tsx` anywhere in a route's ancestry makes Next.js start streaming a `200` before an in-page `notFound()` resolves. Affected `/products/[slug]` and `/categories/[slug]` (the only two routes calling `notFound()`) since Phase 5A — an indexable "200 OK" 404 page is a real SEO defect that nothing had caught before (no E2E tests check raw HTTP status codes). Fixed by moving `(public)/loading.tsx` down to `(public)/shop/loading.tsx` only. **Follow-up, not done:** give the home page (`/`) back a loading state via a page-level `<Suspense>` boundary inside `HomePage.tsx` instead of a route-level `loading.tsx` (which would reintroduce this exact bug for `/products/[slug]`/`/categories/[slug]` since it cascades to all of `(public)`).
 - [x] 🔒 **Image-host crash fix** — done 2026-07-20: an admin-entered product image from an unlisted host (`placehold.co`) crashed `<Image>` and took down the ENTIRE shop/home/cart page for every visitor (not just that product) — the exact blast-radius risk this document warns about. Root cause: Phase 1 tightened `next.config.ts` image hosts to an allowlist (correct security fix) but nothing validated URLs against it before render. Fixed with `shared/lib/safe-image-url.ts` (falls back to the local placeholder instead of crashing) applied at every image-mapping site; consolidated a literal-duplicate "pick best product image" chain that existed in BOTH `entities/product` and `components/home` mappers into one shared `resolveBestProductImage()`. 5 new tests lock this in (36 total).
 
 **Done when:** CI is green on every PR and the money path has an automated test.
